@@ -1,0 +1,10 @@
+NavfnROS:
+  allow_unknow: true
+  use_dijkstra: true
+  use_quadratic: true
+  use_grid_path: false
+  old_navfn_behavior: false
+  visualize_potensial: false
+  cost_factor: 0.55
+  neutral_cost: 66
+  lethal_cost: 253
