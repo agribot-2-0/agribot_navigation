@@ -1,0 +1,5 @@
+<launch>
+
+    <node name="inverse_kinematics_node" pkg="agribot_navigation" type="inverse_kinematics"/>
+
+</launch>
