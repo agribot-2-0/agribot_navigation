@@ -18,6 +18,10 @@ enum
     BACK_LINEAR,
     BACK_ANGULAR
 };
+enum {
+    FRONT_CART,
+    BACK_CART
+};
 
 InverseKinematics RevKinematics;
 bool bDataReceived=false;
@@ -25,7 +29,16 @@ bool bDataReceived=false;
 void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 {
     RevKinematics.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
-    RevKinematics.vSetInputAngular(cmd_msg.angular.x, cmd_msg.angular.y, cmd_msg.angular.z);
+	bDataReceived=true;
+}
+void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
+{
+    RevKinematics.vSetFrontCartAngle(front_cart_msg.data);
+	bDataReceived=true;
+}
+void encoderBackCallback(const std_msgs::Float32 front_cart_msg)
+{
+    RevKinematics.vSetBackCartAngle(back_cart_msg.data);
 	bDataReceived=true;
 }
 
@@ -44,6 +57,8 @@ int main(int argc, char **argv)
         command_sub_topic=argv[1];
     }
 	ros::Subscriber inverse_kinematics_sub = n.subscribe(command_sub_topic, 1000, cmdVelCallback);
+	ros::Subscriber front_cart_sub = n.subscribe("/agribot/encoder/cart/front", 1000, encoderFrontCallback);
+	ros::Subscriber back_cart_kinematics_sub = n.subscribe("/agribot/encoder/cart/back", 1000, encoderBackCallback);
 	ros::Publisher inverse_kinematics_pub = n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar",1);
     agribot_msgs::AgribotCaterpillar caterpilar_msg;
 
