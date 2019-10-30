@@ -24,22 +24,22 @@ enum {
     BACK_CART
 };
 
-InverseKinematics RevKinematics;
+InverseKinematics InvKinematics;
 bool bDataReceived=false;
 
 void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 {
-    RevKinematics.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
+    InvKinematics.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
 	bDataReceived=true;
 }
 void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
 {
-    RevKinematics.vSetFrontCartAngle(front_cart_msg.data);
+    InvKinematics.vSetFrontCartAngle(front_cart_msg.data);
 	bDataReceived=true;
 }
 void encoderBackCallback(const std_msgs::Float32 back_cart_msg)
 {
-    RevKinematics.vSetBackCartAngle(back_cart_msg.data);
+    InvKinematics.vSetBackCartAngle(back_cart_msg.data);
 	bDataReceived=true;
 }
 
@@ -71,10 +71,12 @@ int main(int argc, char **argv)
 		if(bDataReceived)
 		{
 			bDataReceived=false;
-			RevKinematics.update();
-			double fpCaterpilarVelocities [4];
-			RevKinematics.vGetCaterpilareVelocities(fpCaterpilarVelocities);
-			caterpilar_msg.header.frame_id = "/agribot/inclinometer";
+			InvKinematics.update();
+			double *fpCaterpilarVelocities=InvKinematics.vGetCaterpilareVelocities();
+			caterpilar_msg.header.frame_id = "agribot/control/caterpillar";
+			ROS_INFO_NAMED("agribot_drive", "Set  FL  speed = %lf, FA speed= %lf, BL speed = %lf, BA speed= %lf",
+                  fpCaterpilarVelocities[FRONT_LINEAR], fpCaterpilarVelocities[FRONT_ANGULAR],
+                  fpCaterpilarVelocities[BACK_LINEAR], fpCaterpilarVelocities[BACK_ANGULAR]);
 			caterpilar_msg.header.stamp = ros::Time::now();
 			caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];
 			caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR];

@@ -23,7 +23,7 @@ public:
     virtual bool cleanup();
 
     void vCalculateInverseKinematics();
-    void vGetCaterpilareVelocities(double output[]);
+    double* vGetCaterpilareVelocities();
     void vSetInputLinear(double x, double y, double z);
     void vSetInputAngular(double x, double y, double z);   
     void vSetFrontCartAngle(double theta);
