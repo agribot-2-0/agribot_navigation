@@ -3,6 +3,7 @@
 #include <agribot_navigation/InverseKinematics.h>
 #include <agribot_msgs/AgribotCaterpillar.h>
 #include <geometry_msgs/Twist.h>
+#include <std_msgs/Float32.h>
 #define ROS_TIMEOUT 20
 
 enum
@@ -36,7 +37,7 @@ void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
     RevKinematics.vSetFrontCartAngle(front_cart_msg.data);
 	bDataReceived=true;
 }
-void encoderBackCallback(const std_msgs::Float32 front_cart_msg)
+void encoderBackCallback(const std_msgs::Float32 back_cart_msg)
 {
     RevKinematics.vSetBackCartAngle(back_cart_msg.data);
 	bDataReceived=true;
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
 		{
 			bDataReceived=false;
 			RevKinematics.update();
-			float fpCaterpilarVelocities [4];
+			double fpCaterpilarVelocities [4];
 			RevKinematics.vGetCaterpilareVelocities(fpCaterpilarVelocities);
 			caterpilar_msg.header.frame_id = "/agribot/inclinometer";
 			caterpilar_msg.header.stamp = ros::Time::now();

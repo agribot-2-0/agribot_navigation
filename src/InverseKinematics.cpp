@@ -19,8 +19,8 @@ enum {
 
 InverseKinematics::InverseKinematics()
 {
-    this->_pfCartPositions[FRONT_CART]=0;
-    this->_pfCartPositions[BACK_CART]=0;
+    this->_pfCartAngle[FRONT_CART]=0;
+    this->_pfCartAngle[BACK_CART]=0;
     double wheel_radius_= 0.16;
     double wheel_separation_=1.05 + 0.025;
     double chasis_length_= 2.42- 2*wheel_radius_;
@@ -43,14 +43,14 @@ void InverseKinematics::vCalculateInverseKinematics(){
     //v_l_p = ((2 * v_t) - (w_t * L)) / (2 * R) = (2*v-w*L/2)/R
     //v_t=sin(theta_1)/sin(theta_2)*v_p
     
-    _pfControl[0]=sqrt(_pfInputLinear[X]*_pfInputLinear[X]+_pfInputLinear[Y]*_pfInputLinear[Y])
-    _pfControl[1]=_pfInputAngular[Z] - sin(cart_angle_[FRONT_CART] - cart_angle_[BACK_CART]) * _pfControl[0] / chasis_length_; 
+    _pfControl[0]=sqrt(_pfInputLinear[X]*_pfInputLinear[X]+_pfInputLinear[Y]*_pfInputLinear[Y]);
+    _pfControl[1]=_pfInputAngular[Z] - sin(_pfCartAngle[FRONT_CART] - _pfCartAngle[BACK_CART]) * _pfControl[0] / chasis_length_; 
     _pfControl[2]= - _pfControl[1];
 
     _pfCaterpillarVelocities[FRONT_LINEAR] = _pfControl[0];
-    _pfCaterpillarVelocities[FRONT_ANGULAR]= (_pfControl[1] + sin(cart_angle_[FRONT_CART] - cart_angle_[BACK_CART]) / cos(cart_angle_[BACK_CART]) * _pfControl[0] / chasis_length_);
-    _pfCaterpillarVelocities[BACK_LINEAR]= cos(cart_angle_[FRONT_CART]) / cos(cart_angle_[BACK_CART]) * _pfControl[0];
-    _pfCaterpillarVelocities[BACK_ANGULAR]= -1 * (_pfControl[2] + sin(cart_angle_[FRONT_CART] - cart_angle_[BACK_CART]) / cos(cart_angle_[BACK_CART]) * _pfControl[0] / chasis_length_);
+    _pfCaterpillarVelocities[FRONT_ANGULAR]= (_pfControl[1] + sin(_pfCartAngle[FRONT_CART] - _pfCartAngle[BACK_CART]) / cos(_pfCartAngle[BACK_CART]) * _pfControl[0] / chasis_length_);
+    _pfCaterpillarVelocities[BACK_LINEAR]= cos(_pfCartAngle[FRONT_CART]) / cos(_pfCartAngle[BACK_CART]) * _pfControl[0];
+    _pfCaterpillarVelocities[BACK_ANGULAR]= -1 * (_pfControl[2] + sin(_pfCartAngle[FRONT_CART] - _pfCartAngle[BACK_CART]) / cos(_pfCartAngle[BACK_CART]) * _pfControl[0] / chasis_length_);
 
 }
 void InverseKinematics::vGetCaterpilareVelocities(double output[])
