@@ -53,7 +53,7 @@
       <!--command="load"-->
     <!--/>-->
     <!--<param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />-->
-    <!--<remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>-->
-    <!--<remap from="odom" to="$(arg odom_topic)"/>-->
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
   </node>
 </launch>
