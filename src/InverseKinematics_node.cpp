@@ -4,6 +4,8 @@
 #include <agribot_msgs/AgribotCaterpillar.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Float32.h>
+#include <nav_msgs/Odometry.h>
+#include <tf/tf.h>
 #define ROS_TIMEOUT 20
 
 enum
@@ -30,6 +32,19 @@ bool bDataReceived=false;
 void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 {
     InvKinematics.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
+	InvKinematics.vSetInputAngular(cmd_msg.angular.x, cmd_msg.angular.y, cmd_msg.angular.z);
+	bDataReceived=true;
+}
+void odometryCallback(const nav_msgs::Odometry odom_msg)
+{
+	tf::Quaternion q(odom_msg.pose.pose.orientation.x,
+					odom_msg.pose.pose.orientation.y,
+					odom_msg.pose.pose.orientation.z,
+					odom_msg.pose.pose.orientation.w);
+	tf::Matrix3x3 m(q);
+	double roll, pitch, yaw;
+	m.getRPY(roll, pitch, yaw);
+    InvKinematics.vSetChassisAngle(yaw);
 	bDataReceived=true;
 }
 void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
@@ -58,6 +73,7 @@ int main(int argc, char **argv)
         command_sub_topic=argv[1];
     }
 	ros::Subscriber inverse_kinematics_sub = n.subscribe(command_sub_topic, 1000, cmdVelCallback);
+	ros::Subscriber odometry_sub = n.subscribe("/agribot/odometry", 1000, odometryCallback);
 	ros::Subscriber front_cart_sub = n.subscribe("/agribot/encoder/cart/front", 1000, encoderFrontCallback);
 	ros::Subscriber back_cart_kinematics_sub = n.subscribe("/agribot/encoder/cart/back", 1000, encoderBackCallback);
 	ros::Publisher inverse_kinematics_pub = n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar",1);

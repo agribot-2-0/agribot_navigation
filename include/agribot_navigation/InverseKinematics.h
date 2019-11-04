@@ -10,6 +10,7 @@ private:
     double _pfCaterpillarVelocities  [4];
     double _pfControl[3];
     double _pfCartAngle [2];
+    double _fChassisAngle;
     double wheel_separation_;
     double wheel_radius_;
     double chasis_length_;
@@ -26,6 +27,7 @@ public:
     double* vGetCaterpilareVelocities();
     void vSetInputLinear(double x, double y, double z);
     void vSetInputAngular(double x, double y, double z);   
+    void vSetChassisAngle(double theta);
     void vSetFrontCartAngle(double theta);
     void vSetBackCartAngle(double theta);
 };

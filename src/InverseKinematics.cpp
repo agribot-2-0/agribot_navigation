@@ -1,5 +1,9 @@
 #include <agribot_navigation/InverseKinematics.h>
 #include <math.h>
+#include <ros/ros.h>
+#include <ros/console.h>
+
+#define HISTERESIS 0.05
 
 enum
 {
@@ -24,6 +28,7 @@ InverseKinematics::InverseKinematics()
 {
     this->_pfCartAngle[FRONT_CART] = 0;
     this->_pfCartAngle[BACK_CART] = 0;
+    this-> _fChassisAngle=0;
     this-> wheel_radius_ = 0.16;
     this-> wheel_separation_ = 1.05 + 0.025;
     this-> chasis_length_ = 2.42 - 2 * wheel_radius_;
@@ -38,7 +43,7 @@ bool InverseKinematics::stop() {}
 bool InverseKinematics::cleanup() {}
 void InverseKinematics::vCalculateInverseKinematics()
 {
-    //n1=sqrt(x^2+y^2)
+    //n1 = cos(theta0)*vx+sin(theta0)*vy
     //n2=YAW - (sin(1-2)/cos(2)*n1/2l)
     //n3=(sin(1-2)/cos(2)*n1/2l) - YAW
     //v_r_p = ((2 * v_p) + (w_p * L)) / (2 * R) = (2*v+w*L/2)/R
@@ -46,14 +51,59 @@ void InverseKinematics::vCalculateInverseKinematics()
     //v_r_p = ((2 * v_t) + (w_t * L)) / (2 * R) = (2*v+w*L/2)/R
     //v_l_p = ((2 * v_t) - (w_t * L)) / (2 * R) = (2*v-w*L/2)/R
     //v_t=sin(theta_1)/sin(theta_2)*v_p
+    // ROS_ERROR_NAMED("agribot_drive", "LINEAR  %f %f %f", _pfInputLinear[X], _pfInputLinear[Y], _pfInputLinear[Z]);
+    // ROS_ERROR_NAMED("agribot_drive", "ANGULAR %f %f %f", _pfInputAngular[X], _pfInputAngular[Y], _pfInputAngular[Z]);
+    // ROS_ERROR_NAMED("agribot_drive", "COND    %f %f %f", chasis_length_ * _pfInputAngular[Z] / 0.5 , asin(chasis_length_ * _pfInputAngular[Z] / 0.5) ,  _pfCartAngle[FRONT_CART]);
 
-    _pfControl[0] = sqrt(_pfInputLinear[X] * _pfInputLinear[X] + _pfInputLinear[Y] * _pfInputLinear[Y]);
-    _pfControl[1] = _pfInputAngular[Z] - sin(_pfCartAngle[FRONT_CART] - _pfCartAngle[BACK_CART]) * _pfControl[0] / chasis_length_ / cos(_pfCartAngle[BACK_CART]);
-    _pfControl[2] = -_pfControl[1];
+    if (_pfInputAngular[Z]!=0 )
+        if (abs(asin(chasis_length_ * _pfInputAngular[Z] / 0.5) - _pfCartAngle[FRONT_CART]) > HISTERESIS)
+        {
+            _pfControl[0] = 0;
+            if(_pfInputAngular[Z])
+                _pfControl[1] = HISTERESIS;
+            else
+                _pfControl[1] = HISTERESIS;
+            
+            _pfControl[2] = -_pfControl[1];
+        }
+        else
+        {
+            _pfControl[0] = _pfInputLinear[X];
+            _pfControl[1] = 0;
+            _pfControl[2] = 0;
+        }
+    else
+        if(_pfInputLinear[X]!=0)
+            if (  abs( _pfCartAngle[FRONT_CART]) > HISTERESIS)
+            {
+                _pfControl[0] = 0;
+                if( _pfCartAngle[FRONT_CART] < 0)
+                    _pfControl[1] = HISTERESIS;
+                else
+                    _pfControl[1] = HISTERESIS;
+            
+                _pfControl[2] = -_pfControl[1];
+            }
+            else
+            {
+                _pfControl[0] = _pfInputLinear[X];
+                _pfControl[1] = 0;
+                _pfControl[2] = 0;
+            }
+        else
+        {
+            _pfControl[0] = 0;
+            _pfControl[1] = 0;
+            _pfControl[2] = 0;
+        }
+            
+
+
+
     _pfCaterpillarVelocities[FRONT_LINEAR] = _pfControl[0];
-    _pfCaterpillarVelocities[FRONT_ANGULAR] = (_pfControl[1] + sin(_pfCartAngle[FRONT_CART] - _pfCartAngle[BACK_CART]) / cos(_pfCartAngle[BACK_CART]) * _pfControl[0] / chasis_length_);
+    _pfCaterpillarVelocities[FRONT_ANGULAR] = _pfControl[1];
     _pfCaterpillarVelocities[BACK_LINEAR] = cos(_pfCartAngle[FRONT_CART]) / cos(_pfCartAngle[BACK_CART]) * _pfControl[0];
-    _pfCaterpillarVelocities[BACK_ANGULAR] = -1 * (_pfControl[2] + sin(_pfCartAngle[FRONT_CART] - _pfCartAngle[BACK_CART]) / cos(_pfCartAngle[BACK_CART]) * _pfControl[0] / chasis_length_);
+    _pfCaterpillarVelocities[BACK_ANGULAR] = _pfControl[2];
 }
 double* InverseKinematics::vGetCaterpilareVelocities()
 {
@@ -75,6 +125,10 @@ void InverseKinematics::vSetInputAngular(double x, double y, double z)
     this->_pfInputAngular[X] = x;
     this->_pfInputAngular[Y] = y;
     this->_pfInputAngular[Z] = z;
+}
+void InverseKinematics::vSetChassisAngle(double theta)
+{
+    this->_fChassisAngle = theta;
 }
 void InverseKinematics::vSetFrontCartAngle(double theta)
 {
