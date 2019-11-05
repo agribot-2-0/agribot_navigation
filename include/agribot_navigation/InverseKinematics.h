@@ -1,6 +1,7 @@
 # pragma once
 
 #include <agribot_navigation/AgribotComponent.h>
+#include <agribot_navigation/PID.h>
 
 class InverseKinematics: public AgribotComponent
 {
@@ -14,6 +15,9 @@ private:
     double wheel_separation_;
     double wheel_radius_;
     double chasis_length_;
+    double _lastTime;
+    PID *_Front_Cart_PID;
+    PID *_Back_Cart_PID;
 public: 
     InverseKinematics();
 
@@ -30,4 +34,5 @@ public:
     void vSetChassisAngle(double theta);
     void vSetFrontCartAngle(double theta);
     void vSetBackCartAngle(double theta);
+    void vUpdatePIDs(double t);
 };

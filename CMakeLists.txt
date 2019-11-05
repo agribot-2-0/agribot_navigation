@@ -128,7 +128,7 @@ link_directories(
 )
 
 add_executable(inverse_kinematics
-  src/InverseKinematics.cpp src/InverseKinematics_node.cpp 
+  src/PID.cpp src/InverseKinematics.cpp src/InverseKinematics_node.cpp 
 )
 target_link_libraries(inverse_kinematics
   ${GAZEBO_LIBRARIES}
