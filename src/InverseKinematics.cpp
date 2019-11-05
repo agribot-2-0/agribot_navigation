@@ -34,8 +34,8 @@ InverseKinematics::InverseKinematics()
     this->chasis_length_ = 2.42 - 2 * wheel_radius_;
     //  TO DO
     //  SET UP PID GAINS
-    this->_Front_Cart_PID = new PID(0.1, 0.01, 1, -PI/4, PI/4);
-    this->_Back_Cart_PID = new PID(0.1, 0.01, 1, -PI/4, PI/4);
+    this->_Front_Cart_PID = new PID(0.1, 0.01, 1, -PI / 4, PI / 4);
+    this->_Back_Cart_PID = new PID(0.1, 0.01, 1, -PI / 4, PI / 4);
 }
 int InverseKinematics::configure() {}
 bool InverseKinematics::startup() {}
@@ -51,27 +51,25 @@ void InverseKinematics::vCalculateInverseKinematics()
     if (_pfInputAngular[Z] != 0)
         if (_pfInputLinear[X] != 0)
         {
-            this->_Front_Cart_PID->vSetSP(asin(_pfInputAngular[Z]*chasis_length_ / 2 / _pfInputLinear[X]));
+            this->_Front_Cart_PID->vSetSP(asin(_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X]));
             this->_Back_Cart_PID->vSetSP(-_pfCartAngle[FRONT_CART]);
         }
         else
         {
             _pfControl[0] = _pfInputAngular[Z] * chasis_length_ / 2;
-            if (_pfInputAngular[Z] > 0)
-            {
-                this->_Front_Cart_PID->vSetSP(PI/2);
-                this->_Back_Cart_PID->vSetSP(-PI/2);
-            }
-            else
-            {
-                this->_Front_Cart_PID->vSetSP(-PI/2);
-                this->_Back_Cart_PID->vSetSP(+PI/2);
-            }
+            this->_Front_Cart_PID->vSetSP(PI / 2);
+            this->_Back_Cart_PID->vSetSP(-PI / 2);
         }
-    else 
+    else    
+        if (_pfInputLinear[X] != 0)
         {
             this->_Front_Cart_PID->vSetSP(0);
             this->_Back_Cart_PID->vSetSP(0);
+        }
+        else
+        {
+            this->_Front_Cart_PID->vSetSP(_pfCartAngle[FRONT_CART]);
+            this->_Back_Cart_PID->vSetSP(_pfCartAngle[BACK_CART]);
         }
     vUpdatePIDs(ros::Time::now().toSec());
     _pfControl[1] = this->_Front_Cart_PID->dGetCV();
