@@ -1,6 +1,7 @@
 #include <agribot_navigation/InverseKinematics.h>
 #include <math.h>
 #include <ros/ros.h>
+#include <ros/console.h>
 
 #define HISTERESIS 0.05
 #define PI 3.14159265359
@@ -51,7 +52,21 @@ void InverseKinematics::vCalculateInverseKinematics()
     if (_pfInputAngular[Z] != 0)
         if (_pfInputLinear[X] != 0)
         {
-            this->_Front_Cart_PID->vSetSP(asin(_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X]));
+            if (_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X] > 1)
+            {
+                this->_Front_Cart_PID->vSetSP(PI / 2);
+                ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pfInputLinear[X]/_pfInputAngular[Z], chasis_length_ / 2);
+            }
+            else 
+                if (_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X] < -1)
+                {
+                    this->_Front_Cart_PID->vSetSP(-PI / 2);
+                    ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pfInputLinear[X]/_pfInputAngular[Z], chasis_length_ / 2);
+                }
+                else
+                {
+                    this->_Front_Cart_PID->vSetSP(asin(_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X]));
+                }
             this->_Back_Cart_PID->vSetSP(-_pfCartAngle[FRONT_CART]);
         }
         else
