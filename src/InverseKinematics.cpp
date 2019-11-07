@@ -148,7 +148,7 @@ void InverseKinematics::vSetBackCartAngle(double theta)
 void InverseKinematics::vUpdatePIDs(double t)
 {
     double dt = t - this->_lastTime;
-    this->_Front_Cart_PID->Update(_pfCartAngle[FRONT_CART], dt);
-    this->_Back_Cart_PID->Update(_pfCartAngle[BACK_CART], dt);
+    this->_Front_Cart_PID->Update(_pfCartAngle[FRONT_CART], dt, true);
+    this->_Back_Cart_PID->Update(_pfCartAngle[BACK_CART], dt, false);
     this->_lastTime = t;
 }

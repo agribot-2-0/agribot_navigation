@@ -219,3 +219,6 @@ install(TARGETS
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_dependencies(inverse_kinematics ${catkin_EXPORTED_TARGETS})
+

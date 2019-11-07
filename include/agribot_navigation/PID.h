@@ -26,5 +26,5 @@ public:
     void vSetBias(double Bias);
     void vResetError();
     double dGetCV();
-    double Update(double PV, double dt);
+    double Update(double PV, double dt, bool isFront);
 };

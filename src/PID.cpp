@@ -60,7 +60,7 @@ double PID::dGetCV()
 {
     return this->_ControlValue;
 }
-double PID::Update(double PresentValue, double dt)
+double PID::Update(double PresentValue, double dt, bool isFront)
 {
     this->_Error = this->_SetPoint - PresentValue;
     if (this->_ControlValue < this->_HighLimit && this->_ControlValue > this->_LowLimit)
@@ -81,7 +81,16 @@ double PID::Update(double PresentValue, double dt)
     this->_ControlValue += this->_Kp * this->_Error; 
     this->_ControlValue += this->_Kd * Derrivative; 
     this->_ControlValue += this->_Bias;
-    ROS_INFO_NAMED("PID", "dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f",
+    if (isFront)
+    {
+        ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f",
                     dt,this->_SetPoint,PresentValue,this->_ControlValue,this->_Error,this->_ErrorSum,this->_ErrorPrior);
+    }
+    else
+    {
+        ROS_INFO_NAMED("PID", "BACK;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f",
+                    dt,this->_SetPoint,PresentValue,this->_ControlValue,this->_Error,this->_ErrorSum,this->_ErrorPrior);
+    }
+                    
     return this->_ControlValue;
 }
