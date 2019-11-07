@@ -35,17 +35,30 @@ InverseKinematics::InverseKinematics()
     this->chasis_length_ = 2.42 - 2 * wheel_radius_;
     //  TO DO
     //  SET UP PID GAINS
-    this->_Front_Cart_PID = new PID(0.1, 0.01, 1, -PI / 4, PI / 4);
-    this->_Back_Cart_PID = new PID(0.1, 0.01, 1, -PI / 4, PI / 4);
+    this->_Front_Cart_PID = new PID(0.05, 0.00001, 0.8, -PI / 4, PI / 4);
+    this->_Back_Cart_PID = new PID(0.05, 0.00001, 0.8, -PI / 4, PI / 4);
 }
-int InverseKinematics::configure() {}
-bool InverseKinematics::startup() {}
+int InverseKinematics::configure() 
+{
+    return 0;
+}
+bool InverseKinematics::startup() 
+{
+    return false;
+}
 bool InverseKinematics::update()
 {
     this->vCalculateInverseKinematics();
+    return true;
 }
-bool InverseKinematics::stop() {}
-bool InverseKinematics::cleanup() {}
+bool InverseKinematics::stop() 
+{
+    return false;
+}
+bool InverseKinematics::cleanup() 
+{
+    return false;
+}
 void InverseKinematics::vCalculateInverseKinematics()
 {
     _pfControl[0] = _pfInputLinear[X];
@@ -83,12 +96,22 @@ void InverseKinematics::vCalculateInverseKinematics()
         }
         else
         {
+            this->_Front_Cart_PID->vResetError();
+            this->_Back_Cart_PID->vResetError();
             this->_Front_Cart_PID->vSetSP(_pfCartAngle[FRONT_CART]);
             this->_Back_Cart_PID->vSetSP(_pfCartAngle[BACK_CART]);
         }
     vUpdatePIDs(ros::Time::now().toSec());
-    _pfControl[1] = this->_Front_Cart_PID->dGetCV();
-    _pfControl[2] = this->_Back_Cart_PID->dGetCV();
+    if (_pfInputLinear[X] == 0 && _pfInputAngular[Z] == 0)
+    {
+        _pfControl[1] = 0;
+        _pfControl[2] = 0;
+    }
+    else
+    {
+        _pfControl[1] = this->_Front_Cart_PID->dGetCV();
+        _pfControl[2] = this->_Back_Cart_PID->dGetCV();
+    }
     _pfCaterpillarVelocities[FRONT_LINEAR] = _pfControl[0];
     _pfCaterpillarVelocities[FRONT_ANGULAR] = _pfControl[1];
     _pfCaterpillarVelocities[BACK_LINEAR] = cos(_pfCartAngle[FRONT_CART]) / cos(_pfCartAngle[BACK_CART]) * _pfControl[0];

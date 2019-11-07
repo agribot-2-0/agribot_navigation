@@ -90,9 +90,6 @@ int main(int argc, char **argv)
 			InvKinematics.update();
 			double *fpCaterpilarVelocities=InvKinematics.vGetCaterpilareVelocities();
 			caterpilar_msg.header.frame_id = "agribot/control/caterpillar";
-			ROS_INFO_NAMED("agribot_drive", "Set  FL  speed = %lf, FA speed= %lf, BL speed = %lf, BA speed= %lf",
-					fpCaterpilarVelocities[FRONT_LINEAR], fpCaterpilarVelocities[FRONT_ANGULAR],
-					fpCaterpilarVelocities[BACK_LINEAR], fpCaterpilarVelocities[BACK_ANGULAR]);
 			caterpilar_msg.header.stamp = ros::Time::now();
 			caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];
 			caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR];

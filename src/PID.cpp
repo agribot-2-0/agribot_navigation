@@ -1,5 +1,7 @@
 #include <agribot_navigation/PID.h>
 #include <math.h>
+#include <ros/ros.h>
+#include <ros/console.h>
 
 PID::PID()
 {
@@ -79,5 +81,7 @@ double PID::Update(double PresentValue, double dt)
     this->_ControlValue += this->_Kp * this->_Error; 
     this->_ControlValue += this->_Kd * Derrivative; 
     this->_ControlValue += this->_Bias;
+    ROS_INFO_NAMED("PID", "dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f",
+                    dt,this->_SetPoint,PresentValue,this->_ControlValue,this->_Error,this->_ErrorSum,this->_ErrorPrior);
     return this->_ControlValue;
 }
