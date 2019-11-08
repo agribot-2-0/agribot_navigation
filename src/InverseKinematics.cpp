@@ -36,8 +36,8 @@ InverseKinematics::InverseKinematics()
     //  TO DO
     //  SET UP PID GAINS
     //                              KP      KD      KI      LL      HL
-    this->_Front_Cart_PID = new PID(0.005, 0.06, 0.001, -PI / 4, PI / 4); 
-    this->_Back_Cart_PID = new PID(0.005, 0.06, 0.001, -PI / 4, PI / 4);
+    this->_Front_Cart_PID = new PID(0.002, 0.03, 0.00001, -PI / 4, PI / 4); 
+    this->_Back_Cart_PID = new PID(0.002, 0.03, 0.00001, -PI / 4, PI / 4);
 }
 int InverseKinematics::configure() 
 {
@@ -81,6 +81,7 @@ void InverseKinematics::vCalculateInverseKinematics()
                 }
                 else
                 {
+                    // this->_Front_Cart_PID->vSetSP(asin(_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X]));
                     if (_pfInputLinear[X] > 0)
                     {
                         this->_Front_Cart_PID->vSetSP(asin(_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X]));
@@ -89,9 +90,9 @@ void InverseKinematics::vCalculateInverseKinematics()
                     {
                         this->_Back_Cart_PID->vSetSP(-asin(_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X]));
                     }
-                    
                 }
             }
+            // this->_Back_Cart_PID->vSetSP(-_pfCartAngle[FRONT_CART]);
             if (_pfInputLinear[X] > 0)
             {
                 this->_Back_Cart_PID->vSetSP(-_pfCartAngle[FRONT_CART]);
