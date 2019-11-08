@@ -84,17 +84,9 @@ int main(int argc, char **argv)
 			caterpilar_msg.header.frame_id = "agribot/control/caterpillar";
 			caterpilar_msg.header.stamp = ros::Time::now();
 			caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];
-			#ifdef SIMULATION
-			caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR];
-			#else
 			caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR]*180/PI;
-			#endif
 			caterpilar_msg.back_linear = fpCaterpilarVelocities[BACK_LINEAR];
-			#ifdef SIMULATION
-			caterpilar_msg.back_angular = fpCaterpilarVelocities[BACK_ANGULAR];
-			#else
 			caterpilar_msg.back_angular = fpCaterpilarVelocities[BACK_ANGULAR]*180/PI;
-			#endif
 			inverse_kinematics_pub.publish(caterpilar_msg);
 			u16TimeTrack = 0;
 		}
