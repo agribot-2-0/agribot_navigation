@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 		{
 			bDataReceived=false;
 			InvKinematics.update();
-			double *fpCaterpilarVelocities=InvKinematics.vGetCaterpilareVelocities();
+			double *fpCaterpilarVelocities=InvKinematics.pdGetCaterpillarVelocities();
 			caterpilar_msg.header.frame_id = "agribot/control/caterpillar";
 			caterpilar_msg.header.stamp = ros::Time::now();
 			caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];

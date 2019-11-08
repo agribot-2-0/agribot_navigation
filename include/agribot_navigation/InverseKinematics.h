@@ -6,18 +6,18 @@
 class InverseKinematics: public AgribotComponent
 {
 private:
-    double _pfInputLinear [3];
-    double _pfInputAngular [3];
-    double _pfCaterpillarVelocities  [4];
-    double _pfControl[3];
-    double _pfCartAngle [2];
-    double _fChassisAngle;
-    double wheel_separation_;
-    double wheel_radius_;
-    double chasis_length_;
-    double _lastTime;
-    PID *_Front_Cart_PID;
-    PID *_Back_Cart_PID;
+    double _pdInputLinear [3];
+    double _pdInputAngular [3];
+    double _pdCaterpillarVelocities  [4];
+    double _pdControl[3];
+    double _pdCartAngle [2];
+    double _dChassisAngle;
+    double _dWheelSeparation;
+    double _dWheelRadius;
+    double _dChassisLength;
+    double _dLastTime;
+    PID *_pFrontCartPID;
+    PID *_pBackCartPID;
 public: 
     InverseKinematics();
 
@@ -28,7 +28,7 @@ public:
     virtual bool cleanup();
 
     void vCalculateInverseKinematics();
-    double* vGetCaterpilareVelocities();
+    double* pdGetCaterpillarVelocities();
     void vSetInputLinear(double x, double y, double z);
     void vSetInputAngular(double x, double y, double z);   
     void vSetChassisAngle(double theta);

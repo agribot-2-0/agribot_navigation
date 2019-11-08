@@ -27,16 +27,16 @@ enum
 
 InverseKinematics::InverseKinematics()
 {
-    this->_pfCartAngle[FRONT_CART] = 0;
-    this->_pfCartAngle[BACK_CART] = 0;
-    this->_fChassisAngle = 0;
-    this->wheel_radius_ = 0.16;
-    this->wheel_separation_ = 1.05 + 0.025;
-    this->chasis_length_ = 2.42 - 2 * wheel_radius_;
+    this->_pdCartAngle[FRONT_CART] = 0;
+    this->_pdCartAngle[BACK_CART] = 0;
+    this->_dChassisAngle = 0;
+    this->_dWheelRadius = 0.16;
+    this->_dWheelSeparation = 1.05 + 0.025;
+    this->_dChassisLength = 2.42 - 2 * _dWheelRadius;
     //  TO DO
     //  SET UP PID GAINS
-    this->_Front_Cart_PID = new PID(0.05, 0.00001, 0.8, -PI / 4, PI / 4);
-    this->_Back_Cart_PID = new PID(0.05, 0.00001, 0.8, -PI / 4, PI / 4);
+    this->_pFrontCartPID = new PID(0.05, 0.00001, 0.8, -PI / 4, PI / 4);
+    this->_pBackCartPID = new PID(0.05, 0.00001, 0.8, -PI / 4, PI / 4);
 }
 int InverseKinematics::configure() 
 {
@@ -61,100 +61,100 @@ bool InverseKinematics::cleanup()
 }
 void InverseKinematics::vCalculateInverseKinematics()
 {
-    _pfControl[0] = _pfInputLinear[X];
-    if (_pfInputAngular[Z] != 0)
+    _pdControl[0] = _pdInputLinear[X];
+    if (_pdInputAngular[Z] != 0)
     {
-        if (_pfInputLinear[X] != 0)
+        if (_pdInputLinear[X] != 0)
         {
-            if (_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X] > 1)
+            if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] > 1)
             {
-                this->_Front_Cart_PID->vSetSP(PI / 2);
-                ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pfInputLinear[X]/_pfInputAngular[Z], chasis_length_ / 2);
+                this->_pFrontCartPID->vSetSP(PI / 2);
+                ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
             }
             else 
             {
-                if (_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X] < -1)
+                if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] < -1)
                 {
-                    this->_Front_Cart_PID->vSetSP(-PI / 2);
-                    ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pfInputLinear[X]/_pfInputAngular[Z], chasis_length_ / 2);
+                    this->_pFrontCartPID->vSetSP(-PI / 2);
+                    ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
                 }
                 else
                 {
-                    this->_Front_Cart_PID->vSetSP(asin(_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X]));
+                    this->_pFrontCartPID->vSetSP(asin(_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X]));
                 }
             }
-            this->_Back_Cart_PID->vSetSP(-_pfCartAngle[FRONT_CART]);
+            this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
         }
         else
         {
-            _pfControl[0] = _pfInputAngular[Z] * chasis_length_ / 2;
-            this->_Front_Cart_PID->vSetSP(PI / 2);
-            this->_Back_Cart_PID->vSetSP(-PI / 2);
+            _pdControl[0] = _pdInputAngular[Z] * _dChassisLength / 2;
+            this->_pFrontCartPID->vSetSP(PI / 2);
+            this->_pBackCartPID->vSetSP(-PI / 2);
         }
     }    
     else
     {    
-        if (_pfInputLinear[X] != 0)
+        if (_pdInputLinear[X] != 0)
         {
-            this->_Front_Cart_PID->vSetSP(0);
-            this->_Back_Cart_PID->vSetSP(0);
+            this->_pFrontCartPID->vSetSP(0);
+            this->_pBackCartPID->vSetSP(0);
         }
         else
         {
-            this->_Front_Cart_PID->vResetError();
-            this->_Back_Cart_PID->vResetError();
-            this->_Front_Cart_PID->vSetSP(_pfCartAngle[FRONT_CART]);
-            this->_Back_Cart_PID->vSetSP(_pfCartAngle[BACK_CART]);
+            this->_pFrontCartPID->vResetError();
+            this->_pBackCartPID->vResetError();
+            this->_pFrontCartPID->vSetSP(_pdCartAngle[FRONT_CART]);
+            this->_pBackCartPID->vSetSP(_pdCartAngle[BACK_CART]);
         }
     }
     vUpdatePIDs(ros::Time::now().toSec());
-    if (_pfInputLinear[X] == 0 && _pfInputAngular[Z] == 0)
+    if (_pdInputLinear[X] == 0 && _pdInputAngular[Z] == 0)
     {
-        _pfControl[1] = 0;
-        _pfControl[2] = 0;
+        _pdControl[1] = 0;
+        _pdControl[2] = 0;
     }
     else
     {
-        _pfControl[1] = this->_Front_Cart_PID->dGetCV();
-        _pfControl[2] = this->_Back_Cart_PID->dGetCV();
+        _pdControl[1] = this->_pFrontCartPID->dGetCV();
+        _pdControl[2] = this->_pBackCartPID->dGetCV();
     }
-    _pfCaterpillarVelocities[FRONT_LINEAR] = _pfControl[0];
-    _pfCaterpillarVelocities[FRONT_ANGULAR] = _pfControl[1];
-    _pfCaterpillarVelocities[BACK_LINEAR] = cos(_pfCartAngle[FRONT_CART]) / cos(_pfCartAngle[BACK_CART]) * _pfControl[0];
-    _pfCaterpillarVelocities[BACK_ANGULAR] = _pfControl[2];
+    _pdCaterpillarVelocities[FRONT_LINEAR] = _pdControl[0];
+    _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
+    _pdCaterpillarVelocities[BACK_LINEAR] = cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
+    _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
 }
-double *InverseKinematics::vGetCaterpilareVelocities()
+double *InverseKinematics::pdGetCaterpillarVelocities()
 {
-    return this->_pfCaterpillarVelocities;
+    return this->_pdCaterpillarVelocities;
 }
 void InverseKinematics::vSetInputLinear(double x, double y, double z)
 {
-    this->_pfInputLinear[X] = x;
-    this->_pfInputLinear[Y] = y;
-    this->_pfInputLinear[Z] = z;
+    this->_pdInputLinear[X] = x;
+    this->_pdInputLinear[Y] = y;
+    this->_pdInputLinear[Z] = z;
 }
 void InverseKinematics::vSetInputAngular(double x, double y, double z)
 {
-    this->_pfInputAngular[X] = x;
-    this->_pfInputAngular[Y] = y;
-    this->_pfInputAngular[Z] = z;
+    this->_pdInputAngular[X] = x;
+    this->_pdInputAngular[Y] = y;
+    this->_pdInputAngular[Z] = z;
 }
 void InverseKinematics::vSetChassisAngle(double theta)
 {
-    this->_fChassisAngle = theta;
+    this->_dChassisAngle = theta;
 }
 void InverseKinematics::vSetFrontCartAngle(double theta)
 {
-    this->_pfCartAngle[FRONT_CART] = theta;
+    this->_pdCartAngle[FRONT_CART] = theta;
 }
 void InverseKinematics::vSetBackCartAngle(double theta)
 {
-    this->_pfCartAngle[BACK_CART] = theta;
+    this->_pdCartAngle[BACK_CART] = theta;
 }
 void InverseKinematics::vUpdatePIDs(double t)
 {
-    double dt = t - this->_lastTime;
-    this->_Front_Cart_PID->Update(_pfCartAngle[FRONT_CART], dt, true);
-    this->_Back_Cart_PID->Update(_pfCartAngle[BACK_CART], dt, false);
-    this->_lastTime = t;
+    double dt = t - this->_dLastTime;
+    this->_pFrontCartPID->Update(_pdCartAngle[FRONT_CART], dt, true);
+    this->_pBackCartPID->Update(_pdCartAngle[BACK_CART], dt, false);
+    this->_dLastTime = t;
 }
