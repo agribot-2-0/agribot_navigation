@@ -63,6 +63,7 @@ void InverseKinematics::vCalculateInverseKinematics()
 {
     _pfControl[0] = _pfInputLinear[X];
     if (_pfInputAngular[Z] != 0)
+    {
         if (_pfInputLinear[X] != 0)
         {
             if (_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X] > 1)
@@ -71,6 +72,7 @@ void InverseKinematics::vCalculateInverseKinematics()
                 ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pfInputLinear[X]/_pfInputAngular[Z], chasis_length_ / 2);
             }
             else 
+            {
                 if (_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X] < -1)
                 {
                     this->_Front_Cart_PID->vSetSP(-PI / 2);
@@ -80,6 +82,7 @@ void InverseKinematics::vCalculateInverseKinematics()
                 {
                     this->_Front_Cart_PID->vSetSP(asin(_pfInputAngular[Z] * chasis_length_ / 2 / _pfInputLinear[X]));
                 }
+            }
             this->_Back_Cart_PID->vSetSP(-_pfCartAngle[FRONT_CART]);
         }
         else
@@ -88,7 +91,9 @@ void InverseKinematics::vCalculateInverseKinematics()
             this->_Front_Cart_PID->vSetSP(PI / 2);
             this->_Back_Cart_PID->vSetSP(-PI / 2);
         }
-    else    
+    }    
+    else
+    {    
         if (_pfInputLinear[X] != 0)
         {
             this->_Front_Cart_PID->vSetSP(0);
@@ -101,6 +106,7 @@ void InverseKinematics::vCalculateInverseKinematics()
             this->_Front_Cart_PID->vSetSP(_pfCartAngle[FRONT_CART]);
             this->_Back_Cart_PID->vSetSP(_pfCartAngle[BACK_CART]);
         }
+    }
     vUpdatePIDs(ros::Time::now().toSec());
     if (_pfInputLinear[X] == 0 && _pfInputAngular[Z] == 0)
     {
