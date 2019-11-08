@@ -83,13 +83,13 @@ double PID::Update(double PresentValue, double dt, bool isFront)
     this->_ControlValue += this->_Bias;
     if (isFront)
     {
-        ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f",
-                    dt,this->_SetPoint,PresentValue,this->_ControlValue,this->_Error,this->_ErrorSum,this->_ErrorPrior);
+        ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
+                    dt,this->_SetPoint,PresentValue,this->_ControlValue,this->_Error,this->_ErrorSum,this->_ErrorPrior,this->_Kp,this->_Ki,this->_Kd);
     }
     else
     {
-        ROS_INFO_NAMED("PID", "BACK;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f",
-                    dt,this->_SetPoint,PresentValue,this->_ControlValue,this->_Error,this->_ErrorSum,this->_ErrorPrior);
+        ROS_INFO_NAMED("PID", "BACK;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
+                    dt,this->_SetPoint,PresentValue,this->_ControlValue,this->_Error,this->_ErrorSum,this->_ErrorPrior,this->_Kp,this->_Ki,this->_Kd);
     }
                     
     return this->_ControlValue;
