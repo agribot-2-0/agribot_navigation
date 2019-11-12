@@ -71,7 +71,7 @@ double PID::Update(double PresentValue, double dt, bool isFront)
     {
         this->_ErrorSum += this->_Error * dt;
     }
-    double Derrivative = (this->_ErrorPrior - this->_Error) / dt;
+    double Derrivative = (this->_Error - this->_ErrorPrior) / dt;
     //ANTI-WINDUP
     if ((this->_ControlValue > this->_HighLimit || this->_ControlValue < this->_LowLimit) 
      && (this->_ControlValue  * this->_Error > 0))
