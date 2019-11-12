@@ -60,6 +60,10 @@ double PID::dGetCV()
 {
     return this->_ControlValue;
 }
+double PID::dGetError()
+{
+    return this->_Error;
+}
 double PID::Update(double PresentValue, double dt, bool isFront)
 {
     this->_Error = this->_SetPoint - PresentValue;
