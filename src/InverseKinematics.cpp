@@ -70,14 +70,14 @@ void InverseKinematics::vCalculateInverseKinematics()
             if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] > 1)
             {
                 this->_pFrontCartPID->vSetSP(PI / 2);
-                ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
+                ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
             }
             else 
             {
                 if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] < -1)
                 {
                     this->_pFrontCartPID->vSetSP(-PI / 2);
-                    ROS_ERROR_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
+                    ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
                 }
                 else
                 {
