@@ -36,8 +36,8 @@ InverseKinematics::InverseKinematics()
     //  TO DO
     //  SET UP PID GAINS
     //                              KP      KD      KI      LL      HL
-    this->_pFrontCartPID = new PID(0.002, 0.03, 0.00001, -PI / 4, PI / 4); 
-    this->_pBackCartPID = new PID(0.002, 0.03, 0.00001, -PI / 4, PI / 4);
+    this->_pFrontCartPID = new PID(0.75, 0.05, 0.001, -PI / 4, PI / 4); 
+    this->_pBackCartPID = new PID(0.75, 0.05, 0.001, -PI / 4, PI / 4);
 }
 int InverseKinematics::configure() 
 {
