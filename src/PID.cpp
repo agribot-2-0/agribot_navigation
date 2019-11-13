@@ -21,8 +21,8 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_SetPoint = 0;
     this->_ErrorSum = 0;
     this->_ErrorPrior = 0;
-    this->_PVPrior = 0;
-    this->_PVPrevious = 0;
+    this->_DerPrior = 0;
+    this->_DerPrevious = 0;
     this->_ControlValue = 0;
     this->_Bias = 0;
 }
@@ -68,7 +68,7 @@ double PID::dGetError()
 }
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
-    this->_Error = (this->_SetPoint - ProcessValue/3 - this->_PVPrior/3 - this->_PVPrevious/3);
+    this->_Error = this->_SetPoint - ProcessValue;
     if (this->_ControlValue < this->_HighLimit && this->_ControlValue > this->_LowLimit)
     {
         this->_ErrorSum += this->_Error * dt;
@@ -85,7 +85,7 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
         this->_ControlValue=_Ki * this->_ErrorSum; ;
     }
     this->_ControlValue += this->_Kp * this->_Error; 
-    this->_ControlValue += this->_Kd * Derrivative; 
+    this->_ControlValue += this->_Kd * (Derrivative/3+this->_DerPrior/3+this->_DerPrevious/3); 
     this->_ControlValue += this->_Bias;
     if (isFront)
     {
@@ -97,8 +97,8 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
         ROS_INFO_NAMED("PID", "BACK;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
                     dt,this->_SetPoint,ProcessValue,this->_ControlValue,this->_Error,this->_ErrorSum,Derrivative,this->_Kp,this->_Ki,this->_Kd);
     }
-    this->_PVPrevious=this->_PVPrior;
-    this->_PVPrior=ProcessValue;
+    this->_DerPrevious=this->_DerPrior;
+    this->_DerPrior=Derrivative;
     this->_ErrorPrior = this->_Error;                 
     return this->_ControlValue;
 }
