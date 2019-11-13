@@ -6,8 +6,8 @@
 #define HISTERESIS 0.05
 #define PI 3.14159265359
 #define KP_val 0.75 
-#define KI_val 0.001
-#define KD_val 0.25
+#define KI_val 0.208333
+#define KD_val 1.378125
 
 enum
 {
@@ -65,7 +65,7 @@ bool InverseKinematics::cleanup()
 }
 void InverseKinematics::vCalculateInverseKinematics()
 {
-    if (abs(_pFrontCartPID->dGetError()*180/PI)>1.5)
+    if (abs(_pFrontCartPID->dGetError()*180/PI)>2)
     {
         this->_pFrontCartPID->vSetKp(KP_val);
         this->_pFrontCartPID->vSetKi(KI_val);
@@ -73,22 +73,22 @@ void InverseKinematics::vCalculateInverseKinematics()
     }
     else
     {
-        this->_pFrontCartPID->vSetKp(KP_val/2);
-        this->_pFrontCartPID->vSetKi(KI_val*25);
-        this->_pFrontCartPID->vSetKd(KD_val);
+        this->_pFrontCartPID->vSetKp(KP_val*2/7);
+        this->_pFrontCartPID->vSetKi(KI_val*8/35);
+        this->_pFrontCartPID->vSetKd(KD_val*40/63);
     }
     
-    if (abs(_pBackCartPID->dGetError()*180/PI)>1.5)
+    if (abs(_pBackCartPID->dGetError()*180/PI)>2)
     {
-        this->_pBackCartPID->vSetKp(KP_val*2);
+        this->_pBackCartPID->vSetKp(KP_val);
         this->_pBackCartPID->vSetKi(KI_val);
-        this->_pBackCartPID->vSetKd(KD_val*5);
+        this->_pBackCartPID->vSetKd(KD_val);
     }
     else
     {
-        this->_pBackCartPID->vSetKp(KP_val);
-        this->_pBackCartPID->vSetKi(KI_val*25);
-        this->_pBackCartPID->vSetKd(KD_val*5);
+        this->_pBackCartPID->vSetKp(KP_val*2/7);
+        this->_pBackCartPID->vSetKi(KI_val*8/35);
+        this->_pBackCartPID->vSetKd(KD_val*40/63);
     }
     
     
