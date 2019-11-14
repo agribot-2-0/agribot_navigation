@@ -10,6 +10,7 @@ private:
     double _DerPrior;
     double _DerPrevious;
     double _ControlValue;
+    double _DesiredSetPoint;
     double _SetPoint;
     double _ErrorSum;
     double _LowLimit;

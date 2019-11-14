@@ -3,6 +3,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
+#define SP_ACCELERATION 2*3.14159265359/180
+
 PID::PID()
 {
     this->_SetPoint = 0;
@@ -18,6 +20,7 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_Ki = ki;
     this->_LowLimit = LL;
     this->_HighLimit = HL;
+    this->_DesiredSetPoint = 0;
     this->_SetPoint = 0;
     this->_ErrorSum = 0;
     this->_ErrorPrior = 0;
@@ -48,7 +51,7 @@ void PID::vSetHighLimit(double HL)
 }
 void PID::vSetSP(double SP)
 {
-    this->_SetPoint = SP;
+    this->_DesiredSetPoint = SP;
 }
 void PID::vSetBias(double Bias)
 {
@@ -68,6 +71,30 @@ double PID::dGetError()
 }
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
+    //SP RAMP
+    if (this->_DesiredSetPoint - this->_SetPoint < 0)
+    {
+        if (this->_DesiredSetPoint - this->_SetPoint > -SP_ACCELERATION)
+        {
+            this->_SetPoint = this->_DesiredSetPoint;
+        }
+        else
+        {
+            this->_SetPoint = this->_DesiredSetPoint - SP_ACCELERATION;
+        }  
+    }
+    else
+    {
+        if (this->_DesiredSetPoint - this->_SetPoint < SP_ACCELERATION)
+        {
+            this->_SetPoint = this->_DesiredSetPoint;
+        }
+        else
+        {
+            this->_SetPoint = this->_DesiredSetPoint + SP_ACCELERATION;
+        }
+    }
+    //ERROR CALCULTATION
     this->_Error = this->_SetPoint - ProcessValue;
     if (this->_ControlValue < this->_HighLimit && this->_ControlValue > this->_LowLimit)
     {
@@ -87,6 +114,7 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     this->_ControlValue += this->_Kp * this->_Error; 
     this->_ControlValue += this->_Kd * (Derrivative/3+this->_DerPrior/3+this->_DerPrevious/3); 
     this->_ControlValue += this->_Bias;
+    //INFO TO PLOT
     if (isFront)
     {
         ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
