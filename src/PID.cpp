@@ -68,7 +68,7 @@ double PID::dGetError()
 }
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
-    this->_Error = (this->_SetPoint - ProcessValue/3 - this->_PVPrior/3 - this->_PVPrevious/3);
+    this->_Error = (this->_SetPoint - (ProcessValue*0.75 + this->_PVPrior*0.15 + this->_PVPrevious*0.1));
     if (this->_ControlValue < this->_HighLimit && this->_ControlValue > this->_LowLimit)
     {
         this->_ErrorSum += this->_Error * dt;
