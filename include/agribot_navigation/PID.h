@@ -7,8 +7,8 @@ private:
     double _Bias;
     double _Error;
     double _ErrorPrior;
-    double _PVPrior;
-    double _PVPrevious;
+    double _DerPrior;
+    double _DerPrevious;
     double _ControlValue;
     double _SetPoint;
     double _ErrorSum;

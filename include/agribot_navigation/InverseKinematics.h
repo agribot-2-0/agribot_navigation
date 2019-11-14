@@ -1,6 +1,6 @@
 # pragma once
 
-#include <agribot_navigation/AgribotComponent.h>
+#include <agribot_common/AgribotComponent.h>
 #include <agribot_navigation/PID.h>
 
 class InverseKinematics: public AgribotComponent
