@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   roscpp
   move_base
+  agribot_common
 )
 
 ## System dependencies are found with CMake's conventions
@@ -121,6 +122,7 @@ include_directories(include
   ${Boost_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${GAZEBO_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/agribot_common/include
 )
 
 link_directories(
