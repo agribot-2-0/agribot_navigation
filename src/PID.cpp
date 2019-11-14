@@ -3,7 +3,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#define SP_ACCELERATION 2*3.14159265359/180
+#define SP_ACCELERATION 0.15*3.14159265359/180
 
 PID::PID()
 {
@@ -80,7 +80,7 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
         }
         else
         {
-            this->_SetPoint = this->_DesiredSetPoint - SP_ACCELERATION;
+            this->_SetPoint -= SP_ACCELERATION;
         }  
     }
     else
@@ -91,7 +91,7 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
         }
         else
         {
-            this->_SetPoint = this->_DesiredSetPoint + SP_ACCELERATION;
+            this->_SetPoint += SP_ACCELERATION;
         }
     }
     //ERROR CALCULTATION

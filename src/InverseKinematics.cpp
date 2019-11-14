@@ -5,7 +5,7 @@
 
 #define HISTERESIS 0.05
 #define PI 3.14159265359
-#define KP_val 0.75 
+#define KP_val 0.75
 #define KI_val 0.208333
 #define KD_val 1.378125
 
