@@ -8,6 +8,7 @@
 PID::PID()
 {
     this->_DesiredSetPoint = 0;
+    this->_NextSetPoint = 0;
     this->_SetPoint = 0;
     this->_ErrorSum = 0;
     this->_ProcessValuePrior = 0;
@@ -24,6 +25,7 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_LowLimit = LL;
     this->_HighLimit = HL;
     this->_DesiredSetPoint = 0;
+    this->_NextSetPoint = 0;
     this->_SetPoint = 0;
     this->_ErrorSum = 0;
     this->_ProcessValuePrior = 0;
@@ -75,11 +77,32 @@ double PID::dGetError()
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
     //SP RAMP
-    if (this->_DesiredSetPoint - this->_SetPoint < 0)
+    if (abs(ProcessValue-this->_NextSetPoint)<10*SP_ACCELERATION)
     {
-        if (this->_DesiredSetPoint - this->_SetPoint > -SP_ACCELERATION)
+        if (abs(this->_DesiredSetPoint-this->_NextSetPoint)>10*SP_ACCELERATION)
         {
-            this->_SetPoint = this->_DesiredSetPoint;
+            if (this->_DesiredSetPoint-this->_NextSetPoint>0)
+            {
+                this->_NextSetPoint+=10*SP_ACCELERATION;
+            }
+            else
+            {
+                this->_NextSetPoint-=10*SP_ACCELERATION;
+            }
+            
+        }
+        else
+        {
+            this->_NextSetPoint=this->_DesiredSetPoint;
+        }
+        
+    }
+    
+    if (this->_NextSetPoint - this->_SetPoint < 0)
+    {
+        if (this->_NextSetPoint - this->_SetPoint > -SP_ACCELERATION)
+        {
+            this->_SetPoint = this->_NextSetPoint;
         }
         else
         {
@@ -88,15 +111,16 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     }
     else
     {
-        if (this->_DesiredSetPoint - this->_SetPoint < SP_ACCELERATION)
+        if (this->_NextSetPoint - this->_SetPoint < SP_ACCELERATION)
         {
-            this->_SetPoint = this->_DesiredSetPoint;
+            this->_SetPoint = this->_NextSetPoint;
         }
         else
         {
             this->_SetPoint += SP_ACCELERATION;
         }
     }
+
     //ERROR CALCULTATION
     this->_Error = this->_SetPoint - ProcessValue;
     if (this->_ControlValue < this->_HighLimit && this->_ControlValue > this->_LowLimit)

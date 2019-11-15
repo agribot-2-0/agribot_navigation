@@ -12,6 +12,7 @@ private:
     double _ControlValue;
     double _DesiredSetPoint;
     double _SetPoint;
+    double _NextSetPoint;
     double _ErrorSum;
     double _LowLimit;
     double _HighLimit;
