@@ -81,6 +81,10 @@ double PID::dGetError()
 {
     return this->_Error;
 }
+double PID::dGetDesiredSP()
+{
+    return this->_DesiredSetPoint;
+}
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
     //SP RAMP
@@ -130,10 +134,6 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
 
     //ERROR CALCULTATION
     this->_Error = this->_SetPoint - ProcessValue;
-    if (this->_ControlValue < this->_HighLimit && this->_ControlValue > this->_LowLimit)
-    {   
-        this->_ErrorSum += this->_Error * dt;
-    }
     double Derrivative = (this->_ProcessValuePrior - ProcessValue) / dt;
     //ANTI-WINDUP
     if ((this->_ControlValue > this->_HighLimit || this->_ControlValue < this->_LowLimit) 
@@ -143,12 +143,21 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     }           
     else
     {
+        this->_ErrorSum += this->_Error * dt;
         this->_ControlValue=_Ki * this->_ErrorSum; ;
     }
     this->_ControlValue += this->_Kp * this->_Error; 
     this->_ControlValue += this->_Kd * (Derrivative/3+this->_DerPrior/3+this->_DerPrevious/3); 
     this->_ControlValue += this->_Bias;
     //INFO TO PLOT
+    if (this->_ControlValue > this->_HighLimit)
+    {
+        this->_ControlValue = this->_HighLimit;
+    }
+    if (this->_ControlValue < this->_LowLimit)
+    {
+        this->_ControlValue = this->_LowLimit;
+    }
     if (isFront)
     {
         ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",

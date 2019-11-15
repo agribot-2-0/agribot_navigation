@@ -5,6 +5,7 @@
 
 #define HISTERESIS 0.05
 #define PI 3.14159265359
+#define ANGLE_RANGE PI/2
 #define LIMIT 20*PI/180
 #define KP_val 0.75
 #define KI_val 0.208333
@@ -37,6 +38,7 @@ InverseKinematics::InverseKinematics()
     this->_dWheelRadius = 0.16;
     this->_dWheelSeparation = 1.05 + 0.025;
     this->_dChassisLength = 2.42 - 2 * _dWheelRadius;
+    this->_dLinearMultiplier = 1;
     //  TO DO
     //  SET UP PID GAINS
     //                              KP      KD      KI      LL      HL
@@ -172,9 +174,12 @@ void InverseKinematics::vCalculateInverseKinematics()
         _pdControl[1] = this->_pFrontCartPID->dGetCV();
         _pdControl[2] = this->_pBackCartPID->dGetCV();
     }
-    _pdCaterpillarVelocities[FRONT_LINEAR] = _pdControl[0];
+    // a = min ( abs(|SPf-PVf|/RANGE) , abs(|SPb-PVb|/RANGE) )
+    this->_dLinearMultiplier=std::min(abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP())/ANGLE_RANGE,
+                                 abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP())/ANGLE_RANGE);
+    _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
-    _pdCaterpillarVelocities[BACK_LINEAR] = cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
+    _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
     _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
 }
 double *InverseKinematics::pdGetCaterpillarVelocities()

@@ -16,6 +16,7 @@ private:
     double _dWheelRadius;
     double _dChassisLength;
     double _dLastTime;
+    double _dLinearMultiplier;
     PID *_pFrontCartPID;
     PID *_pBackCartPID;
 public: 

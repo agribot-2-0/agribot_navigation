@@ -34,5 +34,6 @@ public:
     void vResetError();
     double dGetCV();
     double dGetError();
+    double dGetDesiredSP();
     double Update(double PV, double dt, bool isFront);
 };
