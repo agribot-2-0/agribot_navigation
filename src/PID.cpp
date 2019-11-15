@@ -3,9 +3,6 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#define SP_ACCELERATION 0.15*3.14159265359/180
-#define SP_ACC_MULTIPLIER 20
-
 PID::PID()
 {
     this->_DesiredSetPoint = 0;
@@ -17,6 +14,8 @@ PID::PID()
     this->_DerPrevious = 0;
     this->_ControlValue = 0;
     this->_Bias = 0;
+    this->_SpAcceleration = 0.15*3.14159265359/180;
+    this->_SpAccMultiplier = 20;
 }
 PID::PID(double kp, double kd, double ki, double LL, double HL)
 {
@@ -34,6 +33,8 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_DerPrevious = 0;
     this->_ControlValue = 0;
     this->_Bias = 0;
+    this->_SpAcceleration = 0.15*3.14159265359/180;
+    this->_SpAccMultiplier = 20;
 }
 void PID::vSetKp(double kp)
 {
@@ -63,6 +64,11 @@ void PID::vSetBias(double Bias)
 {
     this->_Bias = Bias;
 }
+void PID::vSetSPAcceleration(double Acceleration, double Multiplier)
+{
+    this->_SpAcceleration = Acceleration;
+    this->_SpAccMultiplier = Multiplier;
+}
 void PID::vResetError()
 {
     this->_ErrorSum = 0;
@@ -78,17 +84,17 @@ double PID::dGetError()
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
     //SP RAMP
-    if (abs(ProcessValue-this->_NextSetPoint)<SP_ACC_MULTIPLIER*SP_ACCELERATION)
+    if (abs(ProcessValue-this->_NextSetPoint)<this->_SpAccMultiplier*this->_SpAcceleration)
     {
-        if (abs(this->_DesiredSetPoint-this->_NextSetPoint)>SP_ACC_MULTIPLIER*SP_ACCELERATION)
+        if (abs(this->_DesiredSetPoint-this->_NextSetPoint)>this->_SpAccMultiplier*this->_SpAcceleration)
         {
             if (this->_DesiredSetPoint-this->_NextSetPoint>0)
             {
-                this->_NextSetPoint+=SP_ACC_MULTIPLIER*SP_ACCELERATION;
+                this->_NextSetPoint+=this->_SpAccMultiplier*this->_SpAcceleration;
             }
             else
             {
-                this->_NextSetPoint-=SP_ACC_MULTIPLIER*SP_ACCELERATION;
+                this->_NextSetPoint-=this->_SpAccMultiplier*this->_SpAcceleration;
             }
             
         }
@@ -101,24 +107,24 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     
     if (this->_NextSetPoint - this->_SetPoint < 0)
     {
-        if (this->_NextSetPoint - this->_SetPoint > -SP_ACCELERATION)
+        if (this->_NextSetPoint - this->_SetPoint > -this->_SpAcceleration)
         {
             this->_SetPoint = this->_NextSetPoint;
         }
         else
         {
-            this->_SetPoint -= SP_ACCELERATION;
+            this->_SetPoint -= this->_SpAcceleration;
         }  
     }
     else
     {
-        if (this->_NextSetPoint - this->_SetPoint < SP_ACCELERATION)
+        if (this->_NextSetPoint - this->_SetPoint < this->_SpAcceleration)
         {
             this->_SetPoint = this->_NextSetPoint;
         }
         else
         {
-            this->_SetPoint += SP_ACCELERATION;
+            this->_SetPoint += this->_SpAcceleration;
         }
     }
 

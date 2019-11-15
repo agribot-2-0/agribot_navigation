@@ -118,10 +118,12 @@ void InverseKinematics::vCalculateInverseKinematics()
                     if (_pdInputLinear[X] > 0)
                     {
                         this->_pFrontCartPID->vSetSP(asin(_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X]));
+                        this->_pFrontCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
                     }
                     else
                     {
                         this->_pBackCartPID->vSetSP(-asin(_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X]));
+                        this->_pBackCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
                     }
                 }
             }
@@ -129,10 +131,12 @@ void InverseKinematics::vCalculateInverseKinematics()
             if (_pdInputLinear[X] > 0)
             {
                 this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
+                this->_pBackCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
             }
             else
             {
                 this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
+                this->_pFrontCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
             }
         }
         else

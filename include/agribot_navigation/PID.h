@@ -16,6 +16,8 @@ private:
     double _ErrorSum;
     double _LowLimit;
     double _HighLimit;
+    double _SpAcceleration;
+    double _SpAccMultiplier;
 
 public:
     PID();
@@ -28,6 +30,7 @@ public:
     void vSetHighLimit(double SP);
     void vSetSP(double SP);
     void vSetBias(double Bias);
+    void vSetSPAcceleration(double Acceleration, double Multiplier);
     void vResetError();
     double dGetCV();
     double dGetError();
