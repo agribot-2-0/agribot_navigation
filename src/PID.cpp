@@ -7,9 +7,12 @@
 
 PID::PID()
 {
+    this->_DesiredSetPoint = 0;
     this->_SetPoint = 0;
     this->_ErrorSum = 0;
-    this->_ErrorPrior = 0;
+    this->_ProcessValuePrior = 0;
+    this->_DerPrior = 0;
+    this->_DerPrevious = 0;
     this->_ControlValue = 0;
     this->_Bias = 0;
 }
@@ -23,7 +26,7 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_DesiredSetPoint = 0;
     this->_SetPoint = 0;
     this->_ErrorSum = 0;
-    this->_ErrorPrior = 0;
+    this->_ProcessValuePrior = 0;
     this->_DerPrior = 0;
     this->_DerPrevious = 0;
     this->_ControlValue = 0;
@@ -97,10 +100,10 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     //ERROR CALCULTATION
     this->_Error = this->_SetPoint - ProcessValue;
     if (this->_ControlValue < this->_HighLimit && this->_ControlValue > this->_LowLimit)
-    {
+    {   
         this->_ErrorSum += this->_Error * dt;
     }
-    double Derrivative = (this->_Error - this->_ErrorPrior) / dt;
+    double Derrivative = (this->_ProcessValuePrior - ProcessValue) / dt;
     //ANTI-WINDUP
     if ((this->_ControlValue > this->_HighLimit || this->_ControlValue < this->_LowLimit) 
      && (this->_ControlValue  * this->_Error > 0))
@@ -127,6 +130,6 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     }
     this->_DerPrevious=this->_DerPrior;
     this->_DerPrior=Derrivative;
-    this->_ErrorPrior = this->_Error;                 
+    this->_ProcessValuePrior = ProcessValue;                 
     return this->_ControlValue;
 }

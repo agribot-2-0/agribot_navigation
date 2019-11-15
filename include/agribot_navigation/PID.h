@@ -6,7 +6,7 @@ private:
     double _Ki;
     double _Bias;
     double _Error;
-    double _ErrorPrior;
+    double _ProcessValuePrior;
     double _DerPrior;
     double _DerPrevious;
     double _ControlValue;
