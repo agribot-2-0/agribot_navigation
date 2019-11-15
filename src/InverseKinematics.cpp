@@ -8,7 +8,7 @@
 #define LIMIT 20*PI/180
 #define KP_val 0.75
 #define KI_val 0.208333
-#define KD_val 1.378125
+#define KD_val 1.378125/2
 
 enum
 {
@@ -130,12 +130,12 @@ void InverseKinematics::vCalculateInverseKinematics()
             if (_pdInputLinear[X] > 0)
             {
                 this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
-                this->_pBackCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
+                this->_pBackCartPID->vSetSPAcceleration(0.3*3.14159265359/180,20);
             }
             else
             {
                 this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
-                this->_pFrontCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
+                this->_pFrontCartPID->vSetSPAcceleration(0.3*3.14159265359/180,20);
             }
         }
         else
