@@ -5,6 +5,7 @@
 
 #define HISTERESIS 0.05
 #define PI 3.14159265359
+#define LIMIT 20*PI/180
 #define KP_val 0.75
 #define KI_val 0.208333
 #define KD_val 1.378125
@@ -39,8 +40,8 @@ InverseKinematics::InverseKinematics()
     //  TO DO
     //  SET UP PID GAINS
     //                              KP      KD      KI      LL      HL
-    this->_pFrontCartPID = new PID(KP_val, KD_val, KI_val, -PI / 4, PI / 4); 
-    this->_pBackCartPID = new PID(KP_val, KD_val, KI_val, -PI / 4, PI / 4);
+    this->_pFrontCartPID = new PID(KP_val, KD_val, KI_val, -LIMIT, LIMIT); 
+    this->_pBackCartPID = new PID(KP_val, KD_val, KI_val, -LIMIT, LIMIT);
 }
 int InverseKinematics::configure() 
 {

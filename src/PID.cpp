@@ -4,6 +4,7 @@
 #include <ros/console.h>
 
 #define SP_ACCELERATION 0.15*3.14159265359/180
+#define SP_ACC_MULTIPLIER 20
 
 PID::PID()
 {
@@ -77,17 +78,17 @@ double PID::dGetError()
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
     //SP RAMP
-    if (abs(ProcessValue-this->_NextSetPoint)<10*SP_ACCELERATION)
+    if (abs(ProcessValue-this->_NextSetPoint)<SP_ACC_MULTIPLIER*SP_ACCELERATION)
     {
-        if (abs(this->_DesiredSetPoint-this->_NextSetPoint)>10*SP_ACCELERATION)
+        if (abs(this->_DesiredSetPoint-this->_NextSetPoint)>SP_ACC_MULTIPLIER*SP_ACCELERATION)
         {
             if (this->_DesiredSetPoint-this->_NextSetPoint>0)
             {
-                this->_NextSetPoint+=10*SP_ACCELERATION;
+                this->_NextSetPoint+=SP_ACC_MULTIPLIER*SP_ACCELERATION;
             }
             else
             {
-                this->_NextSetPoint-=10*SP_ACCELERATION;
+                this->_NextSetPoint-=SP_ACC_MULTIPLIER*SP_ACCELERATION;
             }
             
         }
