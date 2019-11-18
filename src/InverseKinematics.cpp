@@ -175,8 +175,8 @@ void InverseKinematics::vCalculateInverseKinematics()
         _pdControl[2] = this->_pBackCartPID->dGetCV();
     }
     // a = min ( abs(|SPf-PVf|/RANGE) , abs(|SPb-PVb|/RANGE) )
-    this->_dLinearMultiplier=std::min(abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP())/ANGLE_RANGE,
-                                 abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP())/ANGLE_RANGE);
+    this->_dLinearMultiplier=std::min(1-abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP())/ANGLE_RANGE,
+                                 1-abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP())/ANGLE_RANGE);
     _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
