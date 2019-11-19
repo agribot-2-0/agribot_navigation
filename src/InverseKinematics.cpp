@@ -181,6 +181,7 @@ void InverseKinematics::vCalculateInverseKinematics()
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
     _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
+    ROS_INFO_NAMED("inverse_kinematics", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0]);
 }
 double *InverseKinematics::pdGetCaterpillarVelocities()
 {
