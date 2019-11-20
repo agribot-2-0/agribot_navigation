@@ -5,9 +5,11 @@
 
 #define HISTERESIS 0.05
 #define PI 3.14159265359
-#define KP_val 0.75 
+#define ANGLE_RANGE PI/2
+#define LIMIT 20*PI/180
+#define KP_val 0.75
 #define KI_val 0.208333
-#define KD_val 1.378125
+#define KD_val 1.378125/2
 
 enum
 {
@@ -36,11 +38,12 @@ InverseKinematics::InverseKinematics()
     this->_dWheelRadius = 0.16;
     this->_dWheelSeparation = 1.05 + 0.025;
     this->_dChassisLength = 2.42 - 2 * _dWheelRadius;
+    this->_dLinearMultiplier = 1;
     //  TO DO
     //  SET UP PID GAINS
     //                              KP      KD      KI      LL      HL
-    this->_pFrontCartPID = new PID(KP_val, KD_val, KI_val, -PI / 4, PI / 4); 
-    this->_pBackCartPID = new PID(KP_val, KD_val, KI_val, -PI / 4, PI / 4);
+    this->_pFrontCartPID = new PID(KP_val, KD_val, KI_val, -LIMIT, LIMIT); 
+    this->_pBackCartPID = new PID(KP_val, KD_val, KI_val, -LIMIT, LIMIT);
 }
 int InverseKinematics::configure() 
 {
@@ -91,7 +94,8 @@ void InverseKinematics::vCalculateInverseKinematics()
         this->_pBackCartPID->vSetKd(KD_val*40/63);
     }
     
-    
+    this->_pFrontCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
+    this->_pBackCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
     
     _pdControl[0] = _pdInputLinear[X];
     if (_pdInputAngular[Z] != 0)
@@ -128,16 +132,19 @@ void InverseKinematics::vCalculateInverseKinematics()
             if (_pdInputLinear[X] > 0)
             {
                 this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
+                this->_pBackCartPID->vSetSPAcceleration(0.3*3.14159265359/180,20);
             }
             else
             {
                 this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
+                this->_pFrontCartPID->vSetSPAcceleration(0.3*3.14159265359/180,20);
             }
         }
         else
         {
             _pdControl[0] = _pdInputAngular[Z] * _dChassisLength / 2;
             this->_pFrontCartPID->vSetSP(PI / 2);
+            this->_pFrontCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
             this->_pBackCartPID->vSetSP(-PI / 2);
         }
     }    
@@ -167,10 +174,26 @@ void InverseKinematics::vCalculateInverseKinematics()
         _pdControl[1] = this->_pFrontCartPID->dGetCV();
         _pdControl[2] = this->_pBackCartPID->dGetCV();
     }
-    _pdCaterpillarVelocities[FRONT_LINEAR] = _pdControl[0];
+    // a = min ( abs(|SPf-PVf|/RANGE) , abs(|SPb-PVb|/RANGE) )
+    double angle_diff_front = abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP());
+    double angle_diff_back = abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
+    if (std::max(angle_diff_front,angle_diff_back)<5)
+    {
+        this->_dLinearMultiplier=1-std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE;
+    }
+    else
+    {
+        this->_dLinearMultiplier=1.2357*(1-(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)^(1/2));
+        // this->_dLinearMultiplier=1.5272*(1-(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)^(1/3));
+        // this->_dLinearMultiplier=1.8356*(1-(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)^(1/4));
+    }
+    
+    
+    _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
-    _pdCaterpillarVelocities[BACK_LINEAR] = cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
+    _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
     _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
+    ROS_INFO_NAMED("inverse_kinematics", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0]);
 }
 double *InverseKinematics::pdGetCaterpillarVelocities()
 {

@@ -7,11 +7,17 @@
 
 PID::PID()
 {
+    this->_DesiredSetPoint = 0;
+    this->_NextSetPoint = 0;
     this->_SetPoint = 0;
     this->_ErrorSum = 0;
-    this->_ErrorPrior = 0;
+    this->_ProcessValuePrior = 0;
+    this->_DerPrior = 0;
+    this->_DerPrevious = 0;
     this->_ControlValue = 0;
     this->_Bias = 0;
+    this->_SpAcceleration = 0.15*3.14159265359/180;
+    this->_SpAccMultiplier = 20;
 }
 PID::PID(double kp, double kd, double ki, double LL, double HL)
 {
@@ -21,13 +27,19 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_LowLimit = LL;
     this->_HighLimit = HL;
     this->_DesiredSetPoint = 0;
+<<<<<<< HEAD
+=======
+    this->_NextSetPoint = 0;
+>>>>>>> tests
     this->_SetPoint = 0;
     this->_ErrorSum = 0;
-    this->_ErrorPrior = 0;
+    this->_ProcessValuePrior = 0;
     this->_DerPrior = 0;
     this->_DerPrevious = 0;
     this->_ControlValue = 0;
     this->_Bias = 0;
+    this->_SpAcceleration = 0.15*3.14159265359/180;
+    this->_SpAccMultiplier = 20;
 }
 void PID::vSetKp(double kp)
 {
@@ -57,6 +69,11 @@ void PID::vSetBias(double Bias)
 {
     this->_Bias = Bias;
 }
+void PID::vSetSPAcceleration(double Acceleration, double Multiplier)
+{
+    this->_SpAcceleration = Acceleration;
+    this->_SpAccMultiplier = Multiplier;
+}
 void PID::vResetError()
 {
     this->_ErrorSum = 0;
@@ -69,38 +86,60 @@ double PID::dGetError()
 {
     return this->_Error;
 }
+double PID::dGetDesiredSP()
+{
+    return this->_DesiredSetPoint;
+}
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
     //SP RAMP
-    if (this->_DesiredSetPoint - this->_SetPoint < 0)
+    if (abs(ProcessValue-this->_NextSetPoint)<this->_SpAccMultiplier*this->_SpAcceleration)
     {
-        if (this->_DesiredSetPoint - this->_SetPoint > -SP_ACCELERATION)
+        if (abs(this->_DesiredSetPoint-this->_NextSetPoint)>this->_SpAccMultiplier*this->_SpAcceleration)
         {
-            this->_SetPoint = this->_DesiredSetPoint;
+            if (this->_DesiredSetPoint-this->_NextSetPoint>0)
+            {
+                this->_NextSetPoint+=this->_SpAccMultiplier*this->_SpAcceleration;
+            }
+            else
+            {
+                this->_NextSetPoint-=this->_SpAccMultiplier*this->_SpAcceleration;
+            }
+            
         }
         else
         {
-            this->_SetPoint = this->_DesiredSetPoint - SP_ACCELERATION;
+            this->_NextSetPoint=this->_DesiredSetPoint;
+        }
+        
+    }
+    
+    if (this->_NextSetPoint - this->_SetPoint < 0)
+    {
+        if (this->_NextSetPoint - this->_SetPoint > -this->_SpAcceleration)
+        {
+            this->_SetPoint = this->_NextSetPoint;
+        }
+        else
+        {
+            this->_SetPoint -= this->_SpAcceleration;
         }  
     }
     else
     {
-        if (this->_DesiredSetPoint - this->_SetPoint < SP_ACCELERATION)
+        if (this->_NextSetPoint - this->_SetPoint < this->_SpAcceleration)
         {
-            this->_SetPoint = this->_DesiredSetPoint;
+            this->_SetPoint = this->_NextSetPoint;
         }
         else
         {
-            this->_SetPoint = this->_DesiredSetPoint + SP_ACCELERATION;
+            this->_SetPoint += this->_SpAcceleration;
         }
     }
+
     //ERROR CALCULTATION
     this->_Error = this->_SetPoint - ProcessValue;
-    if (this->_ControlValue < this->_HighLimit && this->_ControlValue > this->_LowLimit)
-    {
-        this->_ErrorSum += this->_Error * dt;
-    }
-    double Derrivative = (this->_Error - this->_ErrorPrior) / dt;
+    double Derrivative = (this->_ProcessValuePrior - ProcessValue) / dt;
     //ANTI-WINDUP
     if ((this->_ControlValue > this->_HighLimit || this->_ControlValue < this->_LowLimit) 
      && (this->_ControlValue  * this->_Error > 0))
@@ -109,12 +148,21 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     }           
     else
     {
+        this->_ErrorSum += this->_Error * dt;
         this->_ControlValue=_Ki * this->_ErrorSum; ;
     }
     this->_ControlValue += this->_Kp * this->_Error; 
     this->_ControlValue += this->_Kd * (Derrivative/3+this->_DerPrior/3+this->_DerPrevious/3); 
     this->_ControlValue += this->_Bias;
     //INFO TO PLOT
+    if (this->_ControlValue > this->_HighLimit)
+    {
+        this->_ControlValue = this->_HighLimit;
+    }
+    if (this->_ControlValue < this->_LowLimit)
+    {
+        this->_ControlValue = this->_LowLimit;
+    }
     if (isFront)
     {
         ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
@@ -127,6 +175,6 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     }
     this->_DerPrevious=this->_DerPrior;
     this->_DerPrior=Derrivative;
-    this->_ErrorPrior = this->_Error;                 
+    this->_ProcessValuePrior = ProcessValue;                 
     return this->_ControlValue;
 }

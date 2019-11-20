@@ -6,15 +6,18 @@ private:
     double _Ki;
     double _Bias;
     double _Error;
-    double _ErrorPrior;
+    double _ProcessValuePrior;
     double _DerPrior;
     double _DerPrevious;
     double _ControlValue;
     double _DesiredSetPoint;
     double _SetPoint;
+    double _NextSetPoint;
     double _ErrorSum;
     double _LowLimit;
     double _HighLimit;
+    double _SpAcceleration;
+    double _SpAccMultiplier;
 
 public:
     PID();
@@ -27,8 +30,10 @@ public:
     void vSetHighLimit(double SP);
     void vSetSP(double SP);
     void vSetBias(double Bias);
+    void vSetSPAcceleration(double Acceleration, double Multiplier);
     void vResetError();
     double dGetCV();
     double dGetError();
+    double dGetDesiredSP();
     double Update(double PV, double dt, bool isFront);
 };
