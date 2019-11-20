@@ -181,13 +181,23 @@ void InverseKinematics::vCalculateInverseKinematics()
     double angle_diff_back = abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
     if (std::max(angle_diff_front,angle_diff_back)<LINEARITY_RANGE)
     {
+        // linear function
         this->_dLinearMultiplier=1-std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE;
     }
     else
     {
+        // 2-nd root function
         this->_dLinearMultiplier=1.2357*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/2))));
+        // 3-rd root function
         // this->_dLinearMultiplier=1.5272*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/3))));
+        // 4-th root function
         // this->_dLinearMultiplier=1.8356*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/4))));
+        // gaussian function
+        // this->_dLinearMultiplier=0.04379209 + (0.97703891)/(1 + pow(((std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)/0.1482077),2.181746));
+        // assymetrical sigmoidal function
+        // this->_dLinearMultiplier=1.092919 - (5.091961/4.758651)*(1 - exp(-4.758651*(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)));
+        // exponential function
+        // this->_dLinearMultiplier=1.0875*exp(-4.52068*(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE));
     }
     _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
