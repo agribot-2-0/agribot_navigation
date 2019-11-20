@@ -2,7 +2,9 @@
 #include <math.h>
 #include <ros/ros.h>
 #include <ros/console.h>
-#define SP_ACCELERATION 2*3.14159265359/180
+#define PI 3.14159265359
+#define RAD_TO_DEG 180/PI
+#define DEG_TO_RAD PI/180
 PID::PID()
 {
     this->_dDesiredSetPoint = 0;
@@ -14,7 +16,7 @@ PID::PID()
     this->_dDerPrevious = 0;
     this->_dControlValue = 0;
     this->_dBias = 0;
-    this->_dSpAcceleration = 0.15*3.14159265359/180;
+    this->_dSpAcceleration = 0.15*DEG_TO_RAD;
     this->_dSpAccMultiplier = 20;
 }
 PID::PID(double kp, double kd, double ki, double LL, double HL)
@@ -33,7 +35,7 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_dDerPrevious = 0;
     this->_dControlValue = 0;
     this->_dBias = 0;
-    this->_dSpAcceleration = 0.15*3.14159265359/180;
+    this->_dSpAcceleration = 0.15*DEG_TO_RAD;
     this->_dSpAccMultiplier = 20;
 }
 void PID::vSetKp(double kp)
@@ -145,7 +147,7 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     this->_dControlValue += this->_dKp * this->_dError; 
     this->_dControlValue += this->_dKd * (Derrivative/3+this->_dDerPrior/3+this->_dDerPrevious/3); 
     this->_dControlValue += this->_dBias;
-    //INFO TO PLOT
+    // CV LIMITER
     if (this->_dControlValue > this->_dHighLimit)
     {
         this->_dControlValue = this->_dHighLimit;

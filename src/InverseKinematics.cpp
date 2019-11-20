@@ -4,11 +4,18 @@
 #include <ros/console.h>
 #define HISTERESIS 0.05
 #define PI 3.14159265359
+#define RAD_TO_DEG 180/PI
+#define DEG_TO_RAD PI/180
 #define ANGLE_RANGE PI/2
-#define LIMIT 20*PI/180
+#define LIMIT 20*DEG_TO_RAD
 #define KP_val 0.75
 #define KI_val 0.208333
 #define KD_val 1.378125/2
+#define KP_PRECISE_MULTIPLIER 2/7
+#define KI_PRECISE_MULTIPLIER 8/35
+#define KD_PRECISE_MULTIPLIER 40/63
+#define PRECISE_PID_RANGE 2
+#define LINEARITY_RANGE 5
 enum
 {
     X,
@@ -62,7 +69,7 @@ bool InverseKinematics::cleanup()
 }
 void InverseKinematics::vCalculateInverseKinematics()
 {
-    if (abs(_pFrontCartPID->dGetError()*180/PI)>2)
+    if (abs(_pFrontCartPID->dGetError()*RAD_TO_DEG)>PRECISE_PID_RANGE)
     {
         this->_pFrontCartPID->vSetKp(KP_val);
         this->_pFrontCartPID->vSetKi(KI_val);
@@ -70,11 +77,11 @@ void InverseKinematics::vCalculateInverseKinematics()
     }
     else
     {
-        this->_pFrontCartPID->vSetKp(KP_val*2/7);
-        this->_pFrontCartPID->vSetKi(KI_val*8/35);
-        this->_pFrontCartPID->vSetKd(KD_val*40/63);
+        this->_pFrontCartPID->vSetKp(KP_val*KP_PRECISE_MULTIPLIER);
+        this->_pFrontCartPID->vSetKi(KI_val*KI_PRECISE_MULTIPLIER);
+        this->_pFrontCartPID->vSetKd(KD_val*KD_PRECISE_MULTIPLIER);
     } 
-    if (abs(_pBackCartPID->dGetError()*180/PI)>2)
+    if (abs(_pBackCartPID->dGetError()*RAD_TO_DEG)>PRECISE_PID_RANGE)
     {
         this->_pBackCartPID->vSetKp(KP_val);
         this->_pBackCartPID->vSetKi(KI_val);
@@ -82,69 +89,75 @@ void InverseKinematics::vCalculateInverseKinematics()
     }
     else
     {
-        this->_pBackCartPID->vSetKp(KP_val*2/7);
-        this->_pBackCartPID->vSetKi(KI_val*8/35);
-        this->_pBackCartPID->vSetKd(KD_val*40/63);
+        this->_pBackCartPID->vSetKp(KP_val*KP_PRECISE_MULTIPLIER);
+        this->_pBackCartPID->vSetKi(KI_val*KI_PRECISE_MULTIPLIER);
+        this->_pBackCartPID->vSetKd(KD_val*KD_PRECISE_MULTIPLIER);
     }
-    this->_pFrontCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
-    this->_pBackCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
+    this->_pFrontCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
+    this->_pBackCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
     _pdControl[0] = _pdInputLinear[X];
     if (_pdInputAngular[Z] != 0)
     {
+        // Angular - yes
         if (_pdInputLinear[X] != 0)
         {
+            // Angular - yes / Linear -yes
             if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] > 1)
             {
+                // Desired radius too small
                 this->_pFrontCartPID->vSetSP(PI / 2);
+                this->_pBackCartPID->vSetSP(-PI / 2);
                 ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
             }
             else 
             {
                 if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] < -1)
                 {
+                    // Desired radius too small
                     this->_pFrontCartPID->vSetSP(-PI / 2);
+                    this->_pBackCartPID->vSetSP(PI / 2);
                     ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
                 }
                 else
                 {
+                    // Desired radius within proper range
                     if (_pdInputLinear[X] > 0)
                     {
+                        // Moving forward - back cart is pulled
                         this->_pFrontCartPID->vSetSP(asin(_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X]));
+                        this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
+                        this->_pBackCartPID->vSetSPAcceleration(0.3*DEG_TO_RAD,20);
                     }
                     else
                     {
+                        // Moving backwards - front cart is pulled
                         this->_pBackCartPID->vSetSP(-asin(_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X]));
+                        this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
+                        this->_pFrontCartPID->vSetSPAcceleration(0.3*DEG_TO_RAD,20);
                     }
                 }
-            }
-            if (_pdInputLinear[X] > 0)
-            {
-                this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
-                this->_pBackCartPID->vSetSPAcceleration(0.3*3.14159265359/180,20);
-            }
-            else
-            {
-                this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
-                this->_pFrontCartPID->vSetSPAcceleration(0.3*3.14159265359/180,20);
             }
         }
         else
         {
+            // Angular - yes / Linear -no
             _pdControl[0] = _pdInputAngular[Z] * _dChassisLength / 2;
             this->_pFrontCartPID->vSetSP(PI / 2);
-            this->_pFrontCartPID->vSetSPAcceleration(0.15*3.14159265359/180,20);
             this->_pBackCartPID->vSetSP(-PI / 2);
         }
     }    
     else
     {    
+        // Angular - no
         if (_pdInputLinear[X] != 0)
         {
+            // Angular - no / Linear -yes
             this->_pFrontCartPID->vSetSP(0);
             this->_pBackCartPID->vSetSP(0);
         }
         else
         {
+            // Angular - no / Linear -no
             this->_pFrontCartPID->vResetError();
             this->_pBackCartPID->vResetError();
             this->_pFrontCartPID->vSetSP(_pdCartAngle[FRONT_CART]);
@@ -154,18 +167,19 @@ void InverseKinematics::vCalculateInverseKinematics()
     vUpdatePIDs(ros::Time::now().toSec());
     if (_pdInputLinear[X] == 0 && _pdInputAngular[Z] == 0)
     {
+        // Stopped
         _pdControl[1] = 0;
         _pdControl[2] = 0;
     }
     else
     {
+        // Moving
         _pdControl[1] = this->_pFrontCartPID->dGetCV();
         _pdControl[2] = this->_pBackCartPID->dGetCV();
     }
-    // a = min ( abs(|SPf-PVf|/RANGE) , abs(|SPb-PVb|/RANGE) )
     double angle_diff_front = abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP());
     double angle_diff_back = abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
-    if (std::max(angle_diff_front,angle_diff_back)<5)
+    if (std::max(angle_diff_front,angle_diff_back)<LINEARITY_RANGE)
     {
         this->_dLinearMultiplier=1-std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE;
     }
