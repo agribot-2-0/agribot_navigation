@@ -1,5 +1,4 @@
 # pragma once
-
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_navigation/PID.h>
 
@@ -21,13 +20,11 @@ private:
     PID *_pBackCartPID;
 public: 
     InverseKinematics();
-
     virtual int configure();
     virtual bool startup();
     virtual bool update();
     virtual bool stop();
     virtual bool cleanup();
-
     void vCalculateInverseKinematics();
     double* pdGetCaterpillarVelocities();
     void vSetInputLinear(double x, double y, double z);

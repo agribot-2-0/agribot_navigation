@@ -1,28 +1,26 @@
 class PID
 {
 private:
-    double _Kp;
-    double _Kd;
-    double _Ki;
-    double _Bias;
-    double _Error;
-    double _ProcessValuePrior;
-    double _DerPrior;
-    double _DerPrevious;
-    double _ControlValue;
-    double _DesiredSetPoint;
-    double _SetPoint;
-    double _NextSetPoint;
-    double _ErrorSum;
-    double _LowLimit;
-    double _HighLimit;
-    double _SpAcceleration;
-    double _SpAccMultiplier;
-
+    double _dKp;
+    double _dKd;
+    double _dKi;
+    double _dBias;
+    double _dError;
+    double _dProcessValuePrior;
+    double _dDerPrior;
+    double _dDerPrevious;
+    double _dControlValue;
+    double _dDesiredSetPoint;
+    double _dSetPoint;
+    double _dNextSetPoint;
+    double _dErrorSum;
+    double _dLowLimit;
+    double _dHighLimit;
+    double _dSpAcceleration;
+    double _dSpAccMultiplier;
 public:
     PID();
     PID(double kp, double kd, double ki, double LL, double HL);
-
     void vSetKp(double Kp);
     void vSetKd(double Kd);
     void vSetKi(double Ki);

@@ -183,9 +183,9 @@ void InverseKinematics::vCalculateInverseKinematics()
     }
     else
     {
-        this->_dLinearMultiplier=1.2357*(1-(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)^(1/2));
-        // this->_dLinearMultiplier=1.5272*(1-(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)^(1/3));
-        // this->_dLinearMultiplier=1.8356*(1-(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)^(1/4));
+        this->_dLinearMultiplier=1.2357*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/2))));
+        // this->_dLinearMultiplier=1.5272*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/3))));
+        // this->_dLinearMultiplier=1.8356*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/4))));
     }
     
     
@@ -193,7 +193,7 @@ void InverseKinematics::vCalculateInverseKinematics()
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
     _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
-    ROS_INFO_NAMED("inverse_kinematics", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0]);
+    ROS_INFO_NAMED("inverse_kinematics", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f,dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],angle_diff_front,angle_diff_back);
 }
 double *InverseKinematics::pdGetCaterpillarVelocities()
 {
