@@ -2,9 +2,7 @@
 #include <math.h>
 #include <ros/ros.h>
 #include <ros/console.h>
-
 #define SP_ACCELERATION 2*3.14159265359/180
-
 PID::PID()
 {
     this->_dDesiredSetPoint = 0;
@@ -102,15 +100,12 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
             {
                 this->_dNextSetPoint-=this->_dSpAccMultiplier*this->_dSpAcceleration;
             }
-            
         }
         else
         {
             this->_dNextSetPoint=this->_dDesiredSetPoint;
         }
-        
-    }
-    
+    } 
     if (this->_dNextSetPoint - this->_dSetPoint < 0)
     {
         if (this->_dNextSetPoint - this->_dSetPoint > -this->_dSpAcceleration)
@@ -133,7 +128,6 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
             this->_dSetPoint += this->_dSpAcceleration;
         }
     }
-
     //ERROR CALCULTATION
     this->_dError = this->_dSetPoint - ProcessValue;
     double Derrivative = (this->_dProcessValuePrior - ProcessValue) / dt;
@@ -142,7 +136,7 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
      && (this->_dControlValue  * this->_dError > 0))
     {
         this->_dControlValue=0;
-    }           
+    }
     else
     {
         this->_dErrorSum += this->_dError * dt;

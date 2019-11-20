@@ -9,7 +9,6 @@
 #include <tf/tf.h>
 #define ROS_TIMEOUT 20
 #define PI 3.14159265359
-
 enum
 {
 	X,
@@ -27,10 +26,8 @@ enum {
 	FRONT_CART,
 	BACK_CART
 };
-
 InverseKinematics InvKinematics;
 bool bDataReceived=false;
-
 void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 {
 	InvKinematics.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
@@ -52,7 +49,6 @@ void encoderBackCallback(const std_msgs::Float32 back_cart_msg)
 	InvKinematics.vSetBackCartAngle(back_cart_msg.data*PI/180);
 	bDataReceived=true;
 }
-
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "inverse_kinematics");
@@ -90,11 +86,6 @@ int main(int argc, char **argv)
 			inverse_kinematics_pub.publish(caterpilar_msg);
 			u16TimeTrack = 0;
 		}
-		// if (u16TimeTrack > ROS_TIMEOUT)
-		// {
-		// 	ROS_ERROR("[InverseKinematics] Communication timeout: data not present");
-		// 	return -1;
-		// }
 		u16TimeTrack++;
 		ros::spinOnce();
 		loop_rate.sleep();
