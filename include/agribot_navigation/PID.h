@@ -30,6 +30,8 @@ public:
     void vSetBias(double Bias);
     void vSetSPAcceleration(double Acceleration, double Multiplier);
     void vResetError();
+    void vSPRamp(double ProcessValue);
+    void vCVLimiter();
     double dGetCV();
     double dGetError();
     double dGetDesiredSP();

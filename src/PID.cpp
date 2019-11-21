@@ -3,8 +3,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #define PI 3.14159265359
-#define RAD_TO_DEG 180/PI
-#define DEG_TO_RAD PI/180
+#define RAD_TO_DEG (180/PI)
+#define DEG_TO_RAD (PI/180)
 PID::PID()
 {
     this->_dDesiredSetPoint = 0;
@@ -75,21 +75,8 @@ void PID::vResetError()
 {
     this->_dErrorSum = 0;
 }
-double PID::dGetCV()
+void PID::vSPRamp(double ProcessValue)
 {
-    return this->_dControlValue;
-}
-double PID::dGetError()
-{
-    return this->_dError;
-}
-double PID::dGetDesiredSP()
-{
-    return this->_dDesiredSetPoint;
-}
-double PID::Update(double ProcessValue, double dt, bool isFront)
-{
-    //SP RAMP
     if (abs(ProcessValue-this->_dNextSetPoint)<this->_dSpAccMultiplier*this->_dSpAcceleration)
     {
         if (abs(this->_dDesiredSetPoint-this->_dNextSetPoint)>this->_dSpAccMultiplier*this->_dSpAcceleration)
@@ -130,6 +117,34 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
             this->_dSetPoint += this->_dSpAcceleration;
         }
     }
+}
+void PID::vCVLimiter()
+{
+     if (this->_dControlValue > this->_dHighLimit)
+    {
+        this->_dControlValue = this->_dHighLimit;
+    }
+    if (this->_dControlValue < this->_dLowLimit)
+    {
+        this->_dControlValue = this->_dLowLimit;
+    }
+}
+double PID::dGetCV()
+{
+    return this->_dControlValue;
+}
+double PID::dGetError()
+{
+    return this->_dError;
+}
+double PID::dGetDesiredSP()
+{
+    return this->_dDesiredSetPoint;
+}
+double PID::Update(double ProcessValue, double dt, bool isFront)
+{
+    //SP RAMP
+    this->vSPRamp(ProcessValue);
     //ERROR CALCULTATION
     this->_dError = this->_dSetPoint - ProcessValue;
     double Derrivative = (this->_dProcessValuePrior - ProcessValue) / dt;
@@ -148,14 +163,8 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     this->_dControlValue += this->_dKd * (Derrivative/3+this->_dDerPrior/3+this->_dDerPrevious/3); 
     this->_dControlValue += this->_dBias;
     // CV LIMITER
-    if (this->_dControlValue > this->_dHighLimit)
-    {
-        this->_dControlValue = this->_dHighLimit;
-    }
-    if (this->_dControlValue < this->_dLowLimit)
-    {
-        this->_dControlValue = this->_dLowLimit;
-    }
+    this->vCVLimiter();
+
     if (isFront)
     {
         ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",

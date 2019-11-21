@@ -9,8 +9,8 @@
 #include <tf/tf.h>
 #define ROS_TIMEOUT 20
 #define PI 3.14159265359
-#define RAD_TO_DEG 180/PI
-#define DEG_TO_RAD PI/180
+#define RAD_TO_DEG (180/PI)
+#define DEG_TO_RAD (PI/180)
 enum
 {
 	X,

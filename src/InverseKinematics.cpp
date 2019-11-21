@@ -4,18 +4,18 @@
 #include <ros/console.h>
 #define HISTERESIS 0.05
 #define PI 3.14159265359
-#define RAD_TO_DEG 180/PI
-#define DEG_TO_RAD PI/180
+#define RAD_TO_DEG (180/PI)
+#define DEG_TO_RAD (PI/180)
 #define ANGLE_RANGE (PI/2)
-#define LIMIT 20*DEG_TO_RAD
+#define LIMIT (20.0*DEG_TO_RAD)
 #define KP_val 0.75
 #define KI_val 0.208333
-#define KD_val 1.378125/2
-#define KP_PRECISE_MULTIPLIER 2/7
-#define KI_PRECISE_MULTIPLIER 8/35
-#define KD_PRECISE_MULTIPLIER 40/63
-#define PRECISE_PID_RANGE 2
-#define LINEARITY_RANGE 5
+#define KD_val (1.378125/2)
+#define KP_PRECISE_MULTIPLIER (2.0/7)
+#define KI_PRECISE_MULTIPLIER (8.0/35)
+#define KD_PRECISE_MULTIPLIER (40.0/63)
+#define PRECISE_PID_RANGE 2.0
+#define LINEARITY_RANGE 5.0
 enum
 {
     X,
@@ -67,8 +67,9 @@ bool InverseKinematics::cleanup()
 {
     return false;
 }
-void InverseKinematics::vCalculateInverseKinematics()
+void InverseKinematics::vRegulatePIDs()
 {
+    //  in case of being close to Set Point change PID settings to prevent overshoot
     if (abs(_pFrontCartPID->dGetError()*RAD_TO_DEG)>PRECISE_PID_RANGE)
     {
         this->_pFrontCartPID->vSetKp(KP_val);
@@ -95,6 +96,10 @@ void InverseKinematics::vCalculateInverseKinematics()
     }
     this->_pFrontCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
     this->_pBackCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
+}
+void InverseKinematics::vSetPIDSetPoints()
+{
+    // provide PIDs with Set Points, basing on received v and w
     _pdControl[0] = _pdInputLinear[X];
     if (_pdInputAngular[Z] != 0)
     {
@@ -164,6 +169,9 @@ void InverseKinematics::vCalculateInverseKinematics()
             this->_pBackCartPID->vSetSP(_pdCartAngle[BACK_CART]);
         }
     }
+}
+void InverseKinematics::vCalculateAngularVelocities()
+{
     vUpdatePIDs(ros::Time::now().toSec());
     if (_pdInputLinear[X] == 0 && _pdInputAngular[Z] == 0)
     {
@@ -177,35 +185,54 @@ void InverseKinematics::vCalculateInverseKinematics()
         _pdControl[1] = this->_pFrontCartPID->dGetCV();
         _pdControl[2] = this->_pBackCartPID->dGetCV();
     }
+}
+double InverseKinematics::dMultiplierLinear(double x)
+{
+    return 1-x;
+}
+double InverseKinematics::dMultiplierGaussian(double x)
+{
+    return 0.04379209 + (0.97703891)/(1 + pow((x/0.1482077),2.181746));
+}
+double InverseKinematics::dMultiplierSigmoid(double x)
+{
+    return 1.092919 - (5.091961/4.758651)*(1 - exp(-4.758651*x));
+}
+double InverseKinematics::dMultiplierExponential(double x)
+{
+    return 1.0875*exp(-4.52068*x);
+}
+double InverseKinematics::dMultiplierRoot2(double x)
+{
+    return 1-(pow(x,(1/2.0)));
+}
+double InverseKinematics::dMultiplierRoot3(double x)
+{
+    return 1-(pow(x,(1/3.0)));
+}
+double InverseKinematics::dMultiplierRoot4(double x)
+{
+    return 1-(pow(x,(1/4.0)));
+}
+void InverseKinematics::vCalculateLimitMultiplier()
+{
     double angle_diff_front = abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP());
     double angle_diff_back = abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
-    // if (std::max(angle_diff_front,angle_diff_back)<LINEARITY_RANGE)
-    // {
-    //     // linear function
-    //     this->_dLinearMultiplier=1-std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE;
-    // }
-    // else
-    // {
-        // 2-nd root function
-        // this->_dLinearMultiplier=1.2357*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/2.0))));
-        // 3-rd root function
-        // this->_dLinearMultiplier=1.5272*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/3.0))));
-        // 4-th root function
-        // this->_dLinearMultiplier=1.8356*(1-(pow(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE,(1/4.0))));
-        // gaussian function
-        // this->_dLinearMultiplier=0.04379209 + (0.97703891)/(1 + pow(((std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)/0.1482077),2.181746));
-        // assymetrical sigmoidal function
-        // this->_dLinearMultiplier=1.092919 - (5.091961/4.758651)*(1 - exp(-4.758651*(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE)));
-        // exponential function
-        // this->_dLinearMultiplier=1.0875*exp(-4.52068*(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE));
-    // }
+    this->_dLinearMultiplier=this->dMultiplierRoot4(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE);
     this->_dLinearMultiplier=1;
+    ROS_INFO_NAMED("inverse_kinematics", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],angle_diff_front*RAD_TO_DEG,angle_diff_back*RAD_TO_DEG);
+}
+void InverseKinematics::vCalculateInverseKinematics()
+{
+    this->vRegulatePIDs();
+    this->vSetPIDSetPoints();
+    this->vCalculateAngularVelocities();
+    this->vCalculateLimitMultiplier();
     _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
     _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
-    ROS_INFO_NAMED("inverse_kinematics", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],angle_diff_front*RAD_TO_DEG,angle_diff_back*RAD_TO_DEG);
-}
+    }
 double *InverseKinematics::pdGetCaterpillarVelocities()
 {
     return this->_pdCaterpillarVelocities;

@@ -32,5 +32,16 @@ public:
     void vSetChassisAngle(double theta);
     void vSetFrontCartAngle(double theta);
     void vSetBackCartAngle(double theta);
+    void vRegulatePIDs();
+    void vSetPIDSetPoints();
+    void vCalculateAngularVelocities();
+    void vCalculateLimitMultiplier();
     void vUpdatePIDs(double t);
+    double dMultiplierGaussian(double x);
+    double dMultiplierSigmoid(double x);
+    double dMultiplierRoot2(double x);
+    double dMultiplierRoot3(double x);
+    double dMultiplierRoot4(double x);
+    double dMultiplierLinear(double x);
+    double dMultiplierExponential(double x);
 };
