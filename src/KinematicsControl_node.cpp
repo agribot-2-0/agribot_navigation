@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <ros/console.h>
-#include <agribot_navigation/InverseKinematics.h>
+#include <agribot_navigation/KinematicsControl.h>
 #include <agribot_msgs/AgribotCaterpillar.h>
 #include <agribot_msgs/AgribotHeading.h>
 #include <geometry_msgs/Twist.h>
@@ -28,32 +28,32 @@ enum {
 	FRONT_CART,
 	BACK_CART
 };
-InverseKinematics InvKinematics;
+KinematicsControl KinControl;
 bool bDataReceived=false;
 void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 {
-	InvKinematics.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
-	InvKinematics.vSetInputAngular(cmd_msg.angular.x, cmd_msg.angular.y, cmd_msg.angular.z);
+	KinControl.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
+	KinControl.vSetInputAngular(cmd_msg.angular.x, cmd_msg.angular.y, cmd_msg.angular.z);
 	bDataReceived=true;
 }
 void odometryCallback(const agribot_msgs::AgribotHeading odom_msg)
 {
-	InvKinematics.vSetChassisAngle(odom_msg.heading);
+	KinControl.vSetChassisAngle(odom_msg.heading);
 	bDataReceived=true;
 }
 void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
 {
-	InvKinematics.vSetFrontCartAngle(front_cart_msg.data*DEG_TO_RAD);
+	KinControl.vSetFrontCartAngle(front_cart_msg.data*DEG_TO_RAD);
 	bDataReceived=true;
 }
 void encoderBackCallback(const std_msgs::Float32 back_cart_msg)
 {
-	InvKinematics.vSetBackCartAngle(back_cart_msg.data*DEG_TO_RAD);
+	KinControl.vSetBackCartAngle(back_cart_msg.data*DEG_TO_RAD);
 	bDataReceived=true;
 }
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "inverse_kinematics");
+	ros::init(argc, argv, "kinematics_control");
 	ros::NodeHandle n;
 	ros::Rate loop_rate(100);
 	std::string command_sub_topic;
@@ -65,11 +65,11 @@ int main(int argc, char **argv)
 	{
 		command_sub_topic=argv[1];
 	}
-	ros::Subscriber inverse_kinematics_sub = n.subscribe(command_sub_topic, 1000, cmdVelCallback);
+	ros::Subscriber kinematics_control_sub = n.subscribe(command_sub_topic, 1000, cmdVelCallback);
 	ros::Subscriber odometry_sub = n.subscribe("/agribot/heading", 1000, odometryCallback);
 	ros::Subscriber front_cart_sub = n.subscribe("/agribot/encoder/cart/front", 1000, encoderFrontCallback);
 	ros::Subscriber back_cart_kinematics_sub = n.subscribe("/agribot/encoder/cart/back", 1000, encoderBackCallback);
-	ros::Publisher inverse_kinematics_pub = n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar",1);
+	ros::Publisher kinematics_control_pub = n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar",1);
 	agribot_msgs::AgribotCaterpillar caterpilar_msg;
 	uint16_t u16TimeTrack = 0;
 	while(ros::ok())
@@ -77,15 +77,15 @@ int main(int argc, char **argv)
 		if(bDataReceived)
 		{
 			bDataReceived=false;
-			InvKinematics.update();
-			double *fpCaterpilarVelocities=InvKinematics.pdGetCaterpillarVelocities();
+			KinControl.update();
+			double *fpCaterpilarVelocities=KinControl.pdGetCaterpillarVelocities();
 			caterpilar_msg.header.frame_id = "agribot/control/caterpillar";
 			caterpilar_msg.header.stamp = ros::Time::now();
 			caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];
 			caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR]*RAD_TO_DEG;
 			caterpilar_msg.back_linear = fpCaterpilarVelocities[BACK_LINEAR];
 			caterpilar_msg.back_angular = fpCaterpilarVelocities[BACK_ANGULAR]*RAD_TO_DEG;
-			inverse_kinematics_pub.publish(caterpilar_msg);
+			kinematics_control_pub.publish(caterpilar_msg);
 			u16TimeTrack = 0;
 		}
 		u16TimeTrack++;

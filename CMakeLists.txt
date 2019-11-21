@@ -130,10 +130,10 @@ link_directories(
   ${PROJECT_SOURCE_DIR}
 )
 
-add_executable(inverse_kinematics
-  src/PID.cpp src/InverseKinematics.cpp src/InverseKinematics_node.cpp 
+add_executable(kinematics_control
+  src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp 
 )
-target_link_libraries(inverse_kinematics
+target_link_libraries(kinematics_control
   ${GAZEBO_LIBRARIES}
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -176,7 +176,7 @@ target_link_libraries(inverse_kinematics
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 install(TARGETS
-  inverse_kinematics
+  kinematics_control
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
@@ -222,5 +222,5 @@ install(TARGETS
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_dependencies(inverse_kinematics ${catkin_EXPORTED_TARGETS})
+add_dependencies(kinematics_control ${catkin_EXPORTED_TARGETS})
 

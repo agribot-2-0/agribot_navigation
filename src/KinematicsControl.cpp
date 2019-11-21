@@ -1,4 +1,4 @@
-#include <agribot_navigation/InverseKinematics.h>
+#include <agribot_navigation/KinematicsControl.h>
 #include <math.h>
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -34,7 +34,7 @@ enum
     FRONT_CART,
     BACK_CART
 };
-InverseKinematics::InverseKinematics()
+KinematicsControl::KinematicsControl()
 {
     this->_pdCartAngle[FRONT_CART] = 0;
     this->_pdCartAngle[BACK_CART] = 0;
@@ -46,28 +46,28 @@ InverseKinematics::InverseKinematics()
     this->_pFrontCartPID = new PID(KP_val, KD_val, KI_val, -LIMIT, LIMIT); 
     this->_pBackCartPID = new PID(KP_val, KD_val, KI_val, -LIMIT, LIMIT);
 }
-int InverseKinematics::configure() 
+int KinematicsControl::configure() 
 {
     return 0;
 }
-bool InverseKinematics::startup() 
+bool KinematicsControl::startup() 
 {
     return false;
 }
-bool InverseKinematics::update()
+bool KinematicsControl::update()
 {
-    this->vCalculateInverseKinematics();
+    this->vCalculateKinematicsControl();
     return true;
 }
-bool InverseKinematics::stop() 
+bool KinematicsControl::stop() 
 {
     return false;
 }
-bool InverseKinematics::cleanup() 
+bool KinematicsControl::cleanup() 
 {
     return false;
 }
-void InverseKinematics::vRegulatePIDs()
+void KinematicsControl::vRegulatePIDs()
 {
     //  in case of being close to Set Point change PID settings to prevent overshoot
     if (abs(_pFrontCartPID->dGetError()*RAD_TO_DEG)>PRECISE_PID_RANGE)
@@ -97,7 +97,7 @@ void InverseKinematics::vRegulatePIDs()
     this->_pFrontCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
     this->_pBackCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
 }
-void InverseKinematics::vSetPIDSetPoints()
+void KinematicsControl::vSetPIDSetPoints()
 {
     // provide PIDs with Set Points, basing on received v and w
     _pdControl[0] = _pdInputLinear[X];
@@ -170,7 +170,7 @@ void InverseKinematics::vSetPIDSetPoints()
         }
     }
 }
-void InverseKinematics::vCalculateAngularVelocities()
+void KinematicsControl::vCalculateAngularVelocities()
 {
     vUpdatePIDs(ros::Time::now().toSec());
     if (_pdInputLinear[X] == 0 && _pdInputAngular[Z] == 0)
@@ -186,43 +186,43 @@ void InverseKinematics::vCalculateAngularVelocities()
         _pdControl[2] = this->_pBackCartPID->dGetCV();
     }
 }
-double InverseKinematics::dMultiplierLinear(double x)
+double KinematicsControl::dMultiplierLinear(double x)
 {
     return 1-x;
 }
-double InverseKinematics::dMultiplierGaussian(double x)
+double KinematicsControl::dMultiplierGaussian(double x)
 {
     return 0.04379209 + (0.97703891)/(1 + pow((x/0.1482077),2.181746));
 }
-double InverseKinematics::dMultiplierSigmoid(double x)
+double KinematicsControl::dMultiplierSigmoid(double x)
 {
     return 1.092919 - (5.091961/4.758651)*(1 - exp(-4.758651*x));
 }
-double InverseKinematics::dMultiplierExponential(double x)
+double KinematicsControl::dMultiplierExponential(double x)
 {
     return 1.0875*exp(-4.52068*x);
 }
-double InverseKinematics::dMultiplierRoot2(double x)
+double KinematicsControl::dMultiplierRoot2(double x)
 {
     return 1-(pow(x,(1/2.0)));
 }
-double InverseKinematics::dMultiplierRoot3(double x)
+double KinematicsControl::dMultiplierRoot3(double x)
 {
     return 1-(pow(x,(1/3.0)));
 }
-double InverseKinematics::dMultiplierRoot4(double x)
+double KinematicsControl::dMultiplierRoot4(double x)
 {
     return 1-(pow(x,(1/4.0)));
 }
-void InverseKinematics::vCalculateLimitMultiplier()
+void KinematicsControl::vCalculateLimitMultiplier()
 {
     double angle_diff_front = abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP());
     double angle_diff_back = abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
     this->_dLinearMultiplier=this->dMultiplierRoot4(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE);
     this->_dLinearMultiplier=1;
-    ROS_INFO_NAMED("inverse_kinematics", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],angle_diff_front*RAD_TO_DEG,angle_diff_back*RAD_TO_DEG);
+    ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],angle_diff_front*RAD_TO_DEG,angle_diff_back*RAD_TO_DEG);
 }
-void InverseKinematics::vCalculateInverseKinematics()
+void KinematicsControl::vCalculateKinematicsControl()
 {
     this->vRegulatePIDs();
     this->vSetPIDSetPoints();
@@ -233,35 +233,35 @@ void InverseKinematics::vCalculateInverseKinematics()
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
     _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
     }
-double *InverseKinematics::pdGetCaterpillarVelocities()
+double *KinematicsControl::pdGetCaterpillarVelocities()
 {
     return this->_pdCaterpillarVelocities;
 }
-void InverseKinematics::vSetInputLinear(double x, double y, double z)
+void KinematicsControl::vSetInputLinear(double x, double y, double z)
 {
     this->_pdInputLinear[X] = x;
     this->_pdInputLinear[Y] = y;
     this->_pdInputLinear[Z] = z;
 }
-void InverseKinematics::vSetInputAngular(double x, double y, double z)
+void KinematicsControl::vSetInputAngular(double x, double y, double z)
 {
     this->_pdInputAngular[X] = x;
     this->_pdInputAngular[Y] = y;
     this->_pdInputAngular[Z] = z;
 }
-void InverseKinematics::vSetChassisAngle(double theta)
+void KinematicsControl::vSetChassisAngle(double theta)
 {
     this->_dChassisAngle = theta;
 }
-void InverseKinematics::vSetFrontCartAngle(double theta)
+void KinematicsControl::vSetFrontCartAngle(double theta)
 {
     this->_pdCartAngle[FRONT_CART] = theta;
 }
-void InverseKinematics::vSetBackCartAngle(double theta)
+void KinematicsControl::vSetBackCartAngle(double theta)
 {
     this->_pdCartAngle[BACK_CART] = theta;
 }
-void InverseKinematics::vUpdatePIDs(double t)
+void KinematicsControl::vUpdatePIDs(double t)
 {
     double dt = t - this->_dLastTime;
     this->_pFrontCartPID->Update(_pdCartAngle[FRONT_CART], dt, true);

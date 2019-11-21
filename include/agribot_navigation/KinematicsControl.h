@@ -2,7 +2,7 @@
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_navigation/PID.h>
 
-class InverseKinematics: public AgribotComponent
+class KinematicsControl: public AgribotComponent
 {
 private:
     double _pdInputLinear [3];
@@ -19,13 +19,13 @@ private:
     PID *_pFrontCartPID;
     PID *_pBackCartPID;
 public: 
-    InverseKinematics();
+    KinematicsControl();
     virtual int configure();
     virtual bool startup();
     virtual bool update();
     virtual bool stop();
     virtual bool cleanup();
-    void vCalculateInverseKinematics();
+    void vCalculateKinematicsControl();
     double* pdGetCaterpillarVelocities();
     void vSetInputLinear(double x, double y, double z);
     void vSetInputAngular(double x, double y, double z);   
