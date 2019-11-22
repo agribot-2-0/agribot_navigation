@@ -10,14 +10,17 @@ private:
     double _dDerPrior;
     double _dDerPrevious;
     double _dControlValue;
-    double _dDesiredSetPoint;
-    double _dSetPoint;
-    double _dNextSetPoint;
     double _dErrorSum;
     double _dLowLimit;
     double _dHighLimit;
-    double _dSpAcceleration;
-    double _dSpAccMultiplier;
+    double _dSetPoint;
+    double _dLastSetPoint;
+    double _dDesiredSetPoint;
+    double _dMaxStep;
+    double _dStepTime;
+    double _dStepSize;
+    int _iEndSubstep;
+    int _iSubstep;
 public:
     PID();
     PID(double kp, double kd, double ki, double LL, double HL);
@@ -28,10 +31,12 @@ public:
     void vSetHighLimit(double SP);
     void vSetSP(double SP);
     void vSetBias(double Bias);
-    void vSetSPAcceleration(double Acceleration, double Multiplier);
+    void vSetSPAcceleration(double StepSize, double StepTime);
     void vResetError();
     void vSPRamp(double ProcessValue);
+    void vComparePVandSP(double ProcessValue);
     void vCVLimiter();
+    double dLogisticFunction(int n);
     double dGetCV();
     double dGetError();
     double dGetDesiredSP();

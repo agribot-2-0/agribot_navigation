@@ -5,19 +5,19 @@
 #define PI 3.14159265359
 #define RAD_TO_DEG (180/PI)
 #define DEG_TO_RAD (PI/180)
+#define DT 0.15
+#define SP_PRECISION 0.05
+#define PV_vs_SP_PRECISION 0.05
 PID::PID()
 {
-    this->_dDesiredSetPoint = 0;
-    this->_dNextSetPoint = 0;
-    this->_dSetPoint = 0;
     this->_dErrorSum = 0;
     this->_dProcessValuePrior = 0;
     this->_dDerPrior = 0;
     this->_dDerPrevious = 0;
     this->_dControlValue = 0;
     this->_dBias = 0;
-    this->_dSpAcceleration = 0.15*DEG_TO_RAD;
-    this->_dSpAccMultiplier = 20;
+    this->_dDesiredSetPoint = 0;
+    this->_dSetPoint = 0;
 }
 PID::PID(double kp, double kd, double ki, double LL, double HL)
 {
@@ -26,17 +26,14 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_dKi = ki;
     this->_dLowLimit = LL;
     this->_dHighLimit = HL;
-    this->_dDesiredSetPoint = 0;
-    this->_dNextSetPoint = 0;
-    this->_dSetPoint = 0;
     this->_dErrorSum = 0;
     this->_dProcessValuePrior = 0;
     this->_dDerPrior = 0;
     this->_dDerPrevious = 0;
     this->_dControlValue = 0;
     this->_dBias = 0;
-    this->_dSpAcceleration = 0.15*DEG_TO_RAD;
-    this->_dSpAccMultiplier = 20;
+    this->_dDesiredSetPoint = 0;
+    this->_dSetPoint = 0;
 }
 void PID::vSetKp(double kp)
 {
@@ -66,57 +63,64 @@ void PID::vSetBias(double Bias)
 {
     this->_dBias = Bias;
 }
-void PID::vSetSPAcceleration(double Acceleration, double Multiplier)
-{
-    this->_dSpAcceleration = Acceleration;
-    this->_dSpAccMultiplier = Multiplier;
-}
 void PID::vResetError()
 {
     this->_dErrorSum = 0;
 }
-void PID::vSPRamp(double ProcessValue)
+void PID::vSetSPAcceleration(double StepSize, double StepTime)
 {
-    if (abs(ProcessValue-this->_dNextSetPoint)<this->_dSpAccMultiplier*this->_dSpAcceleration)
+    this->_dMaxStep = StepSize;
+    this->_iEndSubstep = StepTime/DT;
+}
+double PID::dLogisticFunction(int n)
+{
+    double a=this->_dLastSetPoint;
+    double b=this->_dLastSetPoint+this->_dStepSize;
+    double c=(this->_dStepTime/2)/10;
+    double r=7.5*c;
+    double t=n/10.0;
+    return((a*exp(c*r)+b*exp(r*t))/(exp(c*r)+exp(r*t)));
+}
+void PID::vComparePVandSP(double ProcessValue)
+{
+    if(abs(ProcessValue-(this->_dLastSetPoint + this->_dStepSize)) < PV_vs_SP_PRECISION)
     {
-        if (abs(this->_dDesiredSetPoint-this->_dNextSetPoint)>this->_dSpAccMultiplier*this->_dSpAcceleration)
+        this->_iSubstep=0;
+        this->_dLastSetPoint = this->_dSetPoint;
+        if(abs(this->_dDesiredSetPoint-this->_dLastSetPoint) < this->_dMaxStep)
         {
-            if (this->_dDesiredSetPoint-this->_dNextSetPoint>0)
+            this->_dStepSize=this->_dDesiredSetPoint-this->_dLastSetPoint;
+        }
+        else
+        {
+            if(this->_dDesiredSetPoint > this->_dLastSetPoint)
             {
-                this->_dNextSetPoint+=this->_dSpAccMultiplier*this->_dSpAcceleration;
+                this->_dStepSize=this->_dMaxStep;
             }
             else
             {
-                this->_dNextSetPoint-=this->_dSpAccMultiplier*this->_dSpAcceleration;
+                this->_dStepSize=-this->_dMaxStep;
             }
+            
         }
-        else
-        {
-            this->_dNextSetPoint=this->_dDesiredSetPoint;
-        }
-    } 
-    if (this->_dNextSetPoint - this->_dSetPoint < 0)
+        
+    }
+}
+void PID::vSPRamp(double ProcessValue)
+{
+    if (abs(this->_dSetPoint - (this->_dLastSetPoint + this->_dStepSize)) < SP_PRECISION)
     {
-        if (this->_dNextSetPoint - this->_dSetPoint > -this->_dSpAcceleration)
-        {
-            this->_dSetPoint = this->_dNextSetPoint;
-        }
-        else
-        {
-            this->_dSetPoint -= this->_dSpAcceleration;
-        }  
+        this->vComparePVandSP(ProcessValue);
     }
     else
     {
-        if (this->_dNextSetPoint - this->_dSetPoint < this->_dSpAcceleration)
+        if (this->_iSubstep<this->_iEndSubstep)
         {
-            this->_dSetPoint = this->_dNextSetPoint;
+            this->_iSubstep++;
         }
-        else
-        {
-            this->_dSetPoint += this->_dSpAcceleration;
-        }
+        this->_dSetPoint=dLogisticFunction(this->_iSubstep++);
     }
+      
 }
 void PID::vCVLimiter()
 {
