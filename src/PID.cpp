@@ -145,30 +145,45 @@ double PID::dGetDesiredSP()
 {
     return this->_dDesiredSetPoint;
 }
-double PID::Update(double ProcessValue, double dt, bool isFront)
+void PID::vCalculateError(double ProcessValue)
 {
-    //SP RAMP
-    this->vSPRamp(ProcessValue);
-    //ERROR CALCULTATION
     this->_dError = this->_dSetPoint - ProcessValue;
-    double Derrivative = (this->_dProcessValuePrior - ProcessValue) / dt;
+}
+double PID::dCalculatePVDerivative(double ProcessValue, double dt)
+{
+    return (this->_dProcessValuePrior - ProcessValue) / dt;
+}
+void PID::vIntegralPart(double dt)
+{
     //ANTI-WINDUP
     if ((this->_dControlValue > this->_dHighLimit || this->_dControlValue < this->_dLowLimit) 
      && (this->_dControlValue  * this->_dError > 0))
-    {
-        this->_dControlValue=0;
-    }
+    {}
     else
     {
         this->_dErrorSum += this->_dError * dt;
         this->_dControlValue=_dKi * this->_dErrorSum; ;
     }
+}
+void PID::vProportionalPart()
+{
     this->_dControlValue += this->_dKp * this->_dError; 
+}
+void PID::vDerivativePart(double Derrivative)
+{
     this->_dControlValue += this->_dKd * (Derrivative/3+this->_dDerPrior/3+this->_dDerPrevious/3); 
     this->_dControlValue += this->_dBias;
-    // CV LIMITER
+}
+double PID::Update(double ProcessValue, double dt, bool isFront)
+{
+    this->vSPRamp(ProcessValue);
+    this->vCalculateError(ProcessValue);
+    double Derrivative = dCalculatePVDerivative(ProcessValue, dt);
+    this->_dControlValue = 0;
+    this->vIntegralPart(dt);
+    this->vProportionalPart();
+    this->vDerivativePart(Derrivative);
     this->vCVLimiter();
-
     if (isFront)
     {
         ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",

@@ -36,6 +36,11 @@ public:
     void vSPRamp(double ProcessValue);
     void vComparePVandSP(double ProcessValue);
     void vCVLimiter();
+    void vCalculateError(double ProcessValue);
+    void vDerivativePart(double Derrivative);
+    void vIntegralPart(double dt);
+    void vProportionalPart();
+    double dCalculatePVDerivative(double ProcessValue,double dt);
     double dLogisticFunction(int n);
     double dGetCV();
     double dGetError();
