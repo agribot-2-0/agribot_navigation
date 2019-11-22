@@ -169,9 +169,13 @@ void PID::vProportionalPart()
 {
     this->_dControlValue += this->_dKp * this->_dError; 
 }
+double PID::dPVFilter(double value_now, double value_back_1, double value_back_2)
+{
+    return value_now/3+value_back_1/3+value_back_2/3;
+}
 void PID::vDerivativePart(double Derrivative)
 {
-    this->_dControlValue += this->_dKd * (Derrivative/3+this->_dDerPrior/3+this->_dDerPrevious/3); 
+    this->_dControlValue += this->_dKd * this->dPVFilter(Derrivative,this->_dDerPrior,this->_dDerPrevious); 
     this->_dControlValue += this->_dBias;
 }
 double PID::Update(double ProcessValue, double dt, bool isFront)

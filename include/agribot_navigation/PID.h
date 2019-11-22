@@ -40,6 +40,7 @@ public:
     void vDerivativePart(double Derrivative);
     void vIntegralPart(double dt);
     void vProportionalPart();
+    double dPVFilter(double value_now, double value_back_1, double value_back_2);
     double dCalculatePVDerivative(double ProcessValue,double dt);
     double dLogisticFunction(int n);
     double dGetCV();

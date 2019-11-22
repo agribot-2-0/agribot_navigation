@@ -37,6 +37,8 @@ public:
     void vCalculateAngularVelocities();
     void vCalculateLimitMultiplier();
     void vUpdatePIDs(double t);
+    double dVelocitiesToRadius(double linear, double angular);
+    double dRadiusToAngle(double Radius);
     double dMultiplierGaussian(double x);
     double dMultiplierSigmoid(double x);
     double dMultiplierRoot2(double x);

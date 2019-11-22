@@ -129,14 +129,14 @@ void KinematicsControl::vSetPIDSetPoints()
                     if (_pdInputLinear[X] > 0)
                     {
                         // Moving forward - back cart is pulled
-                        this->_pFrontCartPID->vSetSP(asin(_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X]));
+                        this->_pFrontCartPID->vSetSP(this->dRadiusToAngle(this->dVelocitiesToRadius(_pdInputLinear[X],_pdInputAngular[Z])));
                         this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
                         this->_pBackCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
                     }
                     else
                     {
                         // Moving backwards - front cart is pulled
-                        this->_pBackCartPID->vSetSP(-asin(_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X]));
+                        this->_pBackCartPID->vSetSP(-this->dRadiusToAngle(this->dVelocitiesToRadius(_pdInputLinear[X],_pdInputAngular[Z])));
                         this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
                         this->_pFrontCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
                     }
@@ -186,6 +186,14 @@ void KinematicsControl::vCalculateAngularVelocities()
         _pdControl[2] = this->_pBackCartPID->dGetCV();
     }
 }
+double KinematicsControl::dVelocitiesToRadius(double linear, double angular)
+{
+    return linear/angular;
+}
+double KinematicsControl::dRadiusToAngle(double Radius)
+{
+    return asin(_dChassisLength / 2 / Radius);
+}
 double KinematicsControl::dMultiplierLinear(double x)
 {
     return 1-x;
@@ -218,8 +226,9 @@ void KinematicsControl::vCalculateLimitMultiplier()
 {
     double angle_diff_front = abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP());
     double angle_diff_back = abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
-    this->_dLinearMultiplier=this->dMultiplierRoot4(std::max(angle_diff_front,angle_diff_back)/ANGLE_RANGE);
-    this->_dLinearMultiplier=1;
+    double diff = std::max(angle_diff_front,angle_diff_back);
+    this->_dLinearMultiplier=this->dMultiplierRoot4(diff/ANGLE_RANGE);
+    // this->_dLinearMultiplier=1;
     ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],angle_diff_front*RAD_TO_DEG,angle_diff_back*RAD_TO_DEG);
 }
 void KinematicsControl::vCalculateKinematicsControl()
