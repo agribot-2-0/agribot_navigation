@@ -2,18 +2,19 @@
 #include <math.h>
 #include <ros/ros.h>
 #include <ros/console.h>
+#define DEBUG
 #define HISTERESIS 0.05
 #define PI 3.14159265359
 #define RAD_TO_DEG (180/PI)
 #define DEG_TO_RAD (PI/180)
 #define ANGLE_RANGE (PI/2)
 #define LIMIT (20.0*DEG_TO_RAD)
-#define KP_val 0.75
-#define KI_val 0.208333
-#define KD_val (1.378125/2)
-#define KP_PRECISE_MULTIPLIER (2.0/7)
-#define KI_PRECISE_MULTIPLIER (8.0/35)
-#define KD_PRECISE_MULTIPLIER (40.0/63)
+#define KP_VAL 0.75
+#define KI_VAL 0.208333
+#define KD_VAL (1.378125/2)
+#define KP_PRECISE (KP_VAL*2.0/7)
+#define KI_PRECISE (KI_VAL*8.0/35)
+#define KD_PRECISE (KD_VAL*40.0/63)
 #define PRECISE_PID_RANGE 2.0
 #define LINEARITY_RANGE 5.0
 enum
@@ -43,8 +44,8 @@ KinematicsControl::KinematicsControl()
     this->_dWheelSeparation = 1.05 + 0.025;
     this->_dChassisLength = 2.42 - 2 * _dWheelRadius;
     this->_dLinearMultiplier = 1;
-    this->_pFrontCartPID = new PID(KP_val, KD_val, KI_val, -LIMIT, LIMIT); 
-    this->_pBackCartPID = new PID(KP_val, KD_val, KI_val, -LIMIT, LIMIT);
+    this->_pFrontCartPID = new PID(KP_VAL, KD_VAL, KI_VAL, -LIMIT, LIMIT); 
+    this->_pBackCartPID = new PID(KP_VAL, KD_VAL, KI_VAL, -LIMIT, LIMIT);
 }
 int KinematicsControl::configure() 
 {
@@ -72,27 +73,27 @@ void KinematicsControl::vRegulatePIDs()
     //  in case of being close to Set Point change PID settings to prevent overshoot
     if (abs(_pFrontCartPID->dGetError()*RAD_TO_DEG)>PRECISE_PID_RANGE)
     {
-        this->_pFrontCartPID->vSetKp(KP_val);
-        this->_pFrontCartPID->vSetKi(KI_val);
-        this->_pFrontCartPID->vSetKd(KD_val);
+        this->_pFrontCartPID->vSetKp(KP_VAL);
+        this->_pFrontCartPID->vSetKi(KI_VAL);
+        this->_pFrontCartPID->vSetKd(KD_VAL);
     }
     else
     {
-        this->_pFrontCartPID->vSetKp(KP_val*KP_PRECISE_MULTIPLIER);
-        this->_pFrontCartPID->vSetKi(KI_val*KI_PRECISE_MULTIPLIER);
-        this->_pFrontCartPID->vSetKd(KD_val*KD_PRECISE_MULTIPLIER);
+        this->_pFrontCartPID->vSetKp(KP_PRECISE);
+        this->_pFrontCartPID->vSetKi(KI_PRECISE);
+        this->_pFrontCartPID->vSetKd(KD_PRECISE);
     } 
     if (abs(_pBackCartPID->dGetError()*RAD_TO_DEG)>PRECISE_PID_RANGE)
     {
-        this->_pBackCartPID->vSetKp(KP_val);
-        this->_pBackCartPID->vSetKi(KI_val);
-        this->_pBackCartPID->vSetKd(KD_val);
+        this->_pBackCartPID->vSetKp(KP_VAL);
+        this->_pBackCartPID->vSetKi(KI_VAL);
+        this->_pBackCartPID->vSetKd(KD_VAL);
     }
     else
     {
-        this->_pBackCartPID->vSetKp(KP_val*KP_PRECISE_MULTIPLIER);
-        this->_pBackCartPID->vSetKi(KI_val*KI_PRECISE_MULTIPLIER);
-        this->_pBackCartPID->vSetKd(KD_val*KD_PRECISE_MULTIPLIER);
+        this->_pBackCartPID->vSetKp(KP_PRECISE);
+        this->_pBackCartPID->vSetKi(KI_PRECISE);
+        this->_pBackCartPID->vSetKd(KD_PRECISE);
     }
     this->_pFrontCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
     this->_pBackCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
@@ -222,25 +223,31 @@ double KinematicsControl::dMultiplierRoot4(double x)
 {
     return 1-(pow(x,(1/4.0)));
 }
-void KinematicsControl::vCalculateLimitMultiplier()
+double KinematicsControl::angle_diff_front()
 {
-    double angle_diff_front = abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP());
-    double angle_diff_back = abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
-    double diff = std::max(angle_diff_front,angle_diff_back);
-    this->_dLinearMultiplier=this->dMultiplierRoot4(diff/ANGLE_RANGE);
-    // this->_dLinearMultiplier=1;
-    ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],angle_diff_front*RAD_TO_DEG,angle_diff_back*RAD_TO_DEG);
+    return abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP());
 }
+double KinematicsControl::angle_diff_back()
+{
+    return abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
+}
+double KinematicsControl::diff(double diff_front, double diff_back)
+{
+    return std::max(diff_front,diff_back);
+}  
 void KinematicsControl::vCalculateKinematicsControl()
 {
     this->vRegulatePIDs();
     this->vSetPIDSetPoints();
     this->vCalculateAngularVelocities();
-    this->vCalculateLimitMultiplier();
+    this->_dLinearMultiplier=this->dMultiplierRoot4(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
     _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
     _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
+    #ifdef DEBUG
+        ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],this->angle_diff_front()*RAD_TO_DEG,this->angle_diff_back()*RAD_TO_DEG);
+    #endif
     }
 double *KinematicsControl::pdGetCaterpillarVelocities()
 {

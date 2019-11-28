@@ -35,8 +35,10 @@ public:
     void vRegulatePIDs();
     void vSetPIDSetPoints();
     void vCalculateAngularVelocities();
-    void vCalculateLimitMultiplier();
     void vUpdatePIDs(double t);
+    double angle_diff_front();
+    double angle_diff_back();
+    double diff(double diff_front, double diff_back);
     double dVelocitiesToRadius(double linear, double angular);
     double dRadiusToAngle(double Radius);
     double dMultiplierGaussian(double x);

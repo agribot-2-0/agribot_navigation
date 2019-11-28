@@ -14,13 +14,11 @@ private:
     double _dLowLimit;
     double _dHighLimit;
     double _dSetPoint;
-    double _dLastSetPoint;
+    double _dNextSetPoint;
     double _dDesiredSetPoint;
     double _dMaxStep;
-    double _dStepTime;
-    double _dStepSize;
-    int _iEndSubstep;
-    int _iSubstep;
+    double _dSubstepStepSize;
+    int _iSubsteps;
 public:
     PID();
     PID(double kp, double kd, double ki, double LL, double HL);
@@ -31,18 +29,16 @@ public:
     void vSetHighLimit(double SP);
     void vSetSP(double SP);
     void vSetBias(double Bias);
-    void vSetSPAcceleration(double StepSize, double StepTime);
+    void vSetSPAcceleration(double SubstepSize, int Substeps);
     void vResetError();
     void vSPRamp(double ProcessValue);
-    void vComparePVandSP(double ProcessValue);
     void vCVLimiter();
     void vCalculateError(double ProcessValue);
     void vDerivativePart(double Derrivative);
     void vIntegralPart(double dt);
     void vProportionalPart();
-    double dPVFilter(double value_now, double value_back_1, double value_back_2);
+    double dAverageFilter(double value_now, double value_back_1, double value_back_2);
     double dCalculatePVDerivative(double ProcessValue,double dt);
-    double dLogisticFunction(int n);
     double dGetCV();
     double dGetError();
     double dGetDesiredSP();
