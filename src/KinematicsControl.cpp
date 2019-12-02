@@ -241,10 +241,15 @@ void KinematicsControl::vCalculateKinematicsControl()
     this->vSetPIDSetPoints();
     this->vCalculateAngularVelocities();
     this->_dLinearMultiplier=this->dMultiplierGaussian(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
+    double AngularMultiplier=1.0;
+    if (this->_dLinearMultiplier < 0.5)
+    {
+        AngularMultiplier=2.0;
+    }
     _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
-    _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
+    _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1]*AngularMultiplier;
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
-    _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2];
+    _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2]*AngularMultiplier;
     #ifdef DEBUG
         ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],this->angle_diff_front()*RAD_TO_DEG,this->angle_diff_back()*RAD_TO_DEG);
     #endif
