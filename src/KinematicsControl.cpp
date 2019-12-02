@@ -8,7 +8,7 @@
 #define RAD_TO_DEG (180/PI)
 #define DEG_TO_RAD (PI/180)
 #define ANGLE_RANGE (PI/2)
-#define LIMIT (20.0*DEG_TO_RAD)
+#define LIMIT (10.0*DEG_TO_RAD)
 #define KP_VAL 0.75
 #define KI_VAL 0.208333
 #define KD_VAL (1.378125/2)
@@ -95,8 +95,8 @@ void KinematicsControl::vRegulatePIDs()
         this->_pBackCartPID->vSetKi(KI_PRECISE);
         this->_pBackCartPID->vSetKd(KD_PRECISE);
     }
-    this->_pFrontCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
-    this->_pBackCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
+    this->_pFrontCartPID->vSetSPAcceleration(0.225*DEG_TO_RAD,20);
+    this->_pBackCartPID->vSetSPAcceleration(0.225*DEG_TO_RAD,20);
 }
 void KinematicsControl::vSetPIDSetPoints()
 {
@@ -132,14 +132,14 @@ void KinematicsControl::vSetPIDSetPoints()
                         // Moving forward - back cart is pulled
                         this->_pFrontCartPID->vSetSP(this->dRadiusToAngle(this->dVelocitiesToRadius(_pdInputLinear[X],_pdInputAngular[Z])));
                         this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
-                        this->_pBackCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
+                        this->_pBackCartPID->vSetSPAcceleration(0.225*DEG_TO_RAD,20);
                     }
                     else
                     {
                         // Moving backwards - front cart is pulled
                         this->_pBackCartPID->vSetSP(-this->dRadiusToAngle(this->dVelocitiesToRadius(_pdInputLinear[X],_pdInputAngular[Z])));
                         this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
-                        this->_pFrontCartPID->vSetSPAcceleration(0.15*DEG_TO_RAD,20);
+                        this->_pFrontCartPID->vSetSPAcceleration(0.225*DEG_TO_RAD,20);
                     }
                 }
             }
@@ -240,7 +240,7 @@ void KinematicsControl::vCalculateKinematicsControl()
     this->vRegulatePIDs();
     this->vSetPIDSetPoints();
     this->vCalculateAngularVelocities();
-    this->_dLinearMultiplier=this->dMultiplierRoot4(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
+    this->_dLinearMultiplier=this->dMultiplierGaussian(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
     _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
     _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1];
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];

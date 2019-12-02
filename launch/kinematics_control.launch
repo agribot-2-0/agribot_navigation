@@ -1,3 +1,3 @@
 <launch>
-    <node name="inverse_kinematics_node" pkg="agribot_navigation" type="inverse_kinematics"/>
+    <node name="kinematics_control_node" pkg="agribot_navigation" type="kinematics_control"/>
 </launch>
