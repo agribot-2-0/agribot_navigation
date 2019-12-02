@@ -24,17 +24,22 @@
     />
 
     <rosparam
-      file="$(find agribot_navigation)/param/local_costmap_params.yaml"
+      file="$(find agribot_navigation)/param/costmap_global_params.yaml"
       command="load"
     />
 
     <rosparam
-      file="$(find agribot_navigation)/param/global_costmap_params.yaml"
+      file="$(find agribot_navigation)/param/costmap_local_params.yaml"
       command="load"
     />
 
     <rosparam
-      file="$(find agribot_navigation)/param/dwa_local_planner_params.yaml"
+      file="$(find agribot_navigation)/param/base_global_planner_params.yaml"
+      command="load"
+    />
+
+    <rosparam
+      file="$(find agribot_navigation)/param/base_local_planner_params.yaml"
       command="load"
     />
 
@@ -43,17 +48,9 @@
       command="load"
     />
 
-    <rosparam
-      file="$(find agribot_navigation)/param/teb_local_planner_params.yaml"
-      command="load"
-    />
+    <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" />
+    <param name="base_global_planner" value="waypoint_global_planner/WaypointGlobalPlanner" />
 
-    <!--<rosparam-->
-      <!--file="$(find agribot_navigation)/param/global_planner_params.yaml"-->
-      <!--command="load"-->
-    <!--/>-->
-    <!-- <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" /> -->
-    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
     <remap from="odom" to="$(arg odom_topic)"/>
   </node>
