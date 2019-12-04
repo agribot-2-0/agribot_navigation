@@ -109,7 +109,6 @@ void PID::vSPRamp(double ProcessValue)
             this->_dNextSetPoint=this->_dDesiredSetPoint;
         }
     } 
-    
     if (this->_dNextSetPoint - this->_dSetPoint < 0)
     {
         if (this->_dNextSetPoint - this->_dSetPoint > -this->_dSubstepStepSize)

@@ -17,6 +17,9 @@
 #define KD_PRECISE (KD_VAL*40.0/63)
 #define PRECISE_PID_RANGE 2.0
 #define LINEARITY_RANGE 5.0
+#define SP_RAMP_SUBSTEP 0.225
+#define SP_RAMP_SUBSTEPS_NUMBER 20
+#define ANGULAR_CHANGE_THRESHOLD 0.5
 enum
 {
     X,
@@ -95,8 +98,8 @@ void KinematicsControl::vRegulatePIDs()
         this->_pBackCartPID->vSetKi(KI_PRECISE);
         this->_pBackCartPID->vSetKd(KD_PRECISE);
     }
-    this->_pFrontCartPID->vSetSPAcceleration(0.225*DEG_TO_RAD,20);
-    this->_pBackCartPID->vSetSPAcceleration(0.225*DEG_TO_RAD,20);
+    this->_pFrontCartPID->vSetSPAcceleration(SP_RAMP_SUBSTEP*DEG_TO_RAD,SP_RAMP_SUBSTEPS_NUMBER);
+    this->_pBackCartPID->vSetSPAcceleration(SP_RAMP_SUBSTEP*DEG_TO_RAD,SP_RAMP_SUBSTEPS_NUMBER);
 }
 void KinematicsControl::vSetPIDSetPoints()
 {
@@ -132,14 +135,12 @@ void KinematicsControl::vSetPIDSetPoints()
                         // Moving forward - back cart is pulled
                         this->_pFrontCartPID->vSetSP(this->dRadiusToAngle(this->dVelocitiesToRadius(_pdInputLinear[X],_pdInputAngular[Z])));
                         this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
-                        this->_pBackCartPID->vSetSPAcceleration(0.225*DEG_TO_RAD,20);
                     }
                     else
                     {
                         // Moving backwards - front cart is pulled
                         this->_pBackCartPID->vSetSP(-this->dRadiusToAngle(this->dVelocitiesToRadius(_pdInputLinear[X],_pdInputAngular[Z])));
                         this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
-                        this->_pFrontCartPID->vSetSPAcceleration(0.225*DEG_TO_RAD,20);
                     }
                 }
             }
@@ -242,7 +243,7 @@ void KinematicsControl::vCalculateKinematicsControl()
     this->vCalculateAngularVelocities();
     this->_dLinearMultiplier=this->dMultiplierGaussian(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
     double AngularMultiplier=1.0;
-    if (this->_dLinearMultiplier < 0.5)
+    if (this->_dLinearMultiplier < ANGULAR_CHANGE_THRESHOLD)
     {
         AngularMultiplier=2.0;
     }
