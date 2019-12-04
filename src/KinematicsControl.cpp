@@ -1,13 +1,12 @@
 #include <agribot_navigation/KinematicsControl.h>
-#include <math.h>
+#include <cmath>
 #include <ros/ros.h>
 #include <ros/console.h>
 #define DEBUG
 #define HISTERESIS 0.05
-#define PI 3.14159265359
-#define RAD_TO_DEG (180/PI)
-#define DEG_TO_RAD (PI/180)
-#define ANGLE_RANGE (PI/2)
+#define RAD_TO_DEG (180/M_PI)
+#define DEG_TO_RAD (M_PI/180)
+#define ANGLE_RANGE (M_PI/2)
 #define LIMIT (10.0*DEG_TO_RAD)
 #define KP_VAL 0.75
 #define KI_VAL 0.208333
@@ -114,8 +113,8 @@ void KinematicsControl::vSetPIDSetPoints()
             if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] > 1)
             {
                 // Desired radius too small
-                this->_pFrontCartPID->vSetSP(PI / 2);
-                this->_pBackCartPID->vSetSP(-PI / 2);
+                this->_pFrontCartPID->vSetSP(M_PI / 2);
+                this->_pBackCartPID->vSetSP(-M_PI / 2);
                 ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
             }
             else 
@@ -123,8 +122,8 @@ void KinematicsControl::vSetPIDSetPoints()
                 if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] < -1)
                 {
                     // Desired radius too small
-                    this->_pFrontCartPID->vSetSP(-PI / 2);
-                    this->_pBackCartPID->vSetSP(PI / 2);
+                    this->_pFrontCartPID->vSetSP(-M_PI / 2);
+                    this->_pBackCartPID->vSetSP(M_PI / 2);
                     ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
                 }
                 else
@@ -149,8 +148,8 @@ void KinematicsControl::vSetPIDSetPoints()
         {
             // Angular - yes / Linear -no
             _pdControl[0] = _pdInputAngular[Z] * _dChassisLength / 2;
-            this->_pFrontCartPID->vSetSP(PI / 2);
-            this->_pBackCartPID->vSetSP(-PI / 2);
+            this->_pFrontCartPID->vSetSP(M_PI / 2);
+            this->_pBackCartPID->vSetSP(-M_PI / 2);
         }
     }    
     else
