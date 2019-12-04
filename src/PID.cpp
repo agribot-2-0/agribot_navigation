@@ -70,6 +70,12 @@ void PID::vSetSP(double SP)
 {
     this->_dDesiredSetPoint = SP;
 }
+void PID::vResetSP(double SP)
+{
+    this->_dDesiredSetPoint = SP;
+    this->_dNextSetPoint = SP;
+    this->_dSetPoint = SP;
+}
 void PID::vSetBias(double Bias)
 {
     this->_dBias = Bias;

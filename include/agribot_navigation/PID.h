@@ -28,6 +28,7 @@ public:
     void vSetLowLimit(double SP);
     void vSetHighLimit(double SP);
     void vSetSP(double SP);
+    void vResetSP(double SP);
     void vSetBias(double Bias);
     void vSetSPAcceleration(double SubstepSize, int Substeps);
     void vResetError();

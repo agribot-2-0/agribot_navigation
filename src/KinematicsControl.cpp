@@ -166,8 +166,8 @@ void KinematicsControl::vSetPIDSetPoints()
             // Angular - no / Linear -no
             this->_pFrontCartPID->vResetError();
             this->_pBackCartPID->vResetError();
-            this->_pFrontCartPID->vSetSP(_pdCartAngle[FRONT_CART]);
-            this->_pBackCartPID->vSetSP(_pdCartAngle[BACK_CART]);
+            this->_pFrontCartPID->vResetSP(_pdCartAngle[FRONT_CART]);
+            this->_pBackCartPID->vResetSP(_pdCartAngle[BACK_CART]);
         }
     }
 }
