@@ -36,7 +36,8 @@ public:
     void vCVLimiter();
     void vCalculateError(double ProcessValue);
     void vDerivativePart(double Derrivative);
-    void vIntegralPart(double dt);
+    void vAntiWindup(double dt);
+    void vIntegralPart();
     void vProportionalPart();
     double dAverageFilter(double value_now, double value_back_1, double value_back_2);
     double dCalculatePVDerivative(double ProcessValue,double dt);

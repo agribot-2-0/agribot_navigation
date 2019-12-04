@@ -1,11 +1,10 @@
 #include <agribot_navigation/PID.h>
-#include <math.h>
+#include <cmath>
 #include <ros/ros.h>
 #include <ros/console.h>
 #define DEBUG
-#define PI 3.14159265359
-#define RAD_TO_DEG (180/PI)
-#define DEG_TO_RAD (PI/180)
+#define RAD_TO_DEG (180/M_PI)
+#define DEG_TO_RAD (M_PI/180)
 PID::PID()
 {
     this->_dKp = 0;
@@ -163,15 +162,23 @@ double PID::dCalculatePVDerivative(double ProcessValue, double dt)
 {
     return (this->_dProcessValuePrior - ProcessValue) / dt;
 }
-void PID::vIntegralPart(double dt)
+void PID::vAntiWindup(double dt)
 {
-    //ANTI-WINDUP
     if ((this->_dControlValue > this->_dHighLimit || this->_dControlValue < this->_dLowLimit) 
      && (this->_dControlValue  * this->_dError > 0))
     {}
     else
     {
         this->_dErrorSum += this->_dError * dt;
+    }
+}
+void PID::vIntegralPart()
+{
+    if ((this->_dControlValue > this->_dHighLimit || this->_dControlValue < this->_dLowLimit) 
+     && (this->_dControlValue  * this->_dError > 0))
+    {}
+    else
+    {
         this->_dControlValue=_dKi * this->_dErrorSum; ;
     }
 }
@@ -194,7 +201,8 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     this->vCalculateError(ProcessValue);
     double Derrivative = dCalculatePVDerivative(ProcessValue, dt);
     this->_dControlValue = 0;
-    this->vIntegralPart(dt);
+    this->vAntiWindup(dt);
+    this->vIntegralPart();
     this->vProportionalPart();
     this->vDerivativePart(Derrivative);
     this->vCVLimiter();
