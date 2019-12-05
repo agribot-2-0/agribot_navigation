@@ -166,8 +166,8 @@ void KinematicsControl::vSetPIDSetPoints()
             // Angular - no / Linear -no
             this->_pFrontCartPID->vResetError();
             this->_pBackCartPID->vResetError();
-            this->_pFrontCartPID->vResetSP(_pdCartAngle[FRONT_CART]);
-            this->_pBackCartPID->vResetSP(_pdCartAngle[BACK_CART]);
+            this->_pFrontCartPID->vResetSetPoints(_pdCartAngle[FRONT_CART]);
+            this->_pBackCartPID->vResetSetPoints(_pdCartAngle[BACK_CART]);
         }
     }
 }
@@ -183,8 +183,8 @@ void KinematicsControl::vCalculateAngularVelocities()
     else
     {
         // Moving
-        _pdControl[1] = this->_pFrontCartPID->dGetCV();
-        _pdControl[2] = this->_pBackCartPID->dGetCV();
+        _pdControl[1] = this->_pFrontCartPID->dGetControlValue();
+        _pdControl[2] = this->_pBackCartPID->dGetControlValue();
     }
 }
 double KinematicsControl::dVelocitiesToRadius(double linear, double angular)
@@ -225,11 +225,11 @@ double KinematicsControl::dMultiplierRoot4(double x)
 }
 double KinematicsControl::angle_diff_front()
 {
-    return abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSP());
+    return abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSetPoint());
 }
 double KinematicsControl::angle_diff_back()
 {
-    return abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSP());
+    return abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSetPoint());
 }
 double KinematicsControl::diff(double diff_front, double diff_back)
 {

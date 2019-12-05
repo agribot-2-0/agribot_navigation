@@ -14,6 +14,7 @@ PID::PID()
     this->_dHighLimit = 20*RAD_TO_DEG;
     this->_dBias=0;
     this->_dError=0;
+    this->_dProcessValue=0;
     this->_dProcessValuePrior=0;
     this->_dDerPrior=0;
     this->_dDerPrevious=0;
@@ -33,7 +34,8 @@ PID::PID(double kp, double kd, double ki, double LL, double HL)
     this->_dLowLimit = LL;
     this->_dHighLimit = HL;
     this->_dBias=0;
-    this->_dError=0;
+    this->_dError=0;   
+    this->_dProcessValue=0;
     this->_dProcessValuePrior=0;
     this->_dDerPrior=0;
     this->_dDerPrevious=0;
@@ -69,7 +71,7 @@ void PID::vSetSP(double SP)
 {
     this->_dDesiredSetPoint = SP;
 }
-void PID::vResetSP(double SP)
+void PID::vResetSetPoints(double SP)
 {
     this->_dDesiredSetPoint = SP;
     this->_dNextSetPoint = SP;
@@ -78,6 +80,10 @@ void PID::vResetSP(double SP)
 void PID::vSetBias(double Bias)
 {
     this->_dBias = Bias;
+}
+void PID::vUpdateProcessValue(double PV)
+{
+    this->_dProcessValue = PV;
 }
 void PID::vResetError()
 {
@@ -88,7 +94,7 @@ void PID::vSetSPAcceleration(double SubstepStepSize, int Substeps)
     this->_dSubstepStepSize = SubstepStepSize;
     this->_iSubsteps = Substeps;
 }
-void PID::vSPRamp(double ProcessValue)
+void PID::vCalculateNextSetPoint(double ProcessValue)
 {
      if (abs(ProcessValue-this->_dNextSetPoint)<this->_iSubsteps*this->_dSubstepStepSize)
     {
@@ -108,6 +114,9 @@ void PID::vSPRamp(double ProcessValue)
             this->_dNextSetPoint=this->_dDesiredSetPoint;
         }
     } 
+}
+void PID::vSetPointSubstep()
+{
     if (this->_dNextSetPoint - this->_dSetPoint < 0)
     {
         if (this->_dNextSetPoint - this->_dSetPoint > -this->_dSubstepStepSize)
@@ -131,7 +140,12 @@ void PID::vSPRamp(double ProcessValue)
         }
     }
 }
-void PID::vCVLimiter()
+void PID::vSetPointRamp(double ProcessValue)
+{
+     this->vCalculateNextSetPoint(ProcessValue);
+     this->vSetPointSubstep();
+}
+void PID::vControlValueLimiter()
 {
      if (this->_dControlValue > this->_dHighLimit)
     {
@@ -142,7 +156,7 @@ void PID::vCVLimiter()
         this->_dControlValue = this->_dLowLimit;
     }
 }
-double PID::dGetCV()
+double PID::dGetControlValue()
 {
     return this->_dControlValue;
 }
@@ -150,7 +164,7 @@ double PID::dGetError()
 {
     return this->_dError;
 }
-double PID::dGetDesiredSP()
+double PID::dGetDesiredSetPoint()
 {
     return this->_dDesiredSetPoint;
 }
@@ -189,7 +203,7 @@ void PID::vProportionalPart()
 }
 double PID::dAverageFilter(double value_now, double value_back_1, double value_back_2)
 {
-    return value_now/3+value_back_1/3+value_back_2/3;
+    return (value_now+value_back_1+value_back_2)/3;
 }
 void PID::vDerivativePart(double Derrivative)
 {
@@ -197,29 +211,34 @@ void PID::vDerivativePart(double Derrivative)
 }
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
-    this->vSPRamp(ProcessValue);
-    this->vCalculateError(ProcessValue);
-    double Derrivative = dCalculatePVDerivative(ProcessValue, dt);
+    this->vUpdateProcessValue(ProcessValue);
+    this->vSetPointRamp(this->_dProcessValue);
+    this->vCalculateError(this->_dProcessValue);
+    this->_dDerivative = dCalculatePVDerivative(this->_dProcessValue, dt);
     this->_dControlValue = 0;
     this->vAntiWindup(dt);
     this->vIntegralPart();
     this->vProportionalPart();
-    this->vDerivativePart(Derrivative);
-    this->vCVLimiter();
+    this->vDerivativePart(this->_dDerivative);
+    this->vControlValueLimiter();
     #ifdef DEBUG
-        if (isFront)
+        this->vPrintDebugInfo(isFront, dt);
+    #endif
+    this->_dDerPrevious=this->_dDerPrior;
+    this->_dDerPrior=this->_dDerivative;
+    this->_dProcessValuePrior = this->_dProcessValue;                 
+    return this->_dControlValue;
+}
+void PID::vPrintDebugInfo(bool isFront, double dt)
+{
+    if (isFront)
         {
             ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-                        dt,this->_dSetPoint,ProcessValue,this->_dControlValue,this->_dError,this->_dErrorSum,Derrivative,this->_dKp,this->_dKi,this->_dKd);
+                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorSum,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
         }
         else
         {
             ROS_INFO_NAMED("PID", "BACK;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-                        dt,this->_dSetPoint,ProcessValue,this->_dControlValue,this->_dError,this->_dErrorSum,Derrivative,this->_dKp,this->_dKi,this->_dKd);
+                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorSum,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
         }
-    #endif
-    this->_dDerPrevious=this->_dDerPrior;
-    this->_dDerPrior=Derrivative;
-    this->_dProcessValuePrior = ProcessValue;                 
-    return this->_dControlValue;
 }
