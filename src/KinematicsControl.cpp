@@ -273,7 +273,7 @@ void KinematicsControl::vCalculateKinematicsControl()
     this->vSetPIDSetpoints();
     this->vCalculateAngularControls(_pdInputLinear[X], _pdInputAngular[Z]);
     this->vCalculateLinearControls(_pdInputLinear[X], _pdInputAngular[Z]);
-    this->_dLinearMultiplier=this->dMultiplierGaussian(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
+    this->_dLinearMultiplier = this->dMultiplierGaussian(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
     double AngularMultiplier=1.0;
     if (this->_dLinearMultiplier < ANGULAR_CHANGE_THRESHOLD)
     {

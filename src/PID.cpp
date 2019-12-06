@@ -12,52 +12,52 @@ PID::PID()
     this->_dKi = 0;
     this->_dLowLimit = -20*RAD_TO_DEG;
     this->_dHighLimit = 20*RAD_TO_DEG;
-    this->_dBias=0;
-    this->_dError=0;
-    this->_dProcessValue=0;
-    this->_dProcessValuePrior=0;
-    this->_dDerPrior=0;
-    this->_dDerPrevious=0;
-    this->_dControlValue=0;
-    this->_dErrorSum=0;
-    this->_dSetPoint=0;
-    this->_dNextSetPoint=0;
-    this->_dDesiredSetPoint=0;
-    this->_dSubstepStepSize=0;
-    this->_iSubsteps=0;
+    this->_dBias = 0;
+    this->_dError = 0;   
+    this->_dProcessValue = 0;
+    this->_dProcessValuePrior = 0;
+    this->_dDerPrior = 0;
+    this->_dDerPrevious = 0;
+    this->_dControlValue = 0;
+    this->_dErrorDiscreteIntegral = 0;
+    this->_dSetPoint = 0;
+    this->_dNextSetPoint =0 ;
+    this->_dDesiredSetPoint = 0;
+    this->_dSubstepStepSize = 0;
+    this->_iSubsteps = 0;
 }
-PID::PID(double kp, double kd, double ki, double LL, double HL)
+PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
 {
-    this->_dKp = kp;
-    this->_dKd = kd;
-    this->_dKi = ki;
+    this->_dKp = Kp;
+    this->_dKd = Kd;
+    this->_dKi = Ki;
     this->_dLowLimit = LL;
     this->_dHighLimit = HL;
-    this->_dBias=0;
-    this->_dError=0;   
-    this->_dProcessValue=0;
-    this->_dProcessValuePrior=0;
-    this->_dDerPrior=0;
-    this->_dDerPrevious=0;
-    this->_dControlValue=0;
-    this->_dErrorSum=0;
-    this->_dSetPoint=0;
-    this->_dNextSetPoint=0;
-    this->_dDesiredSetPoint=0;
-    this->_dSubstepStepSize=0;
-    this->_iSubsteps=0;
+    this->_dBias = 0;
+    this->_dError = 0;   
+    this->_dProcessValue = 0;
+    this->_dProcessValuePrior = 0;
+    this->_dDerPrior = 0;
+    this->_dDerPrevious = 0;
+    this->_dControlValue = 0;
+    this->_dErrorDiscreteIntegral = 0;
+    this->_dSetPoint = 0;
+    this->_dNextSetPoint =0 ;
+    this->_dDesiredSetPoint = 0;
+    this->_dSubstepStepSize = 0;
+    this->_iSubsteps = 0;
 }
-void PID::vSetKp(double kp)
+void PID::vSetKp(double Kp)
 {
-    this->_dKp = kp;
+    this->_dKp = Kp;
 }
-void PID::vSetKd(double kd)
+void PID::vSetKd(double Kd)
 {
-    this->_dKd = kd;
+    this->_dKd = Kd;
 }
-void PID::vSetKi(double ki)
+void PID::vSetKi(double Ki)
 {
-    this->_dKi = ki;
+    this->_dKi = Ki;
 }
 void PID::vSetLowLimit(double LL)
 {
@@ -87,7 +87,7 @@ void PID::vUpdateProcessValue(double PV)
 }
 void PID::vResetError()
 {
-    this->_dErrorSum = 0;
+    this->_dErrorDiscreteIntegral = 0;
 }
 void PID::vSetSPAcceleration(double SubstepStepSize, int Substeps)
 {
@@ -108,17 +108,17 @@ double PID::dGetDesiredSetPoint()
 }
 double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps, double SubstepStepSize)
 {
-     if (abs(ProcessValue-ActualNextSetPoint)<Substeps*SubstepStepSize)
+     if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
     {
-        if (abs(DesiredSetPoint-ActualNextSetPoint)>Substeps*SubstepStepSize)
+        if (abs(DesiredSetPoint - ActualNextSetPoint) > Substeps * SubstepStepSize)
         {
-            if (DesiredSetPoint-ActualNextSetPoint>0)
+            if (DesiredSetPoint - ActualNextSetPoint > 0)
             {
-                return ActualNextSetPoint+Substeps*SubstepStepSize;
+                return ActualNextSetPoint + Substeps * SubstepStepSize;
             }
             else
             {
-                return ActualNextSetPoint-Substeps*SubstepStepSize;
+                return ActualNextSetPoint - Substeps * SubstepStepSize;
             }
         }
         else
@@ -163,15 +163,14 @@ double PID::dLimiter(double Value)
     {
         return this->_dHighLimit;
     }
+    else if (Value < this->_dLowLimit)
+    {
+        return this->_dLowLimit;
+    }
     else
-        if (Value < this->_dLowLimit)
-        {
-            return this->_dLowLimit;
-        }
-        else
-        {
-            return Value;
-        }
+    {
+        return Value;
+    }
 }
 double PID::dCalculateError(double SetPoint, double ProcessValue)
 {
@@ -181,25 +180,21 @@ double PID::dCalculateDerivative(double Actual, double Previous, double dt)
 {
     return (Actual - Previous) / dt;
 }
-double PID::dAverageFilter(double value_now, double value_back_1, double value_back_2)
+double PID::dAverageFilter(double ValueNow, double ValueBack1, double ValueBack2)
 {
-    return (value_now+value_back_1+value_back_2)/3;
+    return (ValueNow + ValueBack1 + ValueBack2) / 3;
 }
-double PID::dAntiWindup(double ErrorSum, double Error, double ControlValue, double dt)
+double PID::dErrorDiscreteIntegration(double Error, double dt)
 {
-    if ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) 
-     && (ControlValue  * Error > 0))
-    {
-        return ErrorSum;
-    }
-    else
-    {
-         return ErrorSum+Error * dt;
-    }
+    return Error * dt;
 }
-double PID::dIntegralPart(double ErrorSum)
+bool PID::bAntiWindup(double Error, double ControlValue, double dt)
 {
-        return this->_dKi * ErrorSum;
+    return ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) && (ControlValue  * Error > 0));
+}
+double PID::dIntegralPart(double ErrorDiscreteIntegral)
+{
+    return this->_dKi * ErrorDiscreteIntegral;
 }
 double PID::dProportionalPart(double Error)
 {
@@ -215,19 +210,23 @@ double PID::dDerivativePart(double Derrivative)
 }
 void PID::vRememberPriorValues()
 {
-    this->_dDerPrevious=this->_dDerPrior;
-    this->_dDerPrior=this->_dDerivative;
+    this->_dDerPrevious = this->_dDerPrior;
+    this->_dDerPrior = this->_dDerivative;
     this->_dProcessValuePrior = this->_dProcessValue;   
 }
 double PID::Update(double ProcessValue, double dt, bool isFront)
 {
     this->vUpdateProcessValue(ProcessValue);
-    this->_dSetPoint=this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint, this->_dSubstepStepSize, this->_dNextSetPoint, this->_iSubsteps);
-    this->_dError=this->dCalculateError(this->_dSetPoint, this->_dProcessValue);
+    this->_dSetPoint = this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint, 
+                                        this->_dSubstepStepSize, this->_dNextSetPoint, this->_iSubsteps);
+    this->_dError = this->dCalculateError(this->_dSetPoint, this->_dProcessValue);
+    if(! this->bAntiWindup(this->_dError,this->_dControlValue, dt))
+    {
+        this->_dErrorDiscreteIntegral += this->dErrorDiscreteIntegration(this->_dError, dt);
+    }
     this->_dDerivative = -dCalculateDerivative(this->_dProcessValue,this->_dProcessValuePrior, dt);
-    this->_dErrorSum = this->dAntiWindup(this->_dErrorSum, this->_dError,this->_dControlValue, dt);
-    this->_dControlValue =  this->dIntegralPart(this->_dErrorSum) +
-                            this->dProportionalPart(this->_dError) +
+    this->_dControlValue =  this->dProportionalPart(this->_dError) +
+                            this->dIntegralPart(this->_dErrorDiscreteIntegral) +
                             this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +
                             this->dBiasPart();
     this->_dControlValue = this->dLimiter(this->_dControlValue);
@@ -242,11 +241,11 @@ void PID::vPrintDebugInfo(bool isFront, double dt)
     if (isFront)
         {
             ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorSum,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
+                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorDiscreteIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
         }
         else
         {
             ROS_INFO_NAMED("PID", "BACK;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorSum,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
+                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorDiscreteIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
         }
 }
