@@ -225,7 +225,7 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     this->_dSetPoint=this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint, this->_dSubstepStepSize, this->_dNextSetPoint, this->_iSubsteps);
     this->_dError=this->dCalculateError(this->_dSetPoint, this->_dProcessValue);
     this->_dDerivative = -dCalculateDerivative(this->_dProcessValue,this->_dProcessValuePrior, dt);
-    this->_dErrorSum += this->dAntiWindup(this->_dError,this->_dControlValue, dt)
+    this->_dErrorSum += this->dAntiWindup(this->_dError,this->_dControlValue, dt);
     this->_dControlValue =  this->dIntegralPart(this->_dErrorSum) +
                             this->dProportionalPart(this->_dError) +
                             this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +

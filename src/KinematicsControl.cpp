@@ -97,46 +97,42 @@ void KinematicsControl::vRegulatePIDs()
     this->_pFrontCartPID->vSetSPAcceleration(SP_RAMP_SUBSTEP*DEG_TO_RAD,SP_RAMP_SUBSTEPS_NUMBER);
     this->_pBackCartPID->vSetSPAcceleration(SP_RAMP_SUBSTEP*DEG_TO_RAD,SP_RAMP_SUBSTEPS_NUMBER);
 }
-void KinematicsControl::vSetPIDSetPoints()
+Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, double angular_vel)
 {
+    Carts_Setpoints SP;
     // provide PIDs with Set Points, basing on received v and w
-    _pdControl[0] = _pdInputLinear[X];
-    if (_pdInputAngular[Z] != 0)
+    if (angular_vel != 0)
     {
         // Angular - yes
-        if (_pdInputLinear[X] != 0)
+        if (linear_vel != 0)
         {
             // Angular - yes / Linear -yes
-            if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] > 1)
+            if (angular_vel * _dChassisLength / 2 / linear_vel > 1)
             {
                 // Desired radius too small
-                this->_pFrontCartPID->vSetSP(M_PI / 2);
-                this->_pBackCartPID->vSetSP(-M_PI / 2);
-                ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
+                SP = {M_PI / 2 , -M_PI / 2};
+                ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", linear_vel/angular_vel, _dChassisLength / 2);
             }
             else 
             {
-                if (_pdInputAngular[Z] * _dChassisLength / 2 / _pdInputLinear[X] < -1)
+                if (angular_vel * _dChassisLength / 2 / linear_vel < -1)
                 {
                     // Desired radius too small
-                    this->_pFrontCartPID->vSetSP(-M_PI / 2);
-                    this->_pBackCartPID->vSetSP(M_PI / 2);
-                    ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", _pdInputLinear[X]/_pdInputAngular[Z], _dChassisLength / 2);
+                    SP = {-M_PI / 2 ,M_PI / 2};
+                    ROS_WARN_NAMED("agribot_navigation","Radius = %f, lower than half of chasis length = %f", linear_vel/angular_vel, _dChassisLength / 2);
                 }
                 else
                 {
                     // Desired radius within proper range
-                    if (_pdInputLinear[X] > 0)
+                    if (linear_vel > 0)
                     {
                         // Moving forward - back cart is pulled
-                        this->_pFrontCartPID->vSetSP(this->dRadiusToAngle(this->dVelocitiesToRadius(_pdInputLinear[X],_pdInputAngular[Z])));
-                        this->_pBackCartPID->vSetSP(-_pdCartAngle[FRONT_CART]);
+                       SP = {this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel,angular_vel)) , -_pdCartAngle[FRONT_CART]};
                     }
                     else
                     {
                         // Moving backwards - front cart is pulled
-                        this->_pBackCartPID->vSetSP(-this->dRadiusToAngle(this->dVelocitiesToRadius(_pdInputLinear[X],_pdInputAngular[Z])));
-                        this->_pFrontCartPID->vSetSP(-_pdCartAngle[BACK_CART]);
+                        SP = {-this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel,angular_vel)) , -_pdCartAngle[BACK_CART]};
                     }
                 }
             }
@@ -144,34 +140,59 @@ void KinematicsControl::vSetPIDSetPoints()
         else
         {
             // Angular - yes / Linear -no
-            _pdControl[0] = _pdInputAngular[Z] * _dChassisLength / 2;
-            this->_pFrontCartPID->vSetSP(M_PI / 2);
-            this->_pBackCartPID->vSetSP(-M_PI / 2);
+            SP = {M_PI / 2 , -M_PI / 2};
         }
     }    
     else
     {    
         // Angular - no
-        if (_pdInputLinear[X] != 0)
+        if (linear_vel != 0)
         {
             // Angular - no / Linear -yes
-            this->_pFrontCartPID->vSetSP(0);
-            this->_pBackCartPID->vSetSP(0);
+            SP = {0 , 0};
         }
         else
         {
             // Angular - no / Linear -no
-            this->_pFrontCartPID->vResetError();
-            this->_pBackCartPID->vResetError();
-            this->_pFrontCartPID->vResetSetPoints(_pdCartAngle[FRONT_CART]);
-            this->_pBackCartPID->vResetSetPoints(_pdCartAngle[BACK_CART]);
+            SP = {0 , 0};
+        }
+    }
+    return SP;
+}
+void KinematicsControl::vCalculateLinearControls(double linear_vel, double angular_vel)
+{
+    if (angular_vel != 0)
+    {
+        // Angular - yes
+        if (linear_vel != 0)
+        {
+            // Angular - yes / Linear -yes
+            _pdControl[0] = linear_vel;
+        }
+        else
+        {
+            // Angular - yes / Linear -no
+            _pdControl[0] = angular_vel * _dChassisLength / 2;
+        }
+    }
+    else
+    {
+        if (linear_vel != 0)
+        {
+            // Angular - no / Linear -yes
+            _pdControl[0] = linear_vel;
+        }
+        else
+        {
+            // Angular - no / Linear -no
+            _pdControl[0] = 0.0;
         }
     }
 }
-void KinematicsControl::vCalculateAngularVelocities()
+void KinematicsControl::vCalculateAngularControls(double linear_vel, double angular_vel)
 {
     vUpdatePIDs(ros::Time::now().toSec());
-    if (_pdInputLinear[X] == 0 && _pdInputAngular[Z] == 0)
+    if (linear_vel == 0 && angular_vel == 0)
     {
         // Stopped
         _pdControl[1] = 0;
@@ -182,6 +203,20 @@ void KinematicsControl::vCalculateAngularVelocities()
         // Moving
         _pdControl[1] = this->_pFrontCartPID->dGetControlValue();
         _pdControl[2] = this->_pBackCartPID->dGetControlValue();
+    }
+}
+void KinematicsControl::vSetPIDSetpoints()
+{
+    Carts_Setpoints CartsSetPoints;
+    CartsSetPoints = this->xCalculatePIDSetPoints(_pdInputLinear[X], _pdInputAngular[Z]);
+    this->_pFrontCartPID->vSetSP(CartsSetPoints.dFrontCartSP);
+    this->_pBackCartPID->vSetSP(CartsSetPoints.dBackCartSP);
+    if (_pdInputLinear[X] == 0 && _pdInputAngular[Z] == 0)
+    {
+        this->_pFrontCartPID->vResetError();
+        this->_pBackCartPID->vResetError();
+        this->_pFrontCartPID->vResetSetPoints(_pdCartAngle[FRONT_CART]);
+        this->_pBackCartPID->vResetSetPoints(_pdCartAngle[BACK_CART]);
     }
 }
 double KinematicsControl::dVelocitiesToRadius(double linear, double angular)
@@ -235,8 +270,9 @@ double KinematicsControl::diff(double diff_front, double diff_back)
 void KinematicsControl::vCalculateKinematicsControl()
 {
     this->vRegulatePIDs();
-    this->vSetPIDSetPoints();
-    this->vCalculateAngularVelocities();
+    this->vSetPIDSetpoints();
+    this->vCalculateAngularControls(_pdInputLinear[X], _pdInputAngular[Z]);
+    this->vCalculateLinearControls(_pdInputLinear[X], _pdInputAngular[Z]);
     this->_dLinearMultiplier=this->dMultiplierGaussian(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
     double AngularMultiplier=1.0;
     if (this->_dLinearMultiplier < ANGULAR_CHANGE_THRESHOLD)

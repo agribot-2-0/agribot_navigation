@@ -7,6 +7,11 @@ struct PID_terms_coefficients
      double dKi;
      double dKd;
 };
+struct Carts_Setpoints
+{
+     double dFrontCartSP;
+     double dBackCartSP;
+};
 class KinematicsControl: public AgribotComponent
 {
 private:
@@ -38,9 +43,10 @@ public:
     void vSetFrontCartAngle(double theta);
     void vSetBackCartAngle(double theta);
     void vRegulatePIDs();
-    void vSetPIDSetPoints();
-    void vCalculateAngularVelocities();
+    void vCalculateLinearControls(double linear_vel, double angular_vel);
+    void vCalculateAngularControls(double linear_vel, double angular_vel);
     void vUpdatePIDs(double t);
+    void vSetPIDSetpoints();
     double angle_diff_front();
     double angle_diff_back();
     double diff(double diff_front, double diff_back);
@@ -53,5 +59,6 @@ public:
     double dMultiplierRoot4(double x);
     double dMultiplierLinear(double x);
     double dMultiplierExponential(double x);
+    Carts_Setpoints xCalculatePIDSetPoints(double linear_vel, double angular_vel);
     PID_terms_coefficients xSelectPIDCoefficients(double Error);
 };

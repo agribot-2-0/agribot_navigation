@@ -43,7 +43,7 @@ public:
     double dCalculateError(double SetPoint, double ProcessValue);
     double dAntiWindup(double Error, double ControlValue, double dt);
     double dDerivativePart(double Derrivative);
-    double dIntegralPart(double Error, double ControlValue, double dt);
+    double dIntegralPart(double ErrorSum);
     double dProportionalPart(double Error);
     double dBiasPart();
     double dLimiter(double Value);
