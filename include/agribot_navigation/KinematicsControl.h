@@ -28,25 +28,12 @@ private:
     double _dLinearMultiplier;
     PID *_pFrontCartPID;
     PID *_pBackCartPID;
-public: 
-    KinematicsControl();
-    virtual int configure();
-    virtual bool startup();
-    virtual bool update();
-    virtual bool stop();
-    virtual bool cleanup();
-    void vCalculateKinematicsControl();
-    double* pdGetCaterpillarVelocities();
-    void vSetInputLinear(double x, double y, double z);
-    void vSetInputAngular(double x, double y, double z);   
-    void vSetChassisAngle(double theta);
-    void vSetFrontCartAngle(double theta);
-    void vSetBackCartAngle(double theta);
     void vRegulatePIDs();
     void vCalculateLinearControls(double linear_vel, double angular_vel);
     void vCalculateAngularControls(double linear_vel, double angular_vel);
     void vUpdatePIDs(double t);
     void vSetPIDSetpoints();
+    void vCalculateKinematicsControl();
     double angle_diff_front();
     double angle_diff_back();
     double diff(double diff_front, double diff_back);
@@ -61,4 +48,17 @@ public:
     double dMultiplierExponential(double x);
     Carts_Setpoints xCalculatePIDSetPoints(double linear_vel, double angular_vel);
     PID_terms_coefficients xSelectPIDCoefficients(double Error);
+public: 
+    KinematicsControl();
+    virtual int configure();
+    virtual bool startup();
+    virtual bool update();
+    virtual bool stop();
+    virtual bool cleanup();
+    void vSetInputLinear(double x, double y, double z);
+    void vSetInputAngular(double x, double y, double z);   
+    void vSetChassisAngle(double theta);
+    void vSetFrontCartAngle(double theta);
+    void vSetBackCartAngle(double theta);
+    double* pdGetCaterpillarVelocities();
 };

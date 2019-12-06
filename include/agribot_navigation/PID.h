@@ -21,20 +21,7 @@ private:
     double _dMaxStep;
     double _dSubstepStepSize;
     int _iSubsteps;
-public:
-    PID();
-    PID(double kp, double kd, double ki, double LL, double HL);
-    void vSetKp(double Kp);
-    void vSetKd(double Kd);
-    void vSetKi(double Ki);
-    void vSetLowLimit(double SP);
-    void vSetHighLimit(double SP);
-    void vSetSP(double SP);
-    void vSetBias(double Bias);
     void vUpdateProcessValue(double PV);
-    void vSetSPAcceleration(double SubstepSize, int Substeps);
-    void vResetError();
-    void vResetSetPoints(double SP);
     void vRememberPriorValues();
     void vPrintDebugInfo(bool isFront, double dt);
     double dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps, double SubstepSize);
@@ -49,6 +36,19 @@ public:
     double dLimiter(double Value);
     double dAverageFilter(double value_now, double value_back_1, double value_back_2);
     double dCalculateDerivative(double Actual, double Previous,double dt);
+public:
+    PID();
+    PID(double kp, double kd, double ki, double LL, double HL);
+    void vSetKp(double Kp);
+    void vSetKd(double Kd);
+    void vSetKi(double Ki);
+    void vSetLowLimit(double SP);
+    void vSetHighLimit(double SP);
+    void vSetSP(double SP);
+    void vSetBias(double Bias);
+    void vSetSPAcceleration(double SubstepSize, int Substeps);
+    void vResetError();
+    void vResetSetPoints(double SP);
     double dGetControlValue();
     double dGetError();
     double dGetDesiredSetPoint();
