@@ -28,7 +28,7 @@ private:
     double dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize);
     double dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize, double ActualNextSetPoint, int Substeps);
     double dCalculateError(double SetPoint, double ProcessValue);
-    double dAntiWindup(double Error, double ControlValue, double dt);
+    double dAntiWindup(double ErrorSum, double Error, double ControlValue, double dt);
     double dDerivativePart(double Derrivative);
     double dIntegralPart(double ErrorSum);
     double dProportionalPart(double Error);

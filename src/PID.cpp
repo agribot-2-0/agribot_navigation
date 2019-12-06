@@ -159,7 +159,7 @@ double PID::dSetPointRamp(double DesiredSetPoint, double ProcessValue, double Ac
 }
 double PID::dLimiter(double Value)
 {
-     if (Value > this->_dHighLimit)
+    if (Value > this->_dHighLimit)
     {
         return this->_dHighLimit;
     }
@@ -185,16 +185,16 @@ double PID::dAverageFilter(double value_now, double value_back_1, double value_b
 {
     return (value_now+value_back_1+value_back_2)/3;
 }
-double PID::dAntiWindup(double Error, double ControlValue, double dt)
+double PID::dAntiWindup(double ErrorSum, double Error, double ControlValue, double dt)
 {
     if ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) 
      && (ControlValue  * Error > 0))
     {
-        return 0.0;
+        return ErrorSum;
     }
     else
     {
-         return Error * dt;
+         return ErrorSum+Error * dt;
     }
 }
 double PID::dIntegralPart(double ErrorSum)
@@ -225,7 +225,7 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     this->_dSetPoint=this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint, this->_dSubstepStepSize, this->_dNextSetPoint, this->_iSubsteps);
     this->_dError=this->dCalculateError(this->_dSetPoint, this->_dProcessValue);
     this->_dDerivative = -dCalculateDerivative(this->_dProcessValue,this->_dProcessValuePrior, dt);
-    this->_dErrorSum += this->dAntiWindup(this->_dError,this->_dControlValue, dt);
+    this->_dErrorSum = this->dAntiWindup(this->_dErrorSum, this->_dError,this->_dControlValue, dt);
     this->_dControlValue =  this->dIntegralPart(this->_dErrorSum) +
                             this->dProportionalPart(this->_dError) +
                             this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +
