@@ -70,33 +70,30 @@ bool KinematicsControl::cleanup()
 {
     return false;
 }
+PID_terms_coefficients KinematicsControl::xSelectPIDCoefficients(double Error)
+{
+    PID_terms_coefficients coefficients;
+    if (abs(Error*RAD_TO_DEG)>PRECISE_PID_RANGE)
+    {
+        coefficients = {KP_VAL, KI_VAL, KD_VAL};
+    }
+    else
+    {
+        coefficients = {KP_PRECISE, KI_PRECISE, KD_PRECISE};
+    }
+    return coefficients;
+}
 void KinematicsControl::vRegulatePIDs()
 {
-    //  in case of being close to Set Point change PID settings to prevent overshoot
-    if (abs(_pFrontCartPID->dGetError()*RAD_TO_DEG)>PRECISE_PID_RANGE)
-    {
-        this->_pFrontCartPID->vSetKp(KP_VAL);
-        this->_pFrontCartPID->vSetKi(KI_VAL);
-        this->_pFrontCartPID->vSetKd(KD_VAL);
-    }
-    else
-    {
-        this->_pFrontCartPID->vSetKp(KP_PRECISE);
-        this->_pFrontCartPID->vSetKi(KI_PRECISE);
-        this->_pFrontCartPID->vSetKd(KD_PRECISE);
-    } 
-    if (abs(_pBackCartPID->dGetError()*RAD_TO_DEG)>PRECISE_PID_RANGE)
-    {
-        this->_pBackCartPID->vSetKp(KP_VAL);
-        this->_pBackCartPID->vSetKi(KI_VAL);
-        this->_pBackCartPID->vSetKd(KD_VAL);
-    }
-    else
-    {
-        this->_pBackCartPID->vSetKp(KP_PRECISE);
-        this->_pBackCartPID->vSetKi(KI_PRECISE);
-        this->_pBackCartPID->vSetKd(KD_PRECISE);
-    }
+    PID_terms_coefficients coefficients;
+    coefficients=xSelectPIDCoefficients(_pFrontCartPID->dGetError());
+    this->_pFrontCartPID->vSetKp(coefficients.dKp);
+    this->_pFrontCartPID->vSetKi(coefficients.dKi);
+    this->_pFrontCartPID->vSetKd(coefficients.dKd);
+    coefficients=xSelectPIDCoefficients(_pFrontCartPID->dGetError());
+    this->_pBackCartPID->vSetKp(coefficients.dKp);
+    this->_pBackCartPID->vSetKi(coefficients.dKi);
+    this->_pBackCartPID->vSetKd(coefficients.dKd);
     this->_pFrontCartPID->vSetSPAcceleration(SP_RAMP_SUBSTEP*DEG_TO_RAD,SP_RAMP_SUBSTEPS_NUMBER);
     this->_pBackCartPID->vSetSPAcceleration(SP_RAMP_SUBSTEP*DEG_TO_RAD,SP_RAMP_SUBSTEPS_NUMBER);
 }

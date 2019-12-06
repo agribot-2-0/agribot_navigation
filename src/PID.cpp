@@ -181,6 +181,10 @@ double PID::dCalculateDerivative(double Actual, double Previous, double dt)
 {
     return (Actual - Previous) / dt;
 }
+double PID::dAverageFilter(double value_now, double value_back_1, double value_back_2)
+{
+    return (value_now+value_back_1+value_back_2)/3;
+}
 double PID::dAntiWindup(double Error, double ControlValue, double dt)
 {
     if ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) 
@@ -193,22 +197,9 @@ double PID::dAntiWindup(double Error, double ControlValue, double dt)
          return Error * dt;
     }
 }
-double PID::dAverageFilter(double value_now, double value_back_1, double value_back_2)
+double PID::dIntegralPart(double ErrorSum)
 {
-    return (value_now+value_back_1+value_back_2)/3;
-}
-double PID::dIntegralPart(double Error, double ControlValue, double dt)
-{
-    this->_dErrorSum += this->dAntiWindup(Error, ControlValue, dt);
-    if ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) 
-     && (ControlValue  * Error > 0))
-    {
-        return 0.0;
-    }
-    else
-    {
-        return this->_dKi * this->_dErrorSum; ;
-    }
+        return this->_dKi * ErrorSum;
 }
 double PID::dProportionalPart(double Error)
 {
@@ -220,7 +211,7 @@ double PID::dBiasPart()
 }
 double PID::dDerivativePart(double Derrivative)
 {
-    return this->_dKd * this->dAverageFilter(Derrivative,this->_dDerPrior,this->_dDerPrevious); 
+    return this->_dKd * Derrivative; 
 }
 void PID::vRememberPriorValues()
 {
@@ -234,9 +225,10 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     this->_dSetPoint=this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint, this->_dSubstepStepSize, this->_dNextSetPoint, this->_iSubsteps);
     this->_dError=this->dCalculateError(this->_dSetPoint, this->_dProcessValue);
     this->_dDerivative = -dCalculateDerivative(this->_dProcessValue,this->_dProcessValuePrior, dt);
-    this->_dControlValue =  this->dIntegralPart(this->_dError, this->_dControlValue, dt) +
+    this->_dErrorSum += this->dAntiWindup(this->_dError,this->_dControlValue, dt)
+    this->_dControlValue =  this->dIntegralPart(this->_dErrorSum) +
                             this->dProportionalPart(this->_dError) +
-                            this->dDerivativePart(this->_dDerivative) +
+                            this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +
                             this->dBiasPart();
     this->_dControlValue = this->dLimiter(this->_dControlValue);
     this->vRememberPriorValues();

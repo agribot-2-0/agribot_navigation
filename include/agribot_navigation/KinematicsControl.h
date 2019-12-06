@@ -1,7 +1,12 @@
 # pragma once
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_navigation/PID.h>
-
+struct PID_terms_coefficients
+{
+     double dKp;
+     double dKi;
+     double dKd;
+};
 class KinematicsControl: public AgribotComponent
 {
 private:
@@ -48,4 +53,5 @@ public:
     double dMultiplierRoot4(double x);
     double dMultiplierLinear(double x);
     double dMultiplierExponential(double x);
+    PID_terms_coefficients xSelectPIDCoefficients(double Error);
 };
