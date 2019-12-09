@@ -19,6 +19,7 @@
 #define SP_RAMP_SUBSTEP 0.225
 #define SP_RAMP_SUBSTEPS_NUMBER 20
 #define ANGULAR_CHANGE_THRESHOLD 0.5
+#define ANGULAR_MULTIPLIER 2.0
 enum
 {
     X,
@@ -83,7 +84,7 @@ PID_terms_coefficients KinematicsControl::xSelectPIDCoefficients(double Error)
     }
     return coefficients;
 }
-void KinematicsControl::vRegulatePIDs()
+void KinematicsControl::vSetPIDsParameters()
 {
     PID_terms_coefficients coefficients;
     coefficients=xSelectPIDCoefficients(_pFrontCartPID->dGetError());
@@ -159,7 +160,7 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
     }
     return SP;
 }
-void KinematicsControl::vCalculateLinearControls(double linear_vel, double angular_vel)
+double KinematicsControl::dCalculateLinearControls(double linear_vel, double angular_vel)
 {
     if (angular_vel != 0)
     {
@@ -189,23 +190,35 @@ void KinematicsControl::vCalculateLinearControls(double linear_vel, double angul
         }
     }
 }
-void KinematicsControl::vCalculateAngularControls(double linear_vel, double angular_vel)
+double KinematicsControl::dCalculateFrontAngularControl(double linear_vel, double angular_vel)
 {
     vUpdatePIDs(ros::Time::now().toSec());
     if (linear_vel == 0 && angular_vel == 0)
     {
         // Stopped
-        _pdControl[1] = 0;
-        _pdControl[2] = 0;
+        return 0;
     }
     else
     {
         // Moving
-        _pdControl[1] = this->_pFrontCartPID->dGetControlValue();
-        _pdControl[2] = this->_pBackCartPID->dGetControlValue();
+        return this->_pFrontCartPID->dGetControlValue();
     }
 }
-void KinematicsControl::vSetPIDSetpoints()
+double KinematicsControl::dCalculateBackAngularControl(double linear_vel, double angular_vel)
+{
+    vUpdatePIDs(ros::Time::now().toSec());
+    if (linear_vel == 0 && angular_vel == 0)
+    {
+        // Stopped
+       return 0;
+    }
+    else
+    {
+        // Moving
+        return this->_pBackCartPID->dGetControlValue();
+    }
+}
+void KinematicsControl::vSetPIDsSetpoints()
 {
     Carts_Setpoints CartsSetPoints;
     CartsSetPoints = this->xCalculatePIDSetPoints(_pdInputLinear[X], _pdInputAngular[Z]);
@@ -217,6 +230,17 @@ void KinematicsControl::vSetPIDSetpoints()
         this->_pBackCartPID->vResetError();
         this->_pFrontCartPID->vResetSetPoints(_pdCartAngle[FRONT_CART]);
         this->_pBackCartPID->vResetSetPoints(_pdCartAngle[BACK_CART]);
+    }
+}
+double KinematicsControl::dCalculateAngularMultiplier(double linear_multiplier)
+{
+    if (linear_multiplier < ANGULAR_CHANGE_THRESHOLD)
+    {
+        return ANGULAR_MULTIPLIER;
+    }
+    else
+    {
+        return 1.0;
     }
 }
 double KinematicsControl::dVelocitiesToRadius(double linear, double angular)
@@ -255,36 +279,33 @@ double KinematicsControl::dMultiplierRoot4(double x)
 {
     return 1-(pow(x,(1/4.0)));
 }
-double KinematicsControl::angle_diff_front()
+double KinematicsControl::dFrontCartAngleDifference()
 {
     return abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSetPoint());
 }
-double KinematicsControl::angle_diff_back()
+double KinematicsControl::dBackCartAngleDifference()
 {
     return abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSetPoint());
 }
-double KinematicsControl::diff(double diff_front, double diff_back)
+double KinematicsControl::dMaximumCartAngleDifference(double diff_front, double diff_back)
 {
     return std::max(diff_front,diff_back);
 }  
 void KinematicsControl::vCalculateKinematicsControl()
 {
-    this->vRegulatePIDs();
-    this->vSetPIDSetpoints();
-    this->vCalculateAngularControls(_pdInputLinear[X], _pdInputAngular[Z]);
-    this->vCalculateLinearControls(_pdInputLinear[X], _pdInputAngular[Z]);
-    this->_dLinearMultiplier = this->dMultiplierGaussian(this->diff(this->angle_diff_front(),this->angle_diff_back())/ANGLE_RANGE);
-    double AngularMultiplier=1.0;
-    if (this->_dLinearMultiplier < ANGULAR_CHANGE_THRESHOLD)
-    {
-        AngularMultiplier=2.0;
-    }
+    this->vSetPIDsParameters();
+    this->vSetPIDsSetpoints();
+    _pdControl[0] = this->dCalculateLinearControls(_pdInputLinear[X], _pdInputAngular[Z]);
+    _pdControl[1] = this->dCalculateFrontAngularControl(_pdInputLinear[X], _pdInputAngular[Z]);
+    _pdControl[2] = this->dCalculateBackAngularControl(_pdInputLinear[X], _pdInputAngular[Z]);
+    this->_dLinearMultiplier = this->dMultiplierGaussian(this->dMaximumCartAngleDifference(this->dFrontCartAngleDifference(),this->dBackCartAngleDifference())/ANGLE_RANGE);
+    this->_dAngularMultiplier = this->dCalculateAngularMultiplier(this->_dLinearMultiplier);
     _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
-    _pdCaterpillarVelocities[FRONT_ANGULAR] = _pdControl[1]*AngularMultiplier;
+    _pdCaterpillarVelocities[FRONT_ANGULAR] = this->_dAngularMultiplier * _pdControl[1];
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
-    _pdCaterpillarVelocities[BACK_ANGULAR] = _pdControl[2]*AngularMultiplier;
+    _pdCaterpillarVelocities[BACK_ANGULAR] = this->_dAngularMultiplier * _pdControl[2];
     #ifdef DEBUG
-        ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],this->angle_diff_front()*RAD_TO_DEG,this->angle_diff_back()*RAD_TO_DEG);
+        ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],this->dFrontCartAngleDifference()*RAD_TO_DEG,this->dBackCartAngleDifference()*RAD_TO_DEG);
     #endif
     }
 double *KinematicsControl::pdGetCaterpillarVelocities()

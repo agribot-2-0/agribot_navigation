@@ -19,7 +19,7 @@ PID::PID()
     this->_dDerPrior = 0;
     this->_dDerPrevious = 0;
     this->_dControlValue = 0;
-    this->_dErrorDiscreteIntegral = 0;
+    this->_dErrorIntegral = 0;
     this->_dSetPoint = 0;
     this->_dNextSetPoint =0 ;
     this->_dDesiredSetPoint = 0;
@@ -40,7 +40,7 @@ PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
     this->_dDerPrior = 0;
     this->_dDerPrevious = 0;
     this->_dControlValue = 0;
-    this->_dErrorDiscreteIntegral = 0;
+    this->_dErrorIntegral = 0;
     this->_dSetPoint = 0;
     this->_dNextSetPoint =0 ;
     this->_dDesiredSetPoint = 0;
@@ -87,7 +87,7 @@ void PID::vUpdateProcessValue(double PV)
 }
 void PID::vResetError()
 {
-    this->_dErrorDiscreteIntegral = 0;
+    this->_dErrorIntegral = 0;
 }
 void PID::vSetSPAcceleration(double SubstepStepSize, int Substeps)
 {
@@ -184,17 +184,31 @@ double PID::dAverageFilter(double ValueNow, double ValueBack1, double ValueBack2
 {
     return (ValueNow + ValueBack1 + ValueBack2) / 3;
 }
-double PID::dErrorDiscreteIntegration(double Error, double dt)
+double PID::dErrorIntegration(double Error, double dt)
 {
     return Error * dt;
 }
 bool PID::bAntiWindup(double Error, double ControlValue, double dt)
 {
+    /*
+    Condition taken from 
+    Visioli, Antonio. Practical PID control. Springer Science & Business Media, 2006.
+    Chapter 3.3.2 Conditional Integration
+
+    Implemented conditions:
+
+        the integral term is limited to a predefined value;
+
+        the integration is stopped when the control variable saturates and the
+        control error and the control variable have the same sign (i.e., when u · e >
+        0).
+
+    */
     return ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) && (ControlValue  * Error > 0));
 }
-double PID::dIntegralPart(double ErrorDiscreteIntegral)
+double PID::dIntegralPart(double ErrorIntegral)
 {
-    return this->_dKi * ErrorDiscreteIntegral;
+    return this->_dKi * ErrorIntegral;
 }
 double PID::dProportionalPart(double Error)
 {
@@ -222,11 +236,16 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
     this->_dError = this->dCalculateError(this->_dSetPoint, this->_dProcessValue);
     if(! this->bAntiWindup(this->_dError,this->_dControlValue, dt))
     {
-        this->_dErrorDiscreteIntegral += this->dErrorDiscreteIntegration(this->_dError, dt);
+        this->_dErrorIntegral += this->dErrorIntegration(this->_dError, dt);
     }
+    /*
+    Derrivative = Error - Error_prev = (SP - PV) - (SP_prev - PV_prev) = SP - PV - SP_prev + PV_prev
+    Assuming SP_prev = SP:
+    Derrivative = PV_prev - PV =  -(PV - PV_prev) = -dPV.
+    */
     this->_dDerivative = -dCalculateDerivative(this->_dProcessValue,this->_dProcessValuePrior, dt);
     this->_dControlValue =  this->dProportionalPart(this->_dError) +
-                            this->dIntegralPart(this->_dErrorDiscreteIntegral) +
+                            this->dIntegralPart(this->_dErrorIntegral) +
                             this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +
                             this->dBiasPart();
     this->_dControlValue = this->dLimiter(this->_dControlValue);
@@ -241,11 +260,11 @@ void PID::vPrintDebugInfo(bool isFront, double dt)
     if (isFront)
         {
             ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorDiscreteIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
+                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
         }
         else
         {
             ROS_INFO_NAMED("PID", "BACK;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorDiscreteIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
+                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
         }
 }

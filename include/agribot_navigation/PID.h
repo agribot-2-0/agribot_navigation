@@ -12,7 +12,7 @@ private:
     double _dDerPrior;
     double _dDerPrevious;
     double _dControlValue;
-    double _dErrorDiscreteIntegral;
+    double _dErrorIntegral;
     double _dLowLimit;
     double _dHighLimit;
     double _dSetPoint;
@@ -30,8 +30,8 @@ private:
     double dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize, double ActualNextSetPoint, int Substeps);
     double dCalculateError(double SetPoint, double ProcessValue);
     double dDerivativePart(double Derrivative);
-    double dErrorDiscreteIntegration(double Error, double dt);
-    double dIntegralPart(double ErrorDiscreteIntegral);
+    double dErrorIntegration(double Error, double dt);
+    double dIntegralPart(double ErrorIntegral);
     double dProportionalPart(double Error);
     double dBiasPart();
     double dLimiter(double Value);

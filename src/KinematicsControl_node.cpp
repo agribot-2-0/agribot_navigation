@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 			bDataReceived=false;
 			KinControl.update();
 			double *fpCaterpilarVelocities=KinControl.pdGetCaterpillarVelocities();
-			caterpilar_msg.header.frame_id = "agribot/control/caterpillar";
+			caterpilar_msg.header.frame_id = "chassis_link";
 			caterpilar_msg.header.stamp = ros::Time::now();
 			caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];
 			caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR]*RAD_TO_DEG;
