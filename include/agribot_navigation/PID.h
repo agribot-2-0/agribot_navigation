@@ -52,6 +52,6 @@ public:
     double dGetControlValue();
     double dGetError();
     double dGetDesiredSetPoint();
-    double Update(double PV, double dt, bool isFront);
+    double Update(double PV, double dt);
     char* cPrintDebugInfo();
 };

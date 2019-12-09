@@ -228,7 +228,7 @@ void PID::vRememberPriorValues()
     this->_dDerPrior = this->_dDerivative;
     this->_dProcessValuePrior = this->_dProcessValue;   
 }
-double PID::Update(double ProcessValue, double dt, bool isFront)
+double PID::Update(double ProcessValue, double dt)
 {
     this->vUpdateProcessValue(ProcessValue);
     this->_dSetPoint = this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint, 

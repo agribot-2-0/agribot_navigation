@@ -341,7 +341,7 @@ void KinematicsControl::vSetBackCartAngle(double theta)
 void KinematicsControl::vUpdatePIDs(double t)
 {
     double dt = t - this->_dLastTime;
-    this->_pFrontCartPID->Update(_pdCartAngle[FRONT_CART], dt, true);
-    this->_pBackCartPID->Update(_pdCartAngle[BACK_CART], dt, false);
+    this->_pFrontCartPID->Update(_pdCartAngle[FRONT_CART], dt);
+    this->_pBackCartPID->Update(_pdCartAngle[BACK_CART], dt);
     this->_dLastTime = t;
 }
