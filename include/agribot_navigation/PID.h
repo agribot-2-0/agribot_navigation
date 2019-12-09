@@ -23,7 +23,6 @@ private:
     int _iSubsteps;
     void vUpdateProcessValue(double PV);
     void vRememberPriorValues();
-    void vPrintDebugInfo(bool isFront, double dt);
     bool bAntiWindup(double Error, double ControlValue, double dt);
     double dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps, double SubstepSize);
     double dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize);
@@ -54,4 +53,5 @@ public:
     double dGetError();
     double dGetDesiredSetPoint();
     double Update(double PV, double dt, bool isFront);
+    char* cPrintDebugInfo();
 };

@@ -250,21 +250,12 @@ double PID::Update(double ProcessValue, double dt, bool isFront)
                             this->dBiasPart();
     this->_dControlValue = this->dLimiter(this->_dControlValue);
     this->vRememberPriorValues();
-    #ifdef DEBUG
-        this->vPrintDebugInfo(isFront, dt);
-    #endif
     return this->_dControlValue;
 }
-void PID::vPrintDebugInfo(bool isFront, double dt)
+char* PID::cPrintDebugInfo()
 {
-    if (isFront)
-        {
-            ROS_INFO_NAMED("PID", "FRONT;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
-        }
-        else
-        {
-            ROS_INFO_NAMED("PID", "BACK;dt=%f;SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-                        dt,this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
-        }
+    static char buffer[128];
+    sprintf (buffer, "SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
+            this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
+    return buffer;
 }

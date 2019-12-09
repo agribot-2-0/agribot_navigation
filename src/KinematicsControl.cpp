@@ -305,6 +305,8 @@ void KinematicsControl::vCalculateKinematicsControl()
     _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
     _pdCaterpillarVelocities[BACK_ANGULAR] = this->_dAngularMultiplier * _pdControl[2];
     #ifdef DEBUG
+        ROS_INFO_NAMED("kinematics_control", "FRONT;%s", _pFrontCartPID->cPrintDebugInfo());
+        ROS_INFO_NAMED("kinematics_control", "BACK;%s", _pBackCartPID->cPrintDebugInfo());
         ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR],this->_dLinearMultiplier,_pdControl[0],this->dFrontCartAngleDifference()*RAD_TO_DEG,this->dBackCartAngleDifference()*RAD_TO_DEG);
     #endif
     }
