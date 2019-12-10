@@ -1,5 +1,6 @@
 #include <agribot_navigation/PID.h>
 #include <cmath>
+#include <sstream>
 #include <ros/ros.h>
 #include <ros/console.h>
 #define DEBUG
@@ -252,10 +253,11 @@ double PID::Update(double ProcessValue, double dt)
     this->vRememberPriorValues();
     return this->_dControlValue;
 }
-char* PID::cPrintDebugInfo()
+std::string PID::cPrintDebugInfo()
 {
-    static char buffer[128];
-    sprintf (buffer, "SP=%f;PV=%f;CV=%f;ER=%f;IE=%f;DE=%f;KP=%f;KI=%f;KD=%f",
-            this->_dSetPoint,this->_dProcessValue,this->_dControlValue,this->_dError,this->_dErrorIntegral,this->_dDerivative,this->_dKp,this->_dKi,this->_dKd);
-    return buffer;
+    std::stringstream ss;
+    ss << "SP=" << this->_dSetPoint << ";PV=" << this->_dProcessValue << ";CV=" << this->_dControlValue <<
+         ";ER=" << this->_dError << ";IE=" << this->_dErrorIntegral << ";DE=" << this->_dDerivative <<
+         ";KP=" << this->_dKp << ";KI=" << this->_dKi << ";KD=" << this->_dKd;
+    return ss.str();
 }

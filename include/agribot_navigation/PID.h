@@ -1,3 +1,5 @@
+#include <string> 
+
 class PID
 {
 private:
@@ -53,5 +55,5 @@ public:
     double dGetError();
     double dGetDesiredSetPoint();
     double Update(double PV, double dt);
-    char* cPrintDebugInfo();
+    std::string cPrintDebugInfo();
 };
