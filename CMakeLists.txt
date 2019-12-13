@@ -108,7 +108,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES agribot_navigation
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp 
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp
   DEPENDS system_lib
 )
 
@@ -122,7 +122,7 @@ include_directories(include
   ${Boost_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${GAZEBO_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/agribot_common/include
+  ${agribot_common_SOURCE_DIR}/include
 )
 
 link_directories(
@@ -131,7 +131,7 @@ link_directories(
 )
 
 add_executable(kinematics_control
-  src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp 
+  src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp
 )
 target_link_libraries(kinematics_control
   ${GAZEBO_LIBRARIES}
@@ -223,4 +223,3 @@ install(TARGETS
 # catkin_add_nosetests(test)
 
 add_dependencies(kinematics_control ${catkin_EXPORTED_TARGETS})
-
