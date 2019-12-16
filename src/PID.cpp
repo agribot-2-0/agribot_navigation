@@ -127,6 +127,11 @@ double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValu
             return DesiredSetPoint;
         }
     } 
+    else
+    {
+        return ActualNextSetPoint;
+    }
+    
 }
 double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize)
 {
@@ -179,7 +184,15 @@ double PID::dCalculateError(double SetPoint, double ProcessValue)
 }
 double PID::dCalculateDerivative(double Actual, double Previous, double dt)
 {
-    return (Actual - Previous) / dt;
+    double derrivative = (Actual - Previous) / dt;
+    if (isnan(derrivative))
+    {
+        return 0;
+    }
+    else
+    {
+        return derrivative;
+    }
 }
 double PID::dAverageFilter(double ValueNow, double ValueBack1, double ValueBack2)
 {
