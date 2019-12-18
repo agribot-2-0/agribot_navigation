@@ -1,12 +1,14 @@
 # pragma once
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_navigation/PID.h>
+
 enum
 {
 	X,
 	Y,
 	Z,
 };
+
 enum 
 {
 	FRONT_LINEAR,
@@ -14,21 +16,25 @@ enum
 	BACK_LINEAR,
 	BACK_ANGULAR
 };
+
 enum {
 	FRONT_CART,
 	BACK_CART
 };
+
 struct PID_terms_coefficients
 {
      double dKp;
      double dKi;
      double dKd;
 };
+
 struct Carts_Setpoints
 {
      double dFrontCartSP;
      double dBackCartSP;
 };
+
 class KinematicsControl: public AgribotComponent
 {
 private:

@@ -3,9 +3,11 @@
 #include <sstream>
 #include <ros/ros.h>
 #include <ros/console.h>
+
 #define DEBUG
 #define RAD_TO_DEG (180/M_PI)
 #define DEG_TO_RAD (M_PI/180)
+
 PID::PID()
 {
     this->_dKp = 0;
@@ -27,6 +29,7 @@ PID::PID()
     this->_dSubstepStepSize = 0;
     this->_iSubsteps = 0;
 }
+
 PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
 {
     this->_dKp = Kp;
@@ -48,65 +51,80 @@ PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
     this->_dSubstepStepSize = 0;
     this->_iSubsteps = 0;
 }
+
 void PID::vSetKp(double Kp)
 {
     this->_dKp = Kp;
 }
+
 void PID::vSetKd(double Kd)
 {
     this->_dKd = Kd;
 }
+
 void PID::vSetKi(double Ki)
 {
     this->_dKi = Ki;
 }
+
 void PID::vSetLowLimit(double LL)
 {
     this->_dLowLimit = LL;
 }
+
 void PID::vSetHighLimit(double HL)
 {
     this->_dHighLimit = HL;
 }
+
 void PID::vSetSP(double SP)
 {
     this->_dDesiredSetPoint = SP;
 }
+
 void PID::vResetSetPoints(double SP)
 {
     this->_dDesiredSetPoint = SP;
     this->_dNextSetPoint = SP;
     this->_dSetPoint = SP;
 }
+
 void PID::vSetBias(double Bias)
 {
     this->_dBias = Bias;
 }
+
 void PID::vUpdateProcessValue(double PV)
 {
     this->_dProcessValue = PV;
 }
+
 void PID::vResetError()
 {
     this->_dErrorIntegral = 0;
 }
+
 void PID::vSetSPAcceleration(double SubstepStepSize, int Substeps)
 {
     this->_dSubstepStepSize = SubstepStepSize;
     this->_iSubsteps = Substeps;
 }
+
 double PID::dGetControlValue()
 {
     return this->_dControlValue;
 }
+
 double PID::dGetError()
 {
     return this->_dError;
 }
+
 double PID::dGetDesiredSetPoint()
 {
     return this->_dDesiredSetPoint;
 }
+
 double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps, double SubstepStepSize)
 {
     if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
@@ -133,6 +151,7 @@ double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValu
     }
     
 }
+
 double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize)
 {
     if (NextSetPoint - ActualSetPoint < 0)
@@ -158,11 +177,13 @@ double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double 
         }
     }
 }
+
 double PID::dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize, double ActualNextSetPoint, int Substeps)
 {
      this->_dNextSetPoint = this->dCalculateNextSetPoint(ActualNextSetPoint,ProcessValue, DesiredSetPoint, Substeps, SubstepStepSize);
      return this->dSetPointSubstep(ActualSetPoint, this->_dNextSetPoint, SubstepStepSize);
 }
+
 double PID::dLimiter(double Value)
 {
     if (Value > this->_dHighLimit)
@@ -178,10 +199,12 @@ double PID::dLimiter(double Value)
         return Value;
     }
 }
+
 double PID::dCalculateError(double SetPoint, double ProcessValue)
 {
     return SetPoint - ProcessValue;
 }
+
 double PID::dCalculateDerivative(double Actual, double Previous, double dt)
 {
     double derrivative = (Actual - Previous) / dt;
@@ -194,54 +217,59 @@ double PID::dCalculateDerivative(double Actual, double Previous, double dt)
         return derrivative;
     }
 }
+
 double PID::dAverageFilter(double ValueNow, double ValueBack1, double ValueBack2)
 {
     return (ValueNow + ValueBack1 + ValueBack2) / 3;
 }
+
 double PID::dErrorIntegration(double Error, double dt)
 {
     return Error * dt;
 }
+
 bool PID::bAntiWindup(double Error, double ControlValue, double dt)
 {
     /*
     Condition taken from 
     Visioli, Antonio. Practical PID control. Springer Science & Business Media, 2006.
     Chapter 3.3.2 Conditional Integration
-
     Implemented conditions:
-
         the integral term is limited to a predefined value;
-
         the integration is stopped when the control variable saturates and the
         control error and the control variable have the same sign (i.e., when u · e >
         0).
-
     */
     return ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) && (ControlValue  * Error > 0));
 }
+
 double PID::dIntegralPart(double ErrorIntegral)
 {
     return this->_dKi * ErrorIntegral;
 }
+
 double PID::dProportionalPart(double Error)
 {
     return this->_dKp * Error; 
 }
+
 double PID::dBiasPart()
 {
     return this->_dBias;
 }
+
 double PID::dDerivativePart(double Derrivative)
 {
     return this->_dKd * Derrivative; 
 }
+
 void PID::vRememberPriorValues()
 {
     this->_dDerPrevious = this->_dDerPrior;
     this->_dDerPrior = this->_dDerivative;
     this->_dProcessValuePrior = this->_dProcessValue;   
 }
+
 double PID::Update(double ProcessValue, double dt)
 {
     this->vUpdateProcessValue(ProcessValue);
@@ -266,6 +294,7 @@ double PID::Update(double ProcessValue, double dt)
     this->vRememberPriorValues();
     return this->_dControlValue;
 }
+
 std::string PID::cPrintDebugInfo()
 {
     std::stringstream ss;
