@@ -2,17 +2,22 @@ cmake_minimum_required(VERSION 2.8.3)
 project(agribot_navigation)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  agribot_msgs
+  geometry_msgs
+  nav_msgs
+  roscpp
   move_base
+  agribot_common
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -101,10 +106,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES agribot_navigation
-#  CATKIN_DEPENDS move_base
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES agribot_navigation
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp
+  DEPENDS system_lib
 )
 
 ###########
@@ -113,9 +118,26 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
+include_directories(include
+  ${Boost_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${GAZEBO_INCLUDE_DIRS}
+  ${agribot_common_SOURCE_DIR}/include
+)
+
+link_directories(
+  ${GAZEBO_LIBRARY_DIRS}
+  ${PROJECT_SOURCE_DIR}
+)
+
+add_executable(kinematics_control
+  src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp
+)
+
+target_link_libraries(kinematics_control
+  ${GAZEBO_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 ## Declare a C++ library
@@ -154,6 +176,11 @@ include_directories(
 
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
+install(TARGETS
+  kinematics_control
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
@@ -195,3 +222,5 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_dependencies(kinematics_control ${catkin_EXPORTED_TARGETS})
