@@ -109,7 +109,7 @@ double PID::dGetDesiredSetPoint()
 }
 double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps, double SubstepStepSize)
 {
-     if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
+    if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
     {
         if (abs(DesiredSetPoint - ActualNextSetPoint) > Substeps * SubstepStepSize)
         {
