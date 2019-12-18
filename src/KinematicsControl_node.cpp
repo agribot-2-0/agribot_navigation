@@ -38,11 +38,7 @@ void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 }
 void headingCallback(const sensor_msgs::Imu heading_msg)
 {
-	tf::Quaternion orientation(heading_msg.orientation.x,heading_msg.orientation.y,heading_msg.orientation.z,heading_msg.orientation.w);
-	tf::Matrix3x3 m(orientation);
-	double roll, pitch, yaw;
-	m.getRPY(roll, pitch, yaw);
-	KinControl.vSetChassisAngle(yaw);
+	KinControl.vSetChassisAngle(tf::getYaw(heading_msg.orientation));
 	bDataReceived=true;
 }
 void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
