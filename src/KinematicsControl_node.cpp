@@ -11,23 +11,6 @@
 #define PI 3.14159265359
 #define RAD_TO_DEG (180/PI)
 #define DEG_TO_RAD (PI/180)
-enum
-{
-	X,
-	Y,
-	Z,
-};
-enum 
-{
-	FRONT_LINEAR,
-	FRONT_ANGULAR,
-	BACK_LINEAR,
-	BACK_ANGULAR
-};
-enum {
-	FRONT_CART,
-	BACK_CART
-};
 KinematicsControl KinControl;
 bool bDataReceived=false;
 void cmdVelCallback(const geometry_msgs::Twist cmd_msg)

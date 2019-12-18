@@ -20,24 +20,6 @@
 #define SP_RAMP_SUBSTEPS_NUMBER 20
 #define ANGULAR_CHANGE_THRESHOLD 0.5
 #define ANGULAR_MULTIPLIER 2.0
-enum
-{
-    X,
-    Y,
-    Z,
-};
-enum
-{
-    FRONT_LINEAR,
-    FRONT_ANGULAR,
-    BACK_LINEAR,
-    BACK_ANGULAR
-};
-enum
-{
-    FRONT_CART,
-    BACK_CART
-};
 KinematicsControl::KinematicsControl()
 {
     this->_pdCartAngle[FRONT_CART] = 0;
