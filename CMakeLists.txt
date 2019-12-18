@@ -133,7 +133,18 @@ link_directories(
 add_executable(kinematics_control
   src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp
 )
+
+add_executable(joint_state_publisher
+  src/JointStatePublisher_node.cpp
+)
+
 target_link_libraries(kinematics_control
+  ${GAZEBO_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+target_link_libraries(joint_state_publisher
   ${GAZEBO_LIBRARIES}
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -177,6 +188,7 @@ target_link_libraries(kinematics_control
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 install(TARGETS
   kinematics_control
+  joint_state_publisher
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )

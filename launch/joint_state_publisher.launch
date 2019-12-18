@@ -1,0 +1,3 @@
+<launch>
+    <node name="joint_state_publisher" pkg="agribot_navigation" type="joint_state_publisher"/>
+</launch>
