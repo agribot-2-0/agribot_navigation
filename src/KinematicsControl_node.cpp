@@ -23,12 +23,6 @@ void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 	bDataReceived=true;
 }
 
-void headingCallback(const sensor_msgs::Imu heading_msg)
-{
-	KinControl.vSetChassisAngle(tf::getYaw(heading_msg.orientation));
-	bDataReceived=true;
-}
-
 void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
 {
 	KinControl.vSetFrontCartAngle(front_cart_msg.data*DEG_TO_RAD);
@@ -58,7 +52,6 @@ int main(int argc, char **argv)
 	}
 
 	ros::Subscriber kinematics_control_sub = n.subscribe(command_sub_topic, 1000, cmdVelCallback);
-	ros::Subscriber heading_sub = n.subscribe("/agribot/heading", 1000, headingCallback);
 	ros::Subscriber front_cart_sub = n.subscribe("/agribot/encoder/cart/front", 1000, encoderFrontCallback);
 	ros::Subscriber back_cart_kinematics_sub = n.subscribe("/agribot/encoder/cart/back", 1000, encoderBackCallback);
 	ros::Publisher kinematics_control_pub = n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar",1);
