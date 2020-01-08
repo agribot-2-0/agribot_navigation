@@ -25,13 +25,13 @@ void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 
 void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
 {
-	KinControl.vSetFrontCartAngle(front_cart_msg.data*DEG_TO_RAD);
+	KinControl.vSetFrontCartAngle(front_cart_msg.data);
 	bDataReceived=true;
 }
 
 void encoderBackCallback(const std_msgs::Float32 back_cart_msg)
 {
-	KinControl.vSetBackCartAngle(back_cart_msg.data*DEG_TO_RAD);
+	KinControl.vSetBackCartAngle(back_cart_msg.data);
 	bDataReceived=true;
 }
 
@@ -68,9 +68,9 @@ int main(int argc, char **argv)
 			caterpilar_msg.header.frame_id = "chassis_link";
 			caterpilar_msg.header.stamp = ros::Time::now();
 			caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];
-			caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR]*RAD_TO_DEG;
+			caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR];
 			caterpilar_msg.back_linear = fpCaterpilarVelocities[BACK_LINEAR];
-			caterpilar_msg.back_angular = fpCaterpilarVelocities[BACK_ANGULAR]*RAD_TO_DEG;
+			caterpilar_msg.back_angular = fpCaterpilarVelocities[BACK_ANGULAR];
 			kinematics_control_pub.publish(caterpilar_msg);
 			u16TimeTrack = 0;
 		}
