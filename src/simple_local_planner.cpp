@@ -2,11 +2,14 @@
 
 // pluginlib macros (defines, ...)
 #include <pluginlib/class_list_macros.h>
+#include <cmath>
 
-#define GOAL_DISTANCE_TOLERANCE 1
+#define GOAL_DISTANCE_TOLERANCE 0.2
 #define GOAL_ANGLE_TOLERANCE 360
-#define FRAMES_JUMP 20
+#define MISSED_POINTS_TOLLERANCE 2
 #define CHASSIS_LENGTH 2.1
+// #define MIN_RADIUS (CHASSIS_LENGTH / 2)
+#define MIN_RADIUS 2
 
 // PLUGINLIB_DECLARE_CLASS(agribot_navigation, SimplePlannerROS, simple_local_planner::SimplePlannerROS, nav_core::BaseLocalPlanner)
 PLUGINLIB_EXPORT_CLASS(simple_local_planner::SimplePlannerROS, nav_core::BaseLocalPlanner)
@@ -22,14 +25,14 @@ namespace simple_local_planner
 	{
 		if(!initialized_)
 		{
-            costmap_ros_ = costmapROS;
-            tfBuffer_ = tfBuffer;
-    		tfListener_ = new tf2_ros::TransformListener(*tfBuffer);
-            ros::NodeHandle gn;
-            odom_sub = gn.subscribe("/agribot/odometry", 100, &SimplePlannerROS::odomCallback, this);
-            hasStarted = false;
-            initialized_ = true;
-            ROS_DEBUG("Simple Local Planner plugin initialized.");
+			costmap_ros_ = costmapROS;
+			tfBuffer_ = tfBuffer;
+			tfListener_ = new tf2_ros::TransformListener(*tfBuffer);
+			ros::NodeHandle gn;
+			odom_sub = gn.subscribe("/agribot/odometry", 100, &SimplePlannerROS::odomCallback, this);
+			hasStarted = false;
+			initialized_ = true;
+			ROS_DEBUG("Simple Local Planner plugin initialized.");
 		}
 		else
 		{
@@ -44,10 +47,12 @@ namespace simple_local_planner
             ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
             return false;
 		}
-		count = 1; 
+		count = 1;
+		missed = 0; 
 		plan = orig_global_plan; 
 		length = plan.size(); 
 		ROS_ERROR("New plan, length = %d", length);
+		next=now;
 		setNext(); 
 		goal_reached_ = false;
 		return true;
@@ -63,31 +68,39 @@ namespace simple_local_planner
 		if(length != 0)
         { 
 			setNowError();
-			ROS_ERROR("count %d distance %f", count, distance);
-			if(distance < GOAL_DISTANCE_TOLERANCE)
-            { 
-				if(count<(length-1))
-                {
-					if((length - 1 - count) <= FRAMES_JUMP)
-                    { 
-						count = length - 1;
+			ROS_INFO("count %d missed %d distance %f traveled %f error %f deviation %f angle %f parallelness %f", count, missed, distance, path_traveled, path_error, deviation, nError.az*RAD_TO_DEG, nFramesDifference.az-now.az);
+			if(path_traveled >= distance)
+			{
+				if(path_error <GOAL_DISTANCE_TOLERANCE)
+				{
+					if(count<(length-1))
+					{
+						count++;
+						setNext();
 					}
-                    else
-                    {
-						count += FRAMES_JUMP; 
+					else
+					{
+						setVelZeros();
+						goal_reached_ = true;
+						ROS_ERROR("GOAL REACHED!");
 					}
-					setNext();
 				}
-                else
-                {
-					setVelZeros();
-					goal_reached_ = true;
-					ROS_ERROR("GOAL REACHED!");
+				else
+				{
+					missed++;
+					count++;
+					setNext();
+					ROS_ERROR("OUT OF PATH!");
 				}
 			}
-            else
-            {
+			else
+			{
 				setVel();
+			}
+			if(missed > MISSED_POINTS_TOLLERANCE)
+			{
+				setVelZeros();
+				ROS_ERROR("STOPPING, ROBOT MISSED %d POINTS", missed);
 			}
   		}
 		ROS_DEBUG("Retrieving velocity command: (%f, %f, %f)", cmd.linear.x, cmd.linear.y, cmd.angular.z);
@@ -110,7 +123,7 @@ namespace simple_local_planner
 		// ROS_INFO("Seq: [%d]", odometry_msg.header.seq);
 		now.x = odometry_msg.pose.pose.position.x;
 		now.y = odometry_msg.pose.pose.position.y;
-		now.az = odometry_msg.pose.pose.orientation.z; 
+		now.az = getYaw(odometry_msg.pose.pose.orientation); 
 		setNowError();
 		hasStarted = true;
 	}
@@ -130,28 +143,64 @@ namespace simple_local_planner
 
 	void SimplePlannerROS::setVel()
 	{
-		cmd.linear.x= 0.2;
-        cmd.angular.z= (nError.az)*0.5;
-        // if (nError.az > 0)
+		cmd.linear.x= 0.3*(1/(1+deviation));
+		double radius;
+		double heron;
+		heron=(distance+path_error+path_traveled)/2;
+		deviation=2*sqrt(heron*(heron-distance)*(heron-path_error)*(heron-path_traveled))/distance;
+		
+		// // MINIMIZE DEVIATION AND MAXIMIZE PARALLELNESS
+		// if (nError.az > 0)
 		// {
-        //     cmd.angular.z= -2*cmd.linear.x/CHASSIS_LENGTH;
-        // }
-		// else
-		// {
-        //     cmd.angular.z= 2*cmd.linear.x/CHASSIS_LENGTH;
+		// 	cmd.angular.z = 0.5*(2*deviation/(1+deviation)+(1-cos(nFramesDifference.az-now.az))/2)*cmd.linear.x / MIN_RADIUS;
 		// }
+		// else if (nError.az < 0)
+		// {
+		// 	cmd.angular.z = -0.5*(2*deviation/(1+deviation)+(1-cos(nFramesDifference.az-now.az))/2)*cmd.linear.x / MIN_RADIUS;
+		// }
+		
+		// ARCH APPROACH
+		if (nError.az > 0)
+		{	
+			if(nError.az < 180*DEG_TO_RAD)
+			{
+				radius = 0.5*path_error/cos(90*RAD_TO_DEG-fabs(nError.az));
+				cmd.angular.z = - cmd.linear.x / radius;
+			}
+			else
+			{
+				cmd.angular.z = - 2*cmd.linear.x/CHASSIS_LENGTH;
+			}
+		}
+		else if (nError.az < 0)
+		{	
+			if(nError.az > -180*DEG_TO_RAD)
+			{
+				radius = 0.5*path_error/cos(90*RAD_TO_DEG-fabs(nError.az));
+				cmd.angular.z = cmd.linear.x / radius;
+			}
+			else
+			{
+				cmd.angular.z = 2*cmd.linear.x/CHASSIS_LENGTH;
+			}
+		}
+		else 
+		{
+			cmd.angular.z = 0;
+		}
+
 		if (cmd.linear.x > 0.5)
 		{
 			cmd.linear.x = 0.5;
 		} 
-        if (cmd.angular.z > 2*cmd.linear.x/CHASSIS_LENGTH)
-        {
-            cmd.angular.z = 2*cmd.linear.x/CHASSIS_LENGTH;
-        }
-		if (cmd.angular.z < -2*cmd.linear.x/CHASSIS_LENGTH)
-        {
-            cmd.angular.z = -2*cmd.linear.x/CHASSIS_LENGTH;
-        }
+		if (cmd.angular.z > cmd.linear.x / MIN_RADIUS)
+		{
+			cmd.angular.z = cmd.linear.x / MIN_RADIUS;
+		}
+		if (cmd.angular.z < -cmd.linear.x / MIN_RADIUS)
+		{
+			cmd.angular.z = -cmd.linear.x / MIN_RADIUS;
+		}
     }
 
 
@@ -164,34 +213,37 @@ namespace simple_local_planner
 
 	void SimplePlannerROS::setNext()
 	{
+		last = next;
 		next.x = plan[count].pose.position.x;
 		next.y = plan[count].pose.position.y;
 		next.az = getYaw(plan[count].pose.orientation);
 	}
 
+	pos SimplePlannerROS::calculateFramesDifference(pos next, pos now)
+	{
+		pos difference;
+		difference.x = (next.x - now.x);
+		difference.y = (next.y - now.y);
+		difference.az = std::atan2(difference.y, difference.x) - now.az;
+		if ( next.az > 180*DEG_TO_RAD ) 
+        {
+            next.az -= 360*DEG_TO_RAD; 
+        }
+		if ( next.az < -180*DEG_TO_RAD ) 
+        {
+            next.az += 360*DEG_TO_RAD;  
+        }
+		return difference;
+	}
+
 	void SimplePlannerROS::setNowError()
 	{
-		double d;
-		nError.x = (next.x - now.x);
-		nError.y = (next.y - now.y);
-		if (nError.y == 0 & nError.x == 0)
-        {  
-			d = now.az;
-		}
-        else
-        {	
-			d = std::atan2(nError.y, nError.x);
-		}
-		distance = std::sqrt(nError.x*nError.x +nError.y*nError.y);
-		nError.az = d - now.az;
-		// nError.az = next.az - now.az;
-		// if ( nError.az > 180*DEG_TO_RAD ) 
-        // {
-        //     nError.az -= 360*DEG_TO_RAD; 
-        // }
-		// if ( nError.az < -180*DEG_TO_RAD ) 
-        // {
-        //     nError.az += 360*DEG_TO_RAD;  
-        // }
+		nError = calculateFramesDifference(next, now);
+		nPath = calculateFramesDifference(now, last);
+		nFramesDifference = calculateFramesDifference(next, last);
+		nFramesDifference.az += last.az;
+		distance = std::sqrt(nFramesDifference.x*nFramesDifference.x +nFramesDifference.y*nFramesDifference.y);
+		path_error = std::sqrt(nError.x*nError.x +nError.y*nError.y);
+		path_traveled = std::sqrt(nPath.x*nPath.x +nPath.y*nPath.y);
 	}
 }

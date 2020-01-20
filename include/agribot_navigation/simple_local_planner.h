@@ -39,8 +39,15 @@ namespace simple_local_planner{
       ros::Subscriber odom_sub; 
       pos now; // present frame
       pos next; // next frame
+      pos last; // last frame
       pos nError; // error between present and next frames
-      double distance;
+      pos nPath; // error between last and present frames
+      pos nFramesDifference; // error between last and next frames
+      double distance; //distance between last and next frames
+      double path_error; //distance between present and next frames
+      double path_traveled; //distance between last and present frames
+		  double deviation;
+      int missed;
       int length; // number of frames in the global plan 
       int count; // keeps track of the number for the next frame in the global plan
       std::vector<geometry_msgs::PoseStamped> plan; // contains the global plan
@@ -56,6 +63,7 @@ namespace simple_local_planner{
       void setVelZeros();
       void odomCallback(const nav_msgs::Odometry odometry_msg);
       double getYaw(geometry_msgs::Quaternion quat);
+      pos calculateFramesDifference(pos next, pos now);
       void setNowError();
       void setNext();
   };

@@ -54,7 +54,7 @@
     />
 
     <!-- <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" /> -->
-    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <param name="base_local_planner" value="agribot_navigation/SimplePlannerROS"/>
     <param name="base_global_planner" value="waypoint_global_planner/WaypointGlobalPlanner" />
 
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>

@@ -109,7 +109,6 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES agribot_navigation
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp
-  DEPENDS system_lib
 )
 
 ###########
@@ -125,6 +124,17 @@ include_directories(include
   ${agribot_common_SOURCE_DIR}/include
 )
 
+include_directories(
+  include
+  ${Eigen_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
+)
+
+add_library(simple_local_planner
+  src/simple_local_planner.cpp
+ )
+
+
 link_directories(
   ${GAZEBO_LIBRARY_DIRS}
   ${PROJECT_SOURCE_DIR}
@@ -139,6 +149,10 @@ target_link_libraries(kinematics_control
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )
+
+target_link_libraries(simple_local_planner
+   ${catkin_LIBRARIES}
+ )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
