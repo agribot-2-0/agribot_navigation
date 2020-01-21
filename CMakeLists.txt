@@ -130,15 +130,14 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(simple_local_planner
-  src/simple_local_planner.cpp
- )
-
-
 link_directories(
   ${GAZEBO_LIBRARY_DIRS}
   ${PROJECT_SOURCE_DIR}
 )
+
+add_library(simple_local_planner
+  src/simple_local_planner.cpp
+ )
 
 add_executable(kinematics_control
   src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp
@@ -153,6 +152,14 @@ target_link_libraries(kinematics_control
 target_link_libraries(simple_local_planner
    ${catkin_LIBRARIES}
  )
+
+add_executable(path_publisher
+  src/PathPublisher_node.cpp
+)
+
+target_link_libraries(path_publisher
+  ${catkin_LIBRARIES}
+)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -192,6 +199,12 @@ target_link_libraries(simple_local_planner
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 install(TARGETS
   kinematics_control
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(TARGETS
+  path_publisher
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )

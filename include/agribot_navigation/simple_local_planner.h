@@ -44,6 +44,7 @@ namespace simple_local_planner{
       pos nPath; // error between last and present frames
       pos nFramesDifference; // error between last and next frames
       double distance; //distance between last and next frames
+      double previous_distance;
       double path_error; //distance between present and next frames
       double path_traveled; //distance between last and present frames
 		  double deviation;
@@ -52,6 +53,8 @@ namespace simple_local_planner{
       int count; // keeps track of the number for the next frame in the global plan
       std::vector<geometry_msgs::PoseStamped> plan; // contains the global plan
       geometry_msgs::Twist cmd; // contains the velocity
+      double stopTime, startTime;
+      double error_integral, traveled_distance;
      //measuring
       bool hasStarted;
       // Flags
