@@ -10,6 +10,8 @@
 #define CHASSIS_LENGTH 2.1
 // #define MIN_RADIUS (CHASSIS_LENGTH / 2)
 #define MIN_RADIUS 2
+#define PREDICTION_TIME 30
+#define PREDICTION_POINTS_PER_SECOND 2
 
 // PLUGINLIB_DECLARE_CLASS(agribot_navigation, SimplePlannerROS, simple_local_planner::SimplePlannerROS, nav_core::BaseLocalPlanner)
 PLUGINLIB_EXPORT_CLASS(simple_local_planner::SimplePlannerROS, nav_core::BaseLocalPlanner)
@@ -30,10 +32,13 @@ namespace simple_local_planner
             tfListener_ = new tf2_ros::TransformListener(*tfBuffer);
             ros::NodeHandle gn;
             odom_sub = gn.subscribe("/agribot/odometry", 100, &SimplePlannerROS::odomCallback, this);
-            hasStarted = false;
+            path_pub = gn.advertise<visualization_msgs::Marker>("travelled_path", 10);
+            predicted_path_pub = gn.advertise<visualization_msgs::Marker>("predicted_path", 10);
             initialized_ = true;
             stopTime = 0;
             startTime = 0;
+            lastTime = 0;
+            actualTime = 0;
             ROS_DEBUG("Simple Local Planner plugin initialized.");
         }
         else
@@ -56,10 +61,13 @@ namespace simple_local_planner
         ROS_INFO("Received new plan, length = %d", length);
         next=now;
         setNext(); 
+        points=visualization_msgs::Marker();
         goal_reached_ = false;
         error_integral = 0;
         traveled_distance = 0;
         startTime = ros::Time::now().toSec();
+        lastTime = 0;
+        actualTime = 0;
         return true;
     }
 
@@ -73,8 +81,16 @@ namespace simple_local_planner
         if(length != 0)
         { 
             setNowError();
-            error_integral += fabs(deviation);
-           
+            if(actualTime > 0)
+            {
+                lastTime = actualTime;
+                actualTime = ros::Time::now().toSec();
+                error_integral += fabs(deviation)*(actualTime-lastTime);
+            }
+            else
+            {
+                actualTime = ros::Time::now().toSec();
+            }
             // ROS_INFO("count %d missed %d distance %f traveled %f error %f deviation %f angle %f parallelness %f", count, missed, distance, path_traveled, path_error, deviation, nError.az*RAD_TO_DEG, cos(nFramesDifference.az-now.az));
             if(path_traveled >= distance)
             {
@@ -138,7 +154,7 @@ namespace simple_local_planner
         now.az = getYaw(odometry_msg.pose.pose.orientation); 
         traveled_distance += std::sqrt((tmp.x-now.x)*(tmp.x-now.x) + (tmp.y-now.y)*(tmp.y-now.y));
         setNowError();
-        hasStarted = true;
+        pathVisualization();
     }
 
     double SimplePlannerROS::getYaw(geometry_msgs::Quaternion quat)
@@ -157,6 +173,7 @@ namespace simple_local_planner
     void SimplePlannerROS::setVel()
     {
         cmd.linear.x= 0.3*(1/(1+deviation));
+        // cmd.linear.x= 0.3;
         double radius;
         double heron;
         heron=(distance+path_error+path_traveled)/2;
@@ -165,12 +182,13 @@ namespace simple_local_planner
         // // MINIMIZE DEVIATION AND MAXIMIZE PARALLELNESS
         // if (nError.az > 0)
         // {
-        // 	cmd.angular.z = 0.5*(2*deviation/(1+deviation)+(1-cos(nFramesDifference.az-now.az))/2)*cmd.linear.x / MIN_RADIUS;
+        //     cmd.angular.z = 0.5*(2*deviation/(1+deviation)+(1-cos(nFramesDifference.az-now.az))/2)*cmd.linear.x / MIN_RADIUS;
         // }
         // else if (nError.az < 0)
         // {
-        // 	cmd.angular.z = -0.5*(2*deviation/(1+deviation)+(1-cos(nFramesDifference.az-now.az))/2)*cmd.linear.x / MIN_RADIUS;
+        //     cmd.angular.z = -0.5*(2*deviation/(1+deviation)+(1-cos(nFramesDifference.az-now.az))/2)*cmd.linear.x / MIN_RADIUS;
         // }
+        // // 
         
         // ARCH APPROACH
         if (nError.az > 0)
@@ -201,6 +219,7 @@ namespace simple_local_planner
         {
             cmd.angular.z = 0;
         }
+        // 
 
         if (cmd.linear.x > 0.5)
         {
@@ -214,6 +233,7 @@ namespace simple_local_planner
         {
             cmd.angular.z = -cmd.linear.x / MIN_RADIUS;
         }
+        predictedPathVisualization();
     }
 
 
@@ -259,4 +279,81 @@ namespace simple_local_planner
         path_error = std::sqrt(nError.x*nError.x +nError.y*nError.y);
         path_traveled = std::sqrt(nPath.x*nPath.x +nPath.y*nPath.y);
     }
+
+    void SimplePlannerROS::pathVisualization()
+    {
+        points.header.frame_id = "/odom";
+        points.header.stamp = ros::Time::now();
+        points.ns = "travelled_path";
+        points.action = visualization_msgs::Marker::ADD;
+        points.id = 0;
+        points.type = visualization_msgs::Marker::LINE_STRIP;
+        points.scale.x = 0.1;
+        points.scale.y = 0.1;
+        points.color.b = 1.0;
+        points.color.a = 1.0;
+        geometry_msgs::Point p;
+        p.x = now.x;
+        p.y = now.y;
+        p.z = 0.1;
+        points.points.push_back(p);
+        path_pub.publish(points); 
+     }
+
+    void SimplePlannerROS::predictedPathVisualization()
+    {
+        future_points=visualization_msgs::Marker();
+        future_points.header.frame_id = "/odom";
+        future_points.header.stamp = ros::Time::now();
+        future_points.ns = "predicted_path";
+        future_points.action = visualization_msgs::Marker::ADD;
+        future_points.id = 1;
+        future_points.type = visualization_msgs::Marker::LINE_STRIP;
+        future_points.scale.x = 0.1;
+        future_points.scale.y = 0.1;
+        future_points.color.r = 1.0;
+        future_points.color.a = 1.0;
+
+        double radius;
+        if(cmd.angular.z != 0)
+        {
+            radius = cmd.linear.x / cmd.angular.z;
+        }
+        else
+        {
+            radius = 0;
+        }
+
+        if (radius != 0)
+        {
+            geometry_msgs::Point p,tmp;
+            double theta;
+            for(int i=0; i < PREDICTION_POINTS_PER_SECOND*PREDICTION_TIME; i++)
+            {
+                theta = i*cmd.angular.z/PREDICTION_POINTS_PER_SECOND;
+                tmp.x = radius*cos(theta-90*DEG_TO_RAD)-radius*cos(-90*DEG_TO_RAD);
+                tmp.y = radius*sin(theta-90*DEG_TO_RAD)-radius*sin(-90*DEG_TO_RAD);
+
+                p.x = now.x + tmp.x * cos(now.az) - tmp.y * sin(now.az);
+                p.y = now.y + tmp.x * sin(now.az) + tmp.y * cos(now.az);
+
+                p.z = 0.1;
+                future_points.points.push_back(p);
+            }
+        }
+        else
+        {
+            geometry_msgs::Point p;
+            for(int i=0; i < PREDICTION_POINTS_PER_SECOND*PREDICTION_TIME; i++)
+            {
+                p.x = now.x+i*cmd.linear.x/PREDICTION_POINTS_PER_SECOND*cos(now.az);
+                p.y = now.y+i*cmd.linear.x/PREDICTION_POINTS_PER_SECOND*cos(now.az);
+                p.z = 0.1;
+                future_points.points.push_back(p);
+
+            }
+        }
+        predicted_path_pub.publish(future_points); 
+     }
+     
 }

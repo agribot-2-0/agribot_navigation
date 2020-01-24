@@ -6,10 +6,12 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/tf.h>
 #include <queue>
+#include <cmath>
 
-#define PI 3.14159265
-#define DEG_TO_RAD (PI/180)
-#define RAD_TO_DEG (180/PI)
+#define DEG_TO_RAD (M_PI/180)
+#define RAD_TO_DEG (180/M_PI)
+#define SQUARE_SIDE_LENGTH 10.0
+#define ANGLE (90*(edges-2)/edges)*DEG_TO_RAD
 
 struct pos 
    {
@@ -18,6 +20,7 @@ struct pos
 
 int choice = -1;
 bool bDataReceived=false;
+double side_length=10;
 std::queue<geometry_msgs::Point> plan;
 pos robotPosition;
 
@@ -48,92 +51,71 @@ void odomCallback(const nav_msgs::Odometry odometry_msg)
         robotPosition.az = getYaw(odometry_msg.pose.pose.orientation); 
     }
 
-
-void squareLeftPath()
+void polygonCCWPath(double radius, int edges)
 {
-    geometry_msgs::Point point;
-    point.x = robotPosition.x + 0.0;
-    point.y = robotPosition.y + 0.0;
-    plan.push(point);
-    point.x = robotPosition.x + 10.0;
-    point.y = robotPosition.y + 0.0;
-    plan.push(point);
-    point.x = robotPosition.x + 10.0;
-    point.y = robotPosition.y + 10.0;
-    plan.push(point);
-    point.x = robotPosition.x + 0.0;
-    point.y = robotPosition.y + 10.0;
-    plan.push(point);
-    point.x = robotPosition.x + 0.0;
-    point.y = robotPosition.y + 0.0;
-    plan.push(point);
-    point.x = robotPosition.x + 0.0;
-    point.y = robotPosition.y + 0.0;
+    geometry_msgs::Point first_point,point,tmp;
+    pos startingPoint = robotPosition;
+    double pivot_x,pivot_y;
+
+    pivot_x = radius*cos(2*ANGLE);
+    pivot_y = radius*sin(2*ANGLE);
+
+    for(double theta = 0; theta <= 360; theta += 360/edges)
+    {
+        tmp.x = radius*cos(theta*DEG_TO_RAD+2*ANGLE);
+        tmp.y = radius*sin(theta*DEG_TO_RAD+2*ANGLE);
+
+        tmp.x -= pivot_x;
+        tmp.y -= pivot_y;
+
+        point.x = tmp.x * cos(-ANGLE+robotPosition.az) - tmp.y * sin(-ANGLE+robotPosition.az);
+        point.y = tmp.x * sin(-ANGLE+robotPosition.az) + tmp.y * cos(-ANGLE+robotPosition.az);
+
+        point.x = -(pivot_x + point.x); 
+        point.y = -(pivot_y + point.y); 
+        if(theta==0)
+        {
+            first_point = point;
+        }
+        point.x -= (first_point.x - startingPoint.x);
+        point.y -= (first_point.y - startingPoint.y);
+        plan.push(point);
+    }
     plan.push(point);
 }
 
-void squareRightPath()
+void straightForwardPath(double segment_length, int segments)
 {
     geometry_msgs::Point point;
-    point.x = robotPosition.x + 0.0;
-    point.y = robotPosition.y + 0.0;
+    pos startingPoint = robotPosition;
+    point.x = startingPoint.x;
+    point.y = startingPoint.y;
     plan.push(point);
-    point.x = robotPosition.x + 10.0;
-    point.y = robotPosition.y + 0.0;
+    for(int i=0; i<segments; i++)
+    {
+        point.x += segment_length*cos(startingPoint.az);
+        point.y += segment_length*sin(startingPoint.az);
+        plan.push(point);
+    }
     plan.push(point);
-    point.x = robotPosition.x + 10.0;
-    point.y = robotPosition.y - 10.0;
-    plan.push(point);
-    point.x = robotPosition.x + 0.0;
-    point.y = robotPosition.y - 10.0;
-    plan.push(point);
-    point.x = robotPosition.x + 0.0;
-    point.y = robotPosition.y + 0.0;
-    plan.push(point);
-    point.x = robotPosition.x + 0.0;
-    point.y = robotPosition.y + 0.0;
-    plan.push(point);
-}
-
-void straightForwardPath()
-{
-    geometry_msgs::Point point;
-    point.x = robotPosition.x + 0;
-    point.y = robotPosition.y + 0;
-    plan.push(point);
-    point.x = robotPosition.x + 2.5;
-    point.y = robotPosition.y + 0;
-    plan.push(point);
-    point.x = robotPosition.x + 5.0;
-    point.y = robotPosition.y + 0.0;
-    plan.push(point);
-    point.x = robotPosition.x + 7.5;
-    point.y = robotPosition.y + 0;
-    plan.push(point);
-    point.x = robotPosition.x + 10.0;
-    point.y = robotPosition.y + 0.0;
-    plan.push(point);
-    point.x = robotPosition.x + 10.0;
-    point.y = robotPosition.y + 0.0;
-    plan.push(point);
-    
 }
 
 void makeNewPath (int choice)
 {
     plan = std::queue<geometry_msgs::Point>();
-    switch (choice)
+    if(choice < 2)
     {
-    case 1:
-        straightForwardPath();
-        break;
-    case 2:
-        squareLeftPath();
-        break;
-    case 3:
-        squareRightPath();
-        break;
+        polygonCCWPath((side_length/(2*sin(M_PI/-choice))), -choice);
     }
+    else if (choice>0)
+    {
+        side_length = choice / 10.0;
+    }
+    else
+    {
+        straightForwardPath(5.0, 4);
+    }
+    
 }
 
 int main(int argc, char **argv)
