@@ -11,7 +11,6 @@
 #define DEG_TO_RAD (M_PI/180)
 #define RAD_TO_DEG (180/M_PI)
 #define SQUARE_SIDE_LENGTH 10.0
-#define ANGLE (90*(edges-2)/edges)*DEG_TO_RAD
 
 struct pos 
    {
@@ -45,7 +44,6 @@ void choiceCallback (const std_msgs::Int32 choice_msg)
 
 void odomCallback(const nav_msgs::Odometry odometry_msg)
     {
-        // ROS_INFO("Seq: [%d]", odometry_msg.header.seq);
         robotPosition.x = odometry_msg.pose.pose.position.x;
         robotPosition.y = odometry_msg.pose.pose.position.y;
         robotPosition.az = getYaw(odometry_msg.pose.pose.orientation); 
@@ -57,22 +55,28 @@ void polygonCCWPath(double radius, int edges)
     pos startingPoint = robotPosition;
     double pivot_x,pivot_y;
 
-    pivot_x = radius*cos(2*ANGLE);
-    pivot_y = radius*sin(2*ANGLE);
+    // finding the center of the circumscribed circle
+    pivot_x = radius*cos(2*(90*(edges-2)/edges)*DEG_TO_RAD);
+    pivot_y = radius*sin(2*(90*(edges-2)/edges)*DEG_TO_RAD);
 
     for(double theta = 0; theta <= 360; theta += 360/edges)
     {
-        tmp.x = radius*cos(theta*DEG_TO_RAD+2*ANGLE);
-        tmp.y = radius*sin(theta*DEG_TO_RAD+2*ANGLE);
+        // finding verticles on circumscribed circle
+        tmp.x = radius*cos(theta*DEG_TO_RAD+2*(90*(edges-2)/edges)*DEG_TO_RAD);
+        tmp.y = radius*sin(theta*DEG_TO_RAD+2*(90*(edges-2)/edges)*DEG_TO_RAD);
 
         tmp.x -= pivot_x;
         tmp.y -= pivot_y;
 
-        point.x = tmp.x * cos(-ANGLE+robotPosition.az) - tmp.y * sin(-ANGLE+robotPosition.az);
-        point.y = tmp.x * sin(-ANGLE+robotPosition.az) + tmp.y * cos(-ANGLE+robotPosition.az);
+        // rotating the polygon to match robot orientation
+        point.x = tmp.x * cos(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az) - tmp.y * sin(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az);
+        point.y = tmp.x * sin(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az) + tmp.y * cos(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az);
 
+        // first edge is in front of robot and following edges go counterclockwise
         point.x = -(pivot_x + point.x); 
         point.y = -(pivot_y + point.y); 
+
+        // moving the begining of polygon to robot position
         if(theta==0)
         {
             first_point = point;
@@ -81,6 +85,7 @@ void polygonCCWPath(double radius, int edges)
         point.y -= (first_point.y - startingPoint.y);
         plan.push(point);
     }
+    // last point published twice to finish the path
     plan.push(point);
 }
 
@@ -97,12 +102,14 @@ void straightForwardPath(double segment_length, int segments)
         point.y += segment_length*sin(startingPoint.az);
         plan.push(point);
     }
+    // last point published twice to finish the path
     plan.push(point);
 }
 
 void makeNewPath (int choice)
 {
     plan = std::queue<geometry_msgs::Point>();
+
     if(choice < 2)
     {
         polygonCCWPath((side_length/(2*sin(M_PI/-choice))), -choice);
@@ -113,9 +120,8 @@ void makeNewPath (int choice)
     }
     else
     {
-        straightForwardPath(5.0, 4);
+        straightForwardPath(side_length, 4);
     }
-    
 }
 
 int main(int argc, char **argv)
