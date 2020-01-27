@@ -48,11 +48,6 @@
       command="load"
     />
 
-    <rosparam
-      file="$(find waypoint_global_planner)/config/base_global_planner_params.yaml"
-      command="load"
-    />
-
     <param name="base_local_planner" value="agribot_navigation/SimplePlannerROS"/>
     <param name="base_global_planner" value="agribot_navigation/WaypointGlobalPlanner" />
 

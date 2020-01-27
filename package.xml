@@ -93,5 +93,6 @@
   <export>
     <!-- Other tools can request additional information be placed here -->
     <nav_core plugin="${prefix}/SP_plugin.xml"/>
+    <nav_core plugin="${prefix}/bgp_plugin.xml"/>
   </export>
 </package>
