@@ -8,12 +8,18 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  base_local_planner
+  costmap_2d
   geometry_msgs
   agribot_msgs
+  nav_core
   nav_msgs
+  pluginlib
   roscpp
+  visualization_msgs
   move_base
   agribot_common
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,7 +114,17 @@ find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES agribot_navigation
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp
+  CATKIN_DEPENDS
+    base_local_planner
+	costmap_2d
+	geometry_msgs
+	nav_core
+	nav_msgs
+	pluginlib
+	roscpp
+	visualization_msgs
+	move_base
+	tf
 )
 
 ###########
@@ -137,10 +153,18 @@ link_directories(
 
 add_library(simple_local_planner
   src/simple_local_planner.cpp
- )
+)
+
+add_library(waypoint_global_planner 
+	src/waypoint_global_planner.cpp
+)
 
 add_executable(kinematics_control
   src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp
+)
+
+add_executable(path_publisher
+  src/PathPublisher_node.cpp
 )
 
 target_link_libraries(kinematics_control
@@ -150,15 +174,15 @@ target_link_libraries(kinematics_control
 )
 
 target_link_libraries(simple_local_planner
-   ${catkin_LIBRARIES}
- )
+	${catkin_LIBRARIES}
+)
 
-add_executable(path_publisher
-  src/PathPublisher_node.cpp
+target_link_libraries(waypoint_global_planner 
+	${catkin_LIBRARIES}
 )
 
 target_link_libraries(path_publisher
-  ${catkin_LIBRARIES}
+	${catkin_LIBRARIES}
 )
 
 ## Declare a C++ library
@@ -207,6 +231,28 @@ install(TARGETS
   path_publisher
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(
+  TARGETS simple_local_planner
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(
+  TARGETS waypoint_global_planner
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(
+  FILES bgp_plugin.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(
+  FILES SP_plugin.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 ## Mark executable scripts (Python etc.) for installation
