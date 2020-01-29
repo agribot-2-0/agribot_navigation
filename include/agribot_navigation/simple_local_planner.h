@@ -41,36 +41,43 @@ namespace simple_local_planner{
       ros::Subscriber odom_sub;
       ros::Publisher path_pub;
       ros::Publisher predicted_path_pub; 
+      ros::Publisher next_goal_pub;
+      std::vector<geometry_msgs::PoseStamped> plan; // contains the global plan
+      geometry_msgs::Twist cmd; // contains the velocity
+      visualization_msgs::Marker traveledPoints;
       pos now; // present frame
       pos next; // next frame
       pos last; // last frame
+      pos goal; // goal frame
       pos nError; // error between present and next frames
       pos nPath; // error between last and present frames
       pos nFramesDifference; // error between last and next frames
+      pos nGoal; // error between present ang next goal frame
       double distance; //distance between last and next frames
       double path_error; //distance between present and next frames
       double path_traveled; //distance between last and present frames
-      double deviation;
-      int missed;
+      double deviation; // distance form robot to vector from last to next frame
+      double stopTime, startTime, lastTime, actualTime; // time measuring for statistics
+      double errorIntegral, traveledDistance; // distance and deviation measuring for statistics
       int length; // number of frames in the global plan 
+      int missed; // keeps track of the number of ommited frames
       int count; // keeps track of the number for the next frame in the global plan
-      std::vector<geometry_msgs::PoseStamped> plan; // contains the global plan
-      geometry_msgs::Twist cmd; // contains the velocity
-      visualization_msgs::Marker points, future_points;
-      double stopTime, startTime;
-      double lastTime, actualTime;
-      double error_integral, traveled_distance;
       bool goal_reached_;
       bool initialized_;
+
+      void odomCallback(const nav_msgs::Odometry odometry_msg);
       void setVel();
       void setVelZeros();
-      void odomCallback(const nav_msgs::Odometry odometry_msg);
-      double getYaw(geometry_msgs::Quaternion quat);
+      void calculateErrors();
+      void calculateGoal();
       pos calculateFramesDifference(pos next, pos now);
-      void setNowError();
-      void setNext();
+      pos getFrame(int count);
+      double getYaw(geometry_msgs::Quaternion quat);
+      double limitAngle(double angle);
+      
       void pathVisualization();
       void predictedPathVisualization();
+      void nextGoalVisualization(pos goal);
   };
 };
 
