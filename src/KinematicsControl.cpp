@@ -3,7 +3,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#define DEBUG
+// #define DEBUG
 #define HISTERESIS 0.05
 #define RAD_TO_DEG (180/M_PI)
 #define DEG_TO_RAD (M_PI/180)
@@ -128,7 +128,7 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
                     else
                     {
                         // Moving backwards - front cart is pulled
-                        SP = {-this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel,angular_vel)) , -_pdCartAngle[BACK_CART]};
+                        SP = {-_pdCartAngle[BACK_CART], -this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel,angular_vel))};
                     }
                 }
             }
