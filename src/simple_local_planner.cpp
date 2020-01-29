@@ -3,14 +3,19 @@
 #include <pluginlib/class_list_macros.h>
 #include <cmath>
 
-#define ARROW_LENGTH 0.5
 #define GOAL_DISTANCE_TOLERANCE 0.5
-#define GOAL_ANGLE_TOLERANCE 360
 #define MISSED_POINTS_TOLLERANCE 2
+
 #define CHASSIS_LENGTH 2.1
 #define MIN_RADIUS 2
-#define PREDICTION_TIME 30
+
+#define PREDICTION_TIME 60
 #define PREDICTION_POINTS_PER_SECOND 2
+
+#define MAX_LINEAR_VEL 0.3
+
+#define DEVIATION_WEIGHT 1
+#define PARALLELNESS_WEIGHT 5
 
 // Planner approach choice
 // #define ARCH_APPROACH
@@ -215,9 +220,9 @@ namespace simple_local_planner
     void SimplePlannerROS::setVel()
     {
         #ifdef SPEED_LIMIT
-            cmd.linear.x= 0.3*(1/(1+deviation));
+            cmd.linear.x= MAX_LINEAR_VEL*(1/(1+deviation));
         #else
-            cmd.linear.x= 0.3;
+            cmd.linear.x= MAX_LINEAR_VEL;
         #endif
         
         #ifdef ARCH_APPROACH
@@ -253,18 +258,18 @@ namespace simple_local_planner
         #else
             if (nError.az > 0)
             {
-                cmd.angular.z = 0.5*(2*deviation/(1+deviation)+(1-cos(last.az-now.az))/2)*cmd.linear.x / MIN_RADIUS;
+                cmd.angular.z = (DEVIATION_WEIGHT*deviation/(1+deviation)+PARALLELNESS_WEIGHT*(1-fabs(cos(last.az-now.az))))/2*MAX_LINEAR_VEL / MIN_RADIUS;
             }
             else if (nError.az < 0)
             {
-                cmd.angular.z = -0.5*(2*deviation/(1+deviation)+(1-cos(last.az-now.az))/2)*cmd.linear.x / MIN_RADIUS;
+                cmd.angular.z = -(DEVIATION_WEIGHT*deviation/(1+deviation)+PARALLELNESS_WEIGHT*(1-fabs(cos(last.az-now.az))))/2*MAX_LINEAR_VEL / MIN_RADIUS;
             }
         #endif
 
         // Velocity limiter
-        if (cmd.linear.x > 0.5)
+        if (cmd.linear.x > MAX_LINEAR_VEL)
         {
-            cmd.linear.x = 0.5;
+            cmd.linear.x = MAX_LINEAR_VEL;
         } 
         if (cmd.angular.z > cmd.linear.x / MIN_RADIUS)
         {
@@ -341,7 +346,7 @@ namespace simple_local_planner
     void SimplePlannerROS::calculateGoal()
     {
         #ifdef ARCH_APPROACH
-            if(count<(length-1))
+            if(count < (length-1) && count > 1)
             {
                 pos tmp;
                 tmp = getFrame(count+1);
@@ -367,6 +372,7 @@ namespace simple_local_planner
             goal = next;
         #endif
 
+        goal = next;
         goal.az = std::atan2(goal.y - last.y, goal.x - last.x);
 
         // Visualization
@@ -461,17 +467,17 @@ namespace simple_local_planner
         marker.ns = "next_goal";
         marker.action = visualization_msgs::Marker::ADD;
         marker.id = 2;
-        marker.type = visualization_msgs::Marker::SPHERE;
+        marker.type = visualization_msgs::Marker::CUBE;
         marker.scale.x = 0.1;
         marker.scale.y = 0.1;
-        marker.scale.z = 0;
+        marker.scale.z = 3;
         marker.color.b = 1;
         marker.color.r = 1;
         marker.color.a = 1.0;
 
         marker.pose.position.x = goal.x;
         marker.pose.position.y = goal.y;
-        marker.pose.position.z = 0.1;
+        marker.pose.position.z = 0;
         
         predicted_path_pub.publish(marker); 
      }
