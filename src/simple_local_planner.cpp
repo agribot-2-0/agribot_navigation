@@ -13,14 +13,17 @@
 #define PREDICTION_POINTS_PER_SECOND 2
 
 #define DEAD_ZONE 1
-#define MAX_LINEAR_VEL 0.3
+#define MAX_LINEAR_VEL 0.5
 
 #define DEVIATION_WEIGHT 1
 #define PARALLELNESS_WEIGHT 1
 
 // Planner approach choice
-#define ARCH_APPROACH
-// #define SPEED_LIMIT
+// #define ARCH_APPROACH
+#define SPEED_LIMIT
+
+// #define DEBUG
+#define STATISTICS
 
 PLUGINLIB_EXPORT_CLASS(simple_local_planner::SimplePlannerROS, nav_core::BaseLocalPlanner)
 
@@ -52,10 +55,12 @@ namespace simple_local_planner
             goal.y = GOAL_DISTANCE_TOLERANCE/2;
 
             started_moving_ = false;
-            stopTime = 0;
-            startTime = 0;
-            lastTime = 0;
-            actualTime = 0;
+            #ifdef STATISTICS
+                stopTime = 0;
+                startTime = 0;
+                lastTime = 0;
+                actualTime = 0;
+            #endif
 
             ROS_DEBUG("Simple Local Planner plugin initialized.");
         }
@@ -82,13 +87,15 @@ namespace simple_local_planner
         last = now;
         next = getFrame(count); 
 
-        errorIntegral = 0;
-        traveledDistance = 0;
-
         started_moving_ = true;
-        startTime = ros::Time::now().toSec();
-        lastTime = 0;
-        actualTime = 0;
+        #ifdef STATISTICS
+            errorIntegral = 0;
+            traveledDistance = 0;
+
+            startTime = ros::Time::now().toSec();
+            lastTime = 0;
+            actualTime = 0;
+        #endif
 
         ROS_INFO("Received new plan, length = %d", length);
         return true;
@@ -107,19 +114,21 @@ namespace simple_local_planner
             calculateErrors();
 
             // Deviation error for statistics
-            if(actualTime > 0)
-            {
-                if (!isnan(deviation))
+            #ifdef STATISTICS
+                if(actualTime > 0)
                 {
-                    lastTime = actualTime;
-                    actualTime = ros::Time::now().toSec();
-                    errorIntegral += fabs(deviation)*(actualTime-lastTime);
+                    if (!isnan(deviation))
+                    {
+                        lastTime = actualTime;
+                        actualTime = ros::Time::now().toSec();
+                        errorIntegral += fabs(deviation)*(actualTime-lastTime);
+                    }
                 }
-            }
-            else
-            {
-                actualTime = ros::Time::now().toSec();
-            }
+                else
+                {
+                    actualTime = ros::Time::now().toSec();
+                }
+            #endif
 
             #ifdef DEBUG
                 ROS_INFO("count %d missed %d distance %f traveled %f error %f deviation %f parallelness %f", count, missed, distance, path_traveled, path_error, deviation, cos(last.az-now.az));
@@ -148,8 +157,10 @@ namespace simple_local_planner
                         // Reached final destionation
                         setVelZeros();
                         goal_reached_ = true;
-                        stopTime = ros::Time::now().toSec();
-                        ROS_INFO("GOAL REACHED!    Time = %f s    Traveled  %f    Error = %f", stopTime-startTime,traveledDistance, errorIntegral);
+                        #ifdef STATISTICS
+                            stopTime = ros::Time::now().toSec();
+                            ROS_INFO("GOAL REACHED!    Time = %f s    Traveled  %f    Error = %f", stopTime-startTime,traveledDistance, errorIntegral);
+                        #endif
                     }
                 }
             }
@@ -181,8 +192,12 @@ namespace simple_local_planner
             {
                 setVelZeros();
                 length = 0;
-                stopTime = ros::Time::now().toSec();
-                ROS_ERROR("STOPPING, ROBOT MISSED %d POINTS Time = %f    Traveled  %f", missed, stopTime-startTime,traveledDistance);
+                #ifdef STATISTICS
+                    stopTime = ros::Time::now().toSec();
+                    ROS_ERROR("STOPPING, ROBOT MISSED %d POINTS Time = %f    Traveled  %f", missed, stopTime-startTime,traveledDistance);
+                #else
+                    ROS_ERROR("STOPPING, ROBOT MISSED %d POINTS", missed);
+                #endif
             }
         }
         cmd_vel = cmd;  
@@ -212,7 +227,9 @@ namespace simple_local_planner
 
         if (started_moving_)
         {
-            traveledDistance += std::sqrt((tmp.x-now.x)*(tmp.x-now.x) + (tmp.y-now.y)*(tmp.y-now.y));
+            #ifdef STATISTICS
+                traveledDistance += std::sqrt((tmp.x-now.x)*(tmp.x-now.x) + (tmp.y-now.y)*(tmp.y-now.y));
+            #endif
 
             // Calculate location ofrobot
             calculateErrors();
@@ -238,9 +255,13 @@ namespace simple_local_planner
     void SimplePlannerROS::setVel()
     {
         #ifdef SPEED_LIMIT
-            cmd.linear.x= MAX_LINEAR_VEL*(1/(1+deviation));
+            double deviation_factor, distance_factor, multiplier;
+            deviation_factor = 5/(5+deviation);
+            distance_factor = 1-fabs((distance-path_error_front)/distance);
+            multiplier = (1 - deviation_factor) * (1-distance_factor);
+            cmd.linear.x = MAX_LINEAR_VEL*(deviation_factor*(1-multiplier));
         #else
-            cmd.linear.x= MAX_LINEAR_VEL;
+            cmd.linear.x = MAX_LINEAR_VEL;
         #endif
         
         #ifdef ARCH_APPROACH
@@ -354,8 +375,6 @@ namespace simple_local_planner
         nPath = calculateFramesDifference(now, last);
         nFramesDifference = calculateFramesDifference(next, last);
         nGoal = calculateFramesDifference(goal, now);
-
-        // ROS_INFO("%f", nGoal.az*RAD_TO_DEG);
 
         nFramesDifference.az = limitAngle(nFramesDifference.az - last.az);
 
