@@ -41,21 +41,26 @@ namespace simple_local_planner{
       ros::Subscriber odom_sub;
       ros::Publisher path_pub;
       ros::Publisher predicted_path_pub; 
+      ros::Publisher goal_range_pub; 
       ros::Publisher next_goal_pub;
       std::vector<geometry_msgs::PoseStamped> plan; // contains the global plan
       geometry_msgs::Twist cmd; // contains the velocity
       visualization_msgs::Marker traveledPoints;
-      pos now; // present frame
-      pos next; // next frame
-      pos last; // last frame
-      pos goal; // goal frame
-      pos nError; // error between present and next frames
-      pos nPath; // error between last and present frames
-      pos nFramesDifference; // error between last and next frames
-      pos nGoal; // error between present ang next goal frame
-      double distance; //distance between last and next frames
-      double path_error; //distance between present and next frames
-      double path_traveled; //distance between last and present frames
+      pos now; // present robot center frame
+      pos nowFront; // present robot front frame
+      pos next; // next target frame
+      pos last; // last target frame
+      pos goal; // followed goal frame
+      pos range; // next target range
+      pos nError; // error between present robot and next target frames
+      pos nFrontError; // error between present robot front and next target frames
+      pos nPath; // error between last target and present robot frames
+      pos nFramesDifference; // error between last target and next target frames
+      pos nGoal; // error between present target ang followed goal frame
+      double distance; //distance between last target and next target frames
+      double path_error; //distance between present robot and next target frames
+      double path_error_front; //distance between present robot front and next target frames
+      double path_traveled; //distance between last target and present robot frames
       double deviation; // distance form robot to vector from last to next frame
       double stopTime, startTime, lastTime, actualTime; // time measuring for statistics
       double errorIntegral, traveledDistance; // distance and deviation measuring for statistics
@@ -64,6 +69,7 @@ namespace simple_local_planner{
       int count; // keeps track of the number for the next frame in the global plan
       bool goal_reached_;
       bool initialized_;
+      bool started_moving_;
 
       void odomCallback(const nav_msgs::Odometry odometry_msg);
       void setVel();
@@ -74,10 +80,11 @@ namespace simple_local_planner{
       pos getFrame(int count);
       double getYaw(geometry_msgs::Quaternion quat);
       double limitAngle(double angle);
-      
+
       void pathVisualization();
       void predictedPathVisualization();
       void nextGoalVisualization(pos goal);
+      void goalRangeVisualization();
   };
 };
 
