@@ -44,7 +44,7 @@ namespace simple_local_planner{
       ros::Publisher _rGoalRangePub; 
       ros::Publisher _rNextGoalPub;
       std::vector<geometry_msgs::PoseStamped> _vPlan; // contains the global plan
-      geometry_msgs::Twist _cmd; // contains the velocity
+      geometry_msgs::Twist _xVelocities; // contains the velocity
       visualization_msgs::Marker _traveledPoints;
       pos _pRobotCenter; // present robot center frame
       pos _pRobotFront; // present robot front frame
@@ -52,39 +52,50 @@ namespace simple_local_planner{
       pos _pLastWaypoint; // last target frame
       pos _pFollowedGoal; // followed goal frame
       pos _pGoalRange; // next target range
-      pos _pDifferencRobotCenterAndNextWaypoint; // error between present robot and next target frames
-      pos _pDifferencRobotFrontAndNextWaypoint; // error between present robot front and next target frames
-      pos _pDifferencRobotCenterAndLastWaypoint; // error between last target and present robot frames
-      pos _pDifferencNextWaypointAndLastWaypoint; // error between last target and next target frames
-      pos _pDifferencFollowedGoalAndRobotCenter; // error between present target ang followed goal frame
-      double _dDistanceFromLastToNextWaypoint; //distance between last target and next target frames
-      double _dDistanceFromRobotCenterToNextWaypoint; //distance between present robot and next target frames
-      double _dDistanceFromRobotFrontToNextWaypoint; //distance between present robot front and next target frames
-      double _dDistanceFromLastWaypointToRobotCenter; //distance between last target and present robot frames
-      double _dRobotDeviationFromLineBetweenWaypoints; // distance form robot to vector from last to next frame
+      double _dAgleRobotNextWaypoint;
+      double _dAngleRobotFollowedGoal;
+      double _dDistanceWaypoints; //distance between last target and next target frames
+      double _dDistanceToNextWaypoint; //distance between present robot and next target frames
+      double _dDistanceToNextWaypointFront; //distance between present robot front and next target frames
+      double _dDistanceFromLastWaypoint; //distance between last target and present robot frames
+      double _dDeviation; // distance form robot to vector from last to next frame
       double _dStopTime, _dStartTime, _dLastTime, _dActualTime; // time measuring for statistics
       double _dDeviationIntegral, _dTraveledDistance; // distance and deviation measuring for statistics
-      int _iLength; // number of frames in the global plan 
-      int _iMissed; // keeps track of the number of ommited frames
+      int _iPlanLength; // number of frames in the global plan 
+      int _iMissedWaypointsCount; // keeps track of the number of ommited frames
       int _iCount; // keeps track of the number for the next frame in the global plan
       bool _bGoalReached;
       bool _bInitialized;
-      bool _bStartedMoving;
+      bool _bMoving;
+
 
       void vOdomCallback(const nav_msgs::Odometry odometry_msg);
-      void vSetVel();
-      void vStopRobot();
-      void vCalculateErrors();
-      void vCalculateGoal();
-      pos pCalculateFramesDifference(pos next, pos now);
+      pos pCalculateRobotFrontPosition(pos robotCenter);
       pos pGetFrame(int count);
+      pos pTakeNextGoal();
+      pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
+      geometry_msgs::Twist xSetVel();
+      geometry_msgs::Twist xStopRobot();
+      geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
       double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
       double dLimitAngle(double angle);
+      double dAngleBetweenFrames(pos targetFrame, pos currentFrame);
+      double dDistanceBetweenFrames(pos targetFrame, pos currentFrame);
+      double dLinearSpeedLimiter();
+      double dArchApproach(pos goal, pos robotCenter);
+      double dDeviationApproach(pos goal, pos robotCenter);
+      double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
+      double dCalculateDeviation(double distance, double remaining, double traveled);
+      void vCalculateErrors();
+      geometry_msgs::Twist xMovementBehaviour();
+      void vMissedWaypointsBehaviour();
+      void vCalculateDeviationIntegral();
 
       void vPathVisualization();
       void vPredictedPathVisualization();
       void vNextGoalVisualization(pos goal);
       void vGoalRangeVisualization();
+      void vVisualizations();
   };
 };
 
