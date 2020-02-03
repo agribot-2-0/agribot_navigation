@@ -35,17 +35,17 @@ namespace simple_local_planner{
       bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);
       bool isGoalReached();
     private:
-      costmap_2d::Costmap2DROS* costmap_ros_; 
-      tf2_ros::Buffer* tfBuffer_;
-      tf2_ros::TransformListener* tfListener_;
-      ros::Subscriber odom_sub;
-      ros::Publisher path_pub;
-      ros::Publisher predicted_path_pub; 
-      ros::Publisher goal_range_pub; 
-      ros::Publisher next_goal_pub;
-      std::vector<geometry_msgs::PoseStamped> plan; // contains the global plan
-      geometry_msgs::Twist cmd; // contains the velocity
-      visualization_msgs::Marker traveledPoints;
+      costmap_2d::Costmap2DROS* _xCostmapROS; 
+      tf2_ros::Buffer* _xTFBuffer;
+      tf2_ros::TransformListener* _xTFListener;
+      ros::Subscriber _rOdomSub;
+      ros::Publisher _rPathPub;
+      ros::Publisher _rPredictedPathPub; 
+      ros::Publisher _rGoalRangePub; 
+      ros::Publisher _rNextGoalPub;
+      std::vector<geometry_msgs::PoseStamped> _vPlan; // contains the global plan
+      geometry_msgs::Twist _cmd; // contains the velocity
+      visualization_msgs::Marker _traveledPoints;
       pos _pRobotCenter; // present robot center frame
       pos _pRobotFront; // present robot front frame
       pos _pNextWaypoint; // next target frame

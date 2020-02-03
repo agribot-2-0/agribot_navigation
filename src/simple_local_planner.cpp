@@ -30,7 +30,7 @@ PLUGINLIB_EXPORT_CLASS(simple_local_planner::SimplePlannerROS, nav_core::BaseLoc
 namespace simple_local_planner
 {
 
-    SimplePlannerROS::SimplePlannerROS() : costmap_ros_(NULL), _bInitialized(false) {}
+    SimplePlannerROS::SimplePlannerROS() : _xCostmapROS(NULL), _bInitialized(false) {}
 
     SimplePlannerROS::~SimplePlannerROS() {}
 
@@ -38,16 +38,16 @@ namespace simple_local_planner
     {
         if(!_bInitialized)
         {
-            costmap_ros_ = costmapROS;
-            tfBuffer_ = tfBuffer;
-            tfListener_ = new tf2_ros::TransformListener(*tfBuffer);
+            _xCostmapROS = costmapROS;
+            _xTFBuffer = tfBuffer;
+            _xTFListener = new tf2_ros::TransformListener(*tfBuffer);
 
             ros::NodeHandle gn;
-            odom_sub = gn.subscribe("/agribot/odometry", 100, &SimplePlannerROS::vOdomCallback, this);
-            path_pub = gn.advertise<visualization_msgs::Marker>("travelled_path", 10);
-            predicted_path_pub = gn.advertise<visualization_msgs::Marker>("predicted_path", 10);
-            goal_range_pub = gn.advertise<visualization_msgs::Marker>("goal_range", 10);
-            next_goal_pub = gn.advertise<visualization_msgs::Marker>("next_goal", 10);
+            _rOdomSub = gn.subscribe("/agribot/odometry", 100, &SimplePlannerROS::vOdomCallback, this);
+            _rPathPub = gn.advertise<visualization_msgs::Marker>("travelled_path", 10);
+            _rPredictedPathPub = gn.advertise<visualization_msgs::Marker>("predicted_path", 10);
+            _rGoalRangePub = gn.advertise<visualization_msgs::Marker>("goal_range", 10);
+            _rNextGoalPub = gn.advertise<visualization_msgs::Marker>("next_goal", 10);
 
             _bInitialized = true;
 
@@ -79,10 +79,10 @@ namespace simple_local_planner
         }
         _iCount = 1;
         _iMissed = 0; 
-        plan = orig_global_plan; 
-        _iLength = plan.size(); 
+        _vPlan = orig_global_plan; 
+        _iLength = _vPlan.size(); 
         _bGoalReached = false;
-        traveledPoints=visualization_msgs::Marker();
+        _traveledPoints=visualization_msgs::Marker();
 
         _pLastWaypoint = _pRobotCenter;
         _pNextWaypoint = pGetFrame(_iCount); 
@@ -200,7 +200,7 @@ namespace simple_local_planner
                 #endif
             }
         }
-        cmd_vel = cmd;  
+        cmd_vel = _cmd;  
         return true;
     }
 
@@ -259,9 +259,9 @@ namespace simple_local_planner
             deviation_factor = 5/(5+_dRobotDeviationFromLineBetweenWaypoints);
             distance_factor = 1-fabs((_dDistanceFromLastToNextWaypoint-_dDistanceFromRobotFrontToNextWaypoint)/_dDistanceFromLastToNextWaypoint);
             multiplier = (1 - deviation_factor) * (1-distance_factor);
-            cmd.linear.x = MAX_LINEAR_VEL*(deviation_factor*(1-multiplier));
+            _cmd.linear.x = MAX_LINEAR_VEL*(deviation_factor*(1-multiplier));
         #else
-            cmd.linear.x = MAX_LINEAR_VEL;
+            _cmd.linear.x = MAX_LINEAR_VEL;
         #endif
         
         #ifdef ARCH_APPROACH
@@ -273,11 +273,11 @@ namespace simple_local_planner
                     if(_pDifferencFollowedGoalAndRobotCenter.az < 180*DEG_TO_RAD)
                     {
                         radius = 0.5*_dDistanceFromRobotCenterToNextWaypoint/cos(90*RAD_TO_DEG-fabs(_pDifferencFollowedGoalAndRobotCenter.az));
-                        cmd.angular.z = - cmd.linear.x / radius;
+                        _cmd.angular.z = - _cmd.linear.x / radius;
                     }
                     else
                     {
-                        cmd.angular.z = - 2*cmd.linear.x/CHASSIS_LENGTH;
+                        _cmd.angular.z = - 2*_cmd.linear.x/CHASSIS_LENGTH;
                     }
                 }
                 else
@@ -285,41 +285,41 @@ namespace simple_local_planner
                     if(_pDifferencFollowedGoalAndRobotCenter.az > -180*DEG_TO_RAD)
                     {
                         radius = 0.5*_dDistanceFromRobotCenterToNextWaypoint/cos(90*RAD_TO_DEG-fabs(_pDifferencFollowedGoalAndRobotCenter.az));
-                        cmd.angular.z = cmd.linear.x / radius;
+                        _cmd.angular.z = _cmd.linear.x / radius;
                     }
                     else
                     {
-                        cmd.angular.z = 2*cmd.linear.x/CHASSIS_LENGTH;
+                        _cmd.angular.z = 2*_cmd.linear.x/CHASSIS_LENGTH;
                     }
                 }
             }
             else 
             {
-                cmd.angular.z = 0;
+                _cmd.angular.z = 0;
             }
         #else
             if (_pDifferencRobotCenterAndNextWaypoint.az > 0)
             {
-                cmd.angular.z = (DEVIATION_WEIGHT*_dRobotDeviationFromLineBetweenWaypoints/(1+_dRobotDeviationFromLineBetweenWaypoints)+PARALLELNESS_WEIGHT*(1-fabs(cos(_pLastWaypoint.az-_pRobotCenter.az))))*MAX_LINEAR_VEL / MIN_RADIUS;
+                _cmd.angular.z = (DEVIATION_WEIGHT*_dRobotDeviationFromLineBetweenWaypoints/(1+_dRobotDeviationFromLineBetweenWaypoints)+PARALLELNESS_WEIGHT*(1-fabs(cos(_pLastWaypoint.az-_pRobotCenter.az))))*MAX_LINEAR_VEL / MIN_RADIUS;
             }
             else if (_pDifferencRobotCenterAndNextWaypoint.az < 0)
             {
-                cmd.angular.z = -(DEVIATION_WEIGHT*_dRobotDeviationFromLineBetweenWaypoints/(1+_dRobotDeviationFromLineBetweenWaypoints)+PARALLELNESS_WEIGHT*(1-fabs(cos(_pLastWaypoint.az-_pRobotCenter.az))))*MAX_LINEAR_VEL / MIN_RADIUS;
+                _cmd.angular.z = -(DEVIATION_WEIGHT*_dRobotDeviationFromLineBetweenWaypoints/(1+_dRobotDeviationFromLineBetweenWaypoints)+PARALLELNESS_WEIGHT*(1-fabs(cos(_pLastWaypoint.az-_pRobotCenter.az))))*MAX_LINEAR_VEL / MIN_RADIUS;
             }
         #endif
 
         // Velocity limiter
-        if (cmd.linear.x > MAX_LINEAR_VEL)
+        if (_cmd.linear.x > MAX_LINEAR_VEL)
         {
-            cmd.linear.x = MAX_LINEAR_VEL;
+            _cmd.linear.x = MAX_LINEAR_VEL;
         } 
-        if (cmd.angular.z > cmd.linear.x / MIN_RADIUS)
+        if (_cmd.angular.z > _cmd.linear.x / MIN_RADIUS)
         {
-            cmd.angular.z = cmd.linear.x / MIN_RADIUS;
+            _cmd.angular.z = _cmd.linear.x / MIN_RADIUS;
         }
-        if (cmd.angular.z < -cmd.linear.x / MIN_RADIUS)
+        if (_cmd.angular.z < -_cmd.linear.x / MIN_RADIUS)
         {
-            cmd.angular.z = -cmd.linear.x / MIN_RADIUS;
+            _cmd.angular.z = -_cmd.linear.x / MIN_RADIUS;
         }
 
         // Visualization
@@ -329,18 +329,18 @@ namespace simple_local_planner
 
     void SimplePlannerROS::vStopRobot()
     {
-        cmd.linear.x= 0;
-        cmd.linear.y= 0;
-        cmd.angular.z=0;
+        _cmd.linear.x= 0;
+        _cmd.linear.y= 0;
+        _cmd.angular.z=0;
         _bStartedMoving = false;
     }
 
     pos SimplePlannerROS::pGetFrame(int count)
     {
         pos tmp;
-        tmp.x = plan[count].pose.position.x;
-        tmp.y = plan[count].pose.position.y;
-        tmp.az = dGetYawFromQuaternion(plan[count].pose.orientation);
+        tmp.x = _vPlan[count].pose.position.x;
+        tmp.y = _vPlan[count].pose.position.y;
+        tmp.az = dGetYawFromQuaternion(_vPlan[count].pose.orientation);
         return tmp;
     }
 
@@ -478,22 +478,22 @@ namespace simple_local_planner
 
     void SimplePlannerROS::vPathVisualization()
     {
-        traveledPoints.header.frame_id = "/odom";
-        traveledPoints.header.stamp = ros::Time::now();
-        traveledPoints.ns = "travelled_path";
-        traveledPoints.action = visualization_msgs::Marker::ADD;
-        traveledPoints.id = 0;
-        traveledPoints.type = visualization_msgs::Marker::LINE_STRIP;
-        traveledPoints.scale.x = 0.1;
-        traveledPoints.scale.y = 0.1;
-        traveledPoints.color.b = 1.0;
-        traveledPoints.color.a = 1.0;
+        _traveledPoints.header.frame_id = "/odom";
+        _traveledPoints.header.stamp = ros::Time::now();
+        _traveledPoints.ns = "travelled_path";
+        _traveledPoints.action = visualization_msgs::Marker::ADD;
+        _traveledPoints.id = 0;
+        _traveledPoints.type = visualization_msgs::Marker::LINE_STRIP;
+        _traveledPoints.scale.x = 0.1;
+        _traveledPoints.scale.y = 0.1;
+        _traveledPoints.color.b = 1.0;
+        _traveledPoints.color.a = 1.0;
         geometry_msgs::Point p;
         p.x = _pRobotCenter.x;
         p.y = _pRobotCenter.y;
         p.z = 0.1;
-        traveledPoints.points.push_back(p);
-        path_pub.publish(traveledPoints); 
+        _traveledPoints.points.push_back(p);
+        _rPathPub.publish(_traveledPoints); 
      }
 
     void SimplePlannerROS::vPredictedPathVisualization()
@@ -513,9 +513,9 @@ namespace simple_local_planner
         // calculating turn radius from angular and linear velocity
         // R = v / w
         double radius;
-        if(cmd.angular.z != 0)
+        if(_cmd.angular.z != 0)
         {
-            radius = cmd.linear.x / cmd.angular.z;
+            radius = _cmd.linear.x / _cmd.angular.z;
         }
         else
         {
@@ -529,7 +529,7 @@ namespace simple_local_planner
             double theta;
             for(int i=0; i < PREDICTION_POINTS_PER_SECOND*PREDICTION_TIME; i++)
             {
-                theta = i*cmd.angular.z/PREDICTION_POINTS_PER_SECOND;
+                theta = i*_cmd.angular.z/PREDICTION_POINTS_PER_SECOND;
                 tmp.x = radius*cos(theta-90*DEG_TO_RAD)-radius*cos(-90*DEG_TO_RAD);
                 tmp.y = radius*sin(theta-90*DEG_TO_RAD)-radius*sin(-90*DEG_TO_RAD);
 
@@ -546,13 +546,13 @@ namespace simple_local_planner
             geometry_msgs::Point p;
             for(int i=0; i < PREDICTION_POINTS_PER_SECOND*PREDICTION_TIME; i++)
             {
-                p.x = _pRobotCenter.x+i*cmd.linear.x/PREDICTION_POINTS_PER_SECOND*cos(_pRobotCenter.az);
-                p.y = _pRobotCenter.y+i*cmd.linear.x/PREDICTION_POINTS_PER_SECOND*sin(_pRobotCenter.az);
+                p.x = _pRobotCenter.x+i*_cmd.linear.x/PREDICTION_POINTS_PER_SECOND*cos(_pRobotCenter.az);
+                p.y = _pRobotCenter.y+i*_cmd.linear.x/PREDICTION_POINTS_PER_SECOND*sin(_pRobotCenter.az);
                 p.z = 0.1;
                 futurePoints.points.push_back(p);
             }
         }
-        predicted_path_pub.publish(futurePoints); 
+        _rPredictedPathPub.publish(futurePoints); 
      }
 
     void SimplePlannerROS::vNextGoalVisualization(pos _pFollowedGoal)
@@ -575,7 +575,7 @@ namespace simple_local_planner
         marker.pose.position.y = _pFollowedGoal.y;
         marker.pose.position.z = 0;
         
-        next_goal_pub.publish(marker); 
+        _rNextGoalPub.publish(marker); 
      }
 
     void SimplePlannerROS::vGoalRangeVisualization()
@@ -607,7 +607,7 @@ namespace simple_local_planner
 
         marker.points.push_back(p);
         
-        goal_range_pub.publish(marker); 
+        _rGoalRangePub.publish(marker); 
      }
      
 }
