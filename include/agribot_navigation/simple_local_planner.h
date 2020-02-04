@@ -47,55 +47,48 @@ namespace simple_local_planner{
       geometry_msgs::Twist _xVelocities; // contains the velocity
       visualization_msgs::Marker _traveledPoints;
       pos _pRobotCenter; // present robot center frame
-      pos _pRobotFront; // present robot front frame
-      pos _pNextWaypoint; // next target frame
       pos _pLastWaypoint; // last target frame
-      pos _pFollowedGoal; // followed goal frame
-      pos _pGoalRange; // next target range
-      double _dAgleRobotNextWaypoint;
-      double _dAngleRobotFollowedGoal;
-      double _dDistanceWaypoints; //distance between last target and next target frames
-      double _dDistanceToNextWaypoint; //distance between present robot and next target frames
-      double _dDistanceToNextWaypointFront; //distance between present robot front and next target frames
-      double _dDistanceFromLastWaypoint; //distance between last target and present robot frames
-      double _dDeviation; // distance form robot to vector from last to next frame
-      double _dStopTime, _dStartTime, _dLastTime, _dActualTime; // time measuring for statistics
-      double _dDeviationIntegral, _dTraveledDistance; // distance and deviation measuring for statistics
       int _iPlanLength; // number of frames in the global plan 
       int _iMissedWaypointsCount; // keeps track of the number of ommited frames
-      int _iCount; // keeps track of the number for the next frame in the global plan
+      int _iWaypointCount; // keeps track of the number for the next frame in the global plan
       bool _bGoalReached;
       bool _bInitialized;
-      bool _bMoving;
-
+      double _dStopTime, _dStartTime, _dLastTime, _dActualTime; // time measuring for statistics
+      double _dDeviationIntegral, _dTraveledDistance; // distance and deviation measuring for statistics
 
       void vOdomCallback(const nav_msgs::Odometry odometry_msg);
       pos pCalculateRobotFrontPosition(pos robotCenter);
       pos pGetFrame(int count);
-      pos pTakeNextGoal();
       pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
-      geometry_msgs::Twist xSetVel();
-      geometry_msgs::Twist xStopRobot();
+      pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter);
+      geometry_msgs::Twist xMovementBehaviour(pos goal, pos robotCenter);
+      geometry_msgs::Twist xSetVel(pos goal, pos robotCenter);
+      geometry_msgs::Twist xArchApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
+      geometry_msgs::Twist xDeviationApproach(pos goal, pos robotCenter);
+      geometry_msgs::Twist xLinearSpeedLimitedApproach();
       geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
+      geometry_msgs::Twist xStopRobot();
+      geometry_msgs::Twist xMissedWaypointsBehaviour();
+      void vTakeNextGoal(pos currentGoal);
+      void vCalculateDeviationIntegral();
+      double dCloseToZero(double value);
       double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
       double dLimitAngle(double angle);
       double dAngleBetweenFrames(pos targetFrame, pos currentFrame);
       double dDistanceBetweenFrames(pos targetFrame, pos currentFrame);
-      double dLinearSpeedLimiter();
-      double dArchApproach(pos goal, pos robotCenter);
-      double dDeviationApproach(pos goal, pos robotCenter);
       double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
       double dCalculateDeviation(double distance, double remaining, double traveled);
-      void vCalculateErrors();
-      geometry_msgs::Twist xMovementBehaviour();
-      void vMissedWaypointsBehaviour();
-      void vCalculateDeviationIntegral();
+      bool bFrontTraveledDistanceBetweenWaypoints(pos robotFront);
+      bool bFrontWithinGoalRange(pos robotFront);
+      bool bIsLastWaypointInPath(int waypointsCount);
+      bool bCenterTraveledBeyondGoal(pos robotCenter);
+      bool bCenterOutOfGoalRange(pos robotCenter);
 
-      void vPathVisualization();
-      void vPredictedPathVisualization();
+      void vPathVisualization(pos robotCenter);
+      void vPredictedPathVisualization(geometry_msgs::Twist velocity, pos robotCenter);
       void vNextGoalVisualization(pos goal);
-      void vGoalRangeVisualization();
-      void vVisualizations();
+      void vGoalRangeVisualization(pos goal, pos range);
+      void vVisualizations(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
   };
 };
 
