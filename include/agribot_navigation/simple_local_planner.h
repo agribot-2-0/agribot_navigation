@@ -35,56 +35,60 @@ namespace simple_local_planner{
       bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);
       bool isGoalReached();
     private:
-      costmap_2d::Costmap2DROS* costmap_ros_; 
-      tf2_ros::Buffer* tfBuffer_;
-      tf2_ros::TransformListener* tfListener_;
-      ros::Subscriber odom_sub;
-      ros::Publisher path_pub;
-      ros::Publisher predicted_path_pub; 
-      ros::Publisher goal_range_pub; 
-      ros::Publisher next_goal_pub;
-      std::vector<geometry_msgs::PoseStamped> plan; // contains the global plan
-      geometry_msgs::Twist cmd; // contains the velocity
-      visualization_msgs::Marker traveledPoints;
-      pos now; // present robot center frame
-      pos nowFront; // present robot front frame
-      pos next; // next target frame
-      pos last; // last target frame
-      pos goal; // followed goal frame
-      pos range; // next target range
-      pos nError; // error between present robot and next target frames
-      pos nFrontError; // error between present robot front and next target frames
-      pos nPath; // error between last target and present robot frames
-      pos nFramesDifference; // error between last target and next target frames
-      pos nGoal; // error between present target ang followed goal frame
-      double distance; //distance between last target and next target frames
-      double path_error; //distance between present robot and next target frames
-      double path_error_front; //distance between present robot front and next target frames
-      double path_traveled; //distance between last target and present robot frames
-      double deviation; // distance form robot to vector from last to next frame
-      double stopTime, startTime, lastTime, actualTime; // time measuring for statistics
-      double errorIntegral, traveledDistance; // distance and deviation measuring for statistics
-      int length; // number of frames in the global plan 
-      int missed; // keeps track of the number of ommited frames
-      int count; // keeps track of the number for the next frame in the global plan
-      bool goal_reached_;
-      bool initialized_;
-      bool started_moving_;
+      costmap_2d::Costmap2DROS* _xCostmapROS; 
+      tf2_ros::Buffer* _xTFBuffer;
+      tf2_ros::TransformListener* _xTFListener;
+      ros::Subscriber _rOdomSub;
+      ros::Publisher _rPathPub;
+      ros::Publisher _rPredictedPathPub; 
+      ros::Publisher _rGoalRangePub; 
+      ros::Publisher _rNextGoalPub;
+      std::vector<geometry_msgs::PoseStamped> _vPlan; // contains the global plan
+      geometry_msgs::Twist _xVelocities; // contains the velocity
+      visualization_msgs::Marker _traveledPoints;
+      pos _pRobotCenter; // present robot center frame
+      pos _pLastWaypoint; // last target frame
+      int _iPlanLength; // number of frames in the global plan 
+      int _iMissedWaypointsCount; // keeps track of the number of ommited frames
+      int _iWaypointCount; // keeps track of the number for the next frame in the global plan
+      bool _bGoalReached;
+      bool _bInitialized;
+      double _dStopTime, _dStartTime, _dLastTime, _dActualTime; // time measuring for statistics
+      double _dDeviationIntegral, _dTraveledDistance; // distance and deviation measuring for statistics
 
-      void odomCallback(const nav_msgs::Odometry odometry_msg);
-      void setVel();
-      void setVelZeros();
-      void calculateErrors();
-      void calculateGoal();
-      pos calculateFramesDifference(pos next, pos now);
-      pos getFrame(int count);
-      double getYaw(geometry_msgs::Quaternion quat);
-      double limitAngle(double angle);
+      void vOdomCallback(const nav_msgs::Odometry odometry_msg);
+      pos pCalculateRobotFrontPosition(pos robotCenter);
+      pos pGetFrame(int count);
+      pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
+      pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter);
+      geometry_msgs::Twist xMovementBehaviour(pos goal, pos robotCenter);
+      geometry_msgs::Twist xSetVel(pos goal, pos robotCenter);
+      geometry_msgs::Twist xArchApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
+      geometry_msgs::Twist xDeviationApproach(pos goal, pos robotCenter);
+      geometry_msgs::Twist xLinearSpeedLimitedApproach();
+      geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
+      geometry_msgs::Twist xStopRobot();
+      geometry_msgs::Twist xMissedWaypointsBehaviour();
+      void vTakeNextGoal(pos currentGoal);
+      void vCalculateDeviationIntegral();
+      double dCloseToZero(double value);
+      double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
+      double dLimitAngle(double angle);
+      double dAngleBetweenFrames(pos targetFrame, pos currentFrame);
+      double dDistanceBetweenFrames(pos targetFrame, pos currentFrame);
+      double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
+      double dCalculateDeviation(double distance, double remaining, double traveled);
+      bool bFrontTraveledDistanceBetweenWaypoints(pos robotFront);
+      bool bFrontWithinGoalRange(pos robotFront);
+      bool bIsLastWaypointInPath(int waypointsCount);
+      bool bCenterTraveledBeyondGoal(pos robotCenter);
+      bool bCenterOutOfGoalRange(pos robotCenter);
 
-      void pathVisualization();
-      void predictedPathVisualization();
-      void nextGoalVisualization(pos goal);
-      void goalRangeVisualization();
+      void vPathVisualization(pos robotCenter);
+      void vPredictedPathVisualization(geometry_msgs::Twist velocity, pos robotCenter);
+      void vNextGoalVisualization(pos goal);
+      void vGoalRangeVisualization(pos goal, pos range);
+      void vVisualizations(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
   };
 };
 
