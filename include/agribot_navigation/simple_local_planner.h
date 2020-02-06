@@ -43,7 +43,7 @@ namespace simple_local_planner{
       ros::Publisher _rPredictedPathPub; 
       ros::Publisher _rGoalRangePub; 
       ros::Publisher _rNextGoalPub;
-      std::vector<geometry_msgs::PoseStamped> _vPlan; // contains the global plan
+      std::vector<geometry_msgs::PoseStamped> _xPlan; // contains the global plan
       geometry_msgs::Twist _xVelocities; // contains the velocity
       visualization_msgs::Marker _traveledPoints;
       pos _pRobotCenter; // present robot center frame
@@ -60,7 +60,7 @@ namespace simple_local_planner{
       pos pCalculateRobotFrontPosition(pos robotCenter);
       pos pGetFrame(int count);
       pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
-      pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter);
+      pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter, double range);
       geometry_msgs::Twist xMovementBehaviour(pos goal, pos robotCenter);
       geometry_msgs::Twist xSetVel(pos goal, pos robotCenter);
       geometry_msgs::Twist xArchApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
@@ -68,7 +68,8 @@ namespace simple_local_planner{
       geometry_msgs::Twist xLinearSpeedLimitedApproach();
       geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
       geometry_msgs::Twist xStopRobot();
-      geometry_msgs::Twist xMissedWaypointsBehaviour();
+      geometry_msgs::Twist xMissedTooManyWaypointsBehaviour();
+      geometry_msgs::Twist xFinishedPathBehaviour();
       void vTakeNextGoal(pos currentGoal);
       void vCalculateDeviationIntegral();
       double dCloseToZero(double value);
@@ -78,11 +79,14 @@ namespace simple_local_planner{
       double dDistanceBetweenFrames(pos targetFrame, pos currentFrame);
       double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
       double dCalculateDeviation(double distance, double remaining, double traveled);
-      bool bFrontTraveledDistanceBetweenWaypoints(pos robotFront);
-      bool bFrontWithinGoalRange(pos robotFront);
+      bool bMissedTooManyWaypointsCondition(int missedWaypoints);
+      bool bWaypointHitCondition(pos robotCenter);
+      bool bWaypointMissedCondition(pos robotCenter);
+      bool bTraveledDistanceBetweenWaypoints(pos robotFront);
+      bool bWithinGoalRange(pos robotFront);
       bool bIsLastWaypointInPath(int waypointsCount);
       bool bCenterTraveledBeyondGoal(pos robotCenter);
-      bool bCenterOutOfGoalRange(pos robotCenter);
+      bool bCenterOutOfGoalRange(pos robotCenter); 
 
       void vPathVisualization(pos robotCenter);
       void vPredictedPathVisualization(geometry_msgs::Twist velocity, pos robotCenter);
