@@ -15,6 +15,7 @@
 
 #define DEAD_ZONE 3.0
 #define MAX_LINEAR_VEL 1.0
+#define MIN_LINEAR_VEL 0.01
 
 #define DEVIATION_WEIGHT 1.0
 #define PARALLELNESS_WEIGHT 1.0
@@ -355,6 +356,10 @@ namespace simple_local_planner
         if (Velcoities.linear.x > MAX_LINEAR_VEL)
         {
             Velcoities.linear.x = MAX_LINEAR_VEL;
+        }
+        if (Velcoities.linear.x < MIN_LINEAR_VEL)
+        {
+            Velcoities.linear.x = MIN_LINEAR_VEL;
         } 
         if (Velcoities.angular.z > Velcoities.linear.x / MIN_RADIUS)
         {
@@ -407,6 +412,10 @@ namespace simple_local_planner
         double distanceFactor = 1 - fabs((distanceWaypoints - distanceToNext) / distanceWaypoints);
         double multiplier = (1 - deviationFactor) * (1 - distanceFactor);
         velocity.linear.x = MAX_LINEAR_VEL * (deviationFactor * (1 - multiplier)) * waypointsDistanceFactor;
+        if (isnan(velocity.linear.x))
+        {
+            velocity.linear.x = 0.0;
+        }
         return velocity;
     }
 
