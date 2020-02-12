@@ -61,11 +61,12 @@ namespace simple_local_planner{
       pos pGetFrame(int count);
       pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
       pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter, double range);
+      pos pCalculateProjection(pos lastWaypoint, pos nextWaypoint, pos robotCenter);
       geometry_msgs::Twist xMovementBehaviour(pos goal, pos robotCenter);
       geometry_msgs::Twist xSetVel(pos goal, pos robotCenter);
       geometry_msgs::Twist xArchApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
-      geometry_msgs::Twist xDeviationApproach(pos goal, pos robotCenter);
-      geometry_msgs::Twist xLinearSpeedLimitedApproach();
+      geometry_msgs::Twist xDeviationApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
+      geometry_msgs::Twist xLinearSpeedLimitedApproach(pos goal, pos robotCenter);
       geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
       geometry_msgs::Twist xStopRobot();
       geometry_msgs::Twist xMissedTooManyWaypointsBehaviour();
@@ -78,7 +79,7 @@ namespace simple_local_planner{
       double dAngleBetweenFrames(pos targetFrame, pos currentFrame);
       double dDistanceBetweenFrames(pos targetFrame, pos currentFrame);
       double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
-      double dCalculateDeviation(double distance, double remaining, double traveled);
+      double dCalculateDeviation(pos lastWaypoint, pos nextWaypoint, pos robotCenter);
       bool bMissedTooManyWaypointsCondition(int missedWaypoints);
       bool bWaypointHitCondition(pos robotCenter);
       bool bWaypointMissedCondition(pos robotCenter);
