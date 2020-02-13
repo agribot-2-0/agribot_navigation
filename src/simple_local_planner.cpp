@@ -119,8 +119,26 @@ namespace simple_local_planner
                 vCalculateDeviationIntegral();
             #endif
 
-            // Determine movement behaviour basing on location
-            velocity = xMovementBehaviour(goal, _pRobotCenter);
+            // Increment missed points number
+            if (bWaypointMissedCondition(_pRobotCenter))
+            {
+                 ROS_ERROR("OUT OF PATH!");
+                _iMissedWaypointsCount++;
+            }
+
+            // Next goal condition
+            if (!bIsLastWaypointInPath(_iWaypointCount) &&
+                 (bWaypointHitCondition(_pRobotCenter) ||
+                  bWaypointMissedCondition(_pRobotCenter)))
+            {
+                #ifdef STATISTICS
+                    ROS_INFO("GOAL REACHED! Traveled  %f", _dTraveledDistance);
+                #endif
+                vTakeNextGoal(_pRobotCenter);
+            }
+
+            // Calculate velocities
+            velocity = xSetVel(goal, _pRobotCenter);
 
             velocity.linear.x = dCloseToZero(velocity.linear.x);
             velocity.linear.y = dCloseToZero(velocity.linear.y);
@@ -128,6 +146,14 @@ namespace simple_local_planner
             velocity.angular.x = dCloseToZero(velocity.angular.x);
             velocity.angular.y = dCloseToZero(velocity.angular.y);
             velocity.angular.z = dCloseToZero(velocity.angular.z);
+
+            // Stop condition
+            if (bMissedTooManyWaypointsCondition(_iMissedWaypointsCount) || 
+            (bIsLastWaypointInPath(_iWaypointCount) && bWaypointHitCondition(_pRobotCenter)) ||
+            (bIsLastWaypointInPath(_iWaypointCount) && bWaypointMissedCondition(_pRobotCenter)))
+            {
+                velocity = xFinishedPathBehaviour();
+            }
 
             // Visualization
             vVisualizations(goal, _pRobotCenter, velocity);
@@ -145,56 +171,6 @@ namespace simple_local_planner
         else
         {
             return value;
-        }
-    }
-
-    geometry_msgs::Twist SimplePlannerROS::xMovementBehaviour(pos goal, pos robotCenter)
-    {
-        if (bWaypointHitCondition(robotCenter))
-        {
-            if (!bIsLastWaypointInPath(_iWaypointCount))
-            {
-                #ifdef STATISTICS
-                    _dStopTime = ros::Time::now().toSec();
-                    ROS_INFO("GOAL REACHED! Traveled  %f", _dTraveledDistance);
-                #endif
-                vTakeNextGoal(goal);
-                return xSetVel(goal, robotCenter);
-            }
-            else if (bWithinGoalRange(robotCenter))
-            {
-                return xFinishedPathBehaviour();
-            }
-            else
-            {
-                return xSetVel(goal, robotCenter);
-            }
-        }
-        else if (bWaypointMissedCondition(robotCenter))
-        {
-            ROS_ERROR("OUT OF PATH!");
-            _iMissedWaypointsCount++;
-
-            if (bMissedTooManyWaypointsCondition(_iMissedWaypointsCount))
-            {
-                return xMissedTooManyWaypointsBehaviour();
-            }
-            else
-            {
-                if (!bIsLastWaypointInPath(_iWaypointCount))
-                {
-                    vTakeNextGoal(pGetFrame(_iWaypointCount));
-                    return xSetVel(goal, robotCenter);
-                }
-                else
-                {
-                    return xFinishedPathBehaviour();
-                }
-            }
-        }
-        else
-        {
-            return xSetVel(goal, robotCenter);
         }
     }
 
@@ -276,21 +252,10 @@ namespace simple_local_planner
     geometry_msgs::Twist SimplePlannerROS::xFinishedPathBehaviour()
     {
         _bGoalReached = true;
-        #ifdef STATISTICS
-        _dStopTime = ros::Time::now().toSec();
-        ROS_INFO("GOAL REACHED!    Time = %f s    Traveled  %f    Error = %f", _dStopTime - _dStartTime, _dTraveledDistance, _dDeviationIntegral);
-        #endif
-        return xStopRobot();
-    }
-
-    geometry_msgs::Twist SimplePlannerROS::xMissedTooManyWaypointsBehaviour()
-    {
         _iPlanLength = 0;
         #ifdef STATISTICS
-            _dStopTime = ros::Time::now().toSec();
-            ROS_ERROR("STOPPING, ROBOT MISSED %d POINTS Time = %f    Traveled  %f", _iMissedWaypointsCount, _dStopTime-_dStartTime,_dTraveledDistance);
-        #else
-            ROS_ERROR("STOPPING, ROBOT MISSED %d POINTS", _iMissedWaypointsCount);
+        _dStopTime = ros::Time::now().toSec();
+        ROS_INFO("Time = %f s    Traveled  %f    Error = %f", _dStopTime - _dStartTime, _dTraveledDistance, _dDeviationIntegral);
         #endif
         return xStopRobot();
     }

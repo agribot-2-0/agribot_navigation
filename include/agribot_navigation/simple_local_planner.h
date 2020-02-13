@@ -62,14 +62,12 @@ namespace simple_local_planner{
       pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
       pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter, double range);
       pos pCalculateProjection(pos lastWaypoint, pos nextWaypoint, pos robotCenter);
-      geometry_msgs::Twist xMovementBehaviour(pos goal, pos robotCenter);
       geometry_msgs::Twist xSetVel(pos goal, pos robotCenter);
       geometry_msgs::Twist xArchApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
       geometry_msgs::Twist xDeviationApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
       geometry_msgs::Twist xLinearSpeedLimitedApproach(pos goal, pos robotCenter);
       geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
       geometry_msgs::Twist xStopRobot();
-      geometry_msgs::Twist xMissedTooManyWaypointsBehaviour();
       geometry_msgs::Twist xFinishedPathBehaviour();
       void vTakeNextGoal(pos currentGoal);
       void vCalculateDeviationIntegral();
