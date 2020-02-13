@@ -62,15 +62,15 @@ namespace simple_local_planner{
       pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
       pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter, double range);
       pos pCalculateProjection(pos lastWaypoint, pos nextWaypoint, pos robotCenter);
-      geometry_msgs::Twist xSetVel(pos goal, pos robotCenter);
+      geometry_msgs::Twist xSetVel(pos goal, pos nextWaypoint, pos robotCenter);
       geometry_msgs::Twist xArchApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
       geometry_msgs::Twist xDeviationApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
       geometry_msgs::Twist xLinearSpeedLimitedApproach(pos goal, pos robotCenter);
       geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
       geometry_msgs::Twist xStopRobot();
       geometry_msgs::Twist xFinishedPathBehaviour();
-      void vTakeNextGoal(pos currentGoal);
-      void vCalculateDeviationIntegral();
+      void vTakeNextGoal(pos currentGoal, pos nextWaypoint, pos robotCenter);
+      void vCalculateDeviationIntegral(pos LastWaypoint, pos nextWaypoint, pos robotCenter);
       double dCloseToZero(double value);
       double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
       double dLimitAngle(double angle);
@@ -79,19 +79,20 @@ namespace simple_local_planner{
       double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
       double dCalculateDeviation(pos lastWaypoint, pos nextWaypoint, pos robotCenter);
       bool bMissedTooManyWaypointsCondition(int missedWaypoints);
-      bool bWaypointHitCondition(pos robotCenter);
-      bool bWaypointMissedCondition(pos robotCenter);
-      bool bTraveledDistanceBetweenWaypoints(pos robotFront);
-      bool bWithinGoalRange(pos robotFront);
+      bool bWaypointHitCondition(pos robotCenter, pos lastWaypoint, pos nextWaypoint);
+      bool bWaypointMissedCondition(pos robotCenter, pos lastWaypoint, pos nextWaypoint);
+      bool bTraveledDistanceBetweenWaypoints(pos robotFront, pos lastWaypoint, pos nextWaypoint);
+      bool bWithinGoalRange(pos robotFront, pos nextWaypoint);
       bool bIsLastWaypointInPath(int waypointsCount);
-      bool bCenterTraveledBeyondGoal(pos robotCenter);
-      bool bCenterOutOfGoalRange(pos robotCenter); 
+      bool bCenterTraveledBeyondGoal(pos robotCenter, pos lastWaypoint, pos nextWaypoint);
+      bool bCenterOutOfGoalRange(pos robotCenter, pos nextWaypoint); 
+
 
       void vPathVisualization(pos robotCenter);
       void vPredictedPathVisualization(geometry_msgs::Twist velocity, pos robotCenter);
-      void vNextGoalVisualization(pos goal);
+      void vNextGoalVisualization(pos lastWaypoint, pos goal);
       void vGoalRangeVisualization(pos goal, pos range);
-      void vVisualizations(pos goal, pos robotCenter, geometry_msgs::Twist velocity);
+      void vVisualizations(pos lastWaypoint, pos goal, pos nextWaypoint, pos robotCenter, geometry_msgs::Twist velocity);
   };
 };
 
