@@ -143,7 +143,7 @@ namespace simple_local_planner
                 #ifdef STATISTICS
                     ROS_INFO("GOAL REACHED! Traveled  %f", _dTraveledDistance);
                 #endif
-                vTakeNextGoal(goal, nextWaypoint, _pRobotCenter);
+                vTakeNextGoal(goal, _pRobotCenter);
             }
 
             // Calculate velocities
@@ -234,9 +234,17 @@ namespace simple_local_planner
     }
 
 
-    void SimplePlannerROS::vTakeNextGoal(pos currentGoal, pos nextWaypoint, pos robotCenter)
+    void SimplePlannerROS::vTakeNextGoal(pos currentGoal, pos robotCenter)
     {
         _iWaypointCount++;
+
+        pos nextWaypoint = pGetFrame(_iWaypointCount);
+        if(bIsLastWaypointInPath(_iWaypointCount+1))
+        {
+            nextWaypoint.az = dAngleBetweenFrames(nextWaypoint, pGetFrame(_iWaypointCount-1));
+            nextWaypoint = pCalculateRobotFrontPosition(nextWaypoint);
+        }
+
         if (dDistanceBetweenFrames(nextWaypoint, currentGoal) > CHASSIS_LENGTH)
         {
             _pLastWaypoint = currentGoal;

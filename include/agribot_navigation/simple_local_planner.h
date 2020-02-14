@@ -69,7 +69,7 @@ namespace simple_local_planner{
       geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
       geometry_msgs::Twist xStopRobot();
       geometry_msgs::Twist xFinishedPathBehaviour();
-      void vTakeNextGoal(pos currentGoal, pos nextWaypoint, pos robotCenter);
+      void vTakeNextGoal(pos currentGoal, pos robotCenter);
       void vCalculateDeviationIntegral(pos LastWaypoint, pos nextWaypoint, pos robotCenter);
       double dCloseToZero(double value);
       double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
