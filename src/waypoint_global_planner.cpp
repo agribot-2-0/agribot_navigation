@@ -37,7 +37,7 @@ void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DRO
     ros::NodeHandle pnh("~" + name);
 
     // load parameters
-    pnh.param("epsilon", epsilon_, 1e-1);
+    pnh.param("epsilon", epsilon_, 1e-3);
     pnh.param("waypoints_per_meter", waypoints_per_meter_, 20);
 
     // initialize publishers and subscribers
