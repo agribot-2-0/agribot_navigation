@@ -5,7 +5,7 @@
 
 #define GOAL_DISTANCE_TOLERANCE 0.75
 #define GOAL_RANGE GOAL_DISTANCE_TOLERANCE*0.66
-#define MISSED_POINTS_TOLLERANCE 5
+#define MISSED_POINTS_TOLLERANCE 10000
 
 #define CHASSIS_LENGTH 2.1
 #define MIN_RADIUS 2.0
@@ -280,7 +280,7 @@ namespace simple_local_planner
         _iPlanLength = 0;
         #ifdef STATISTICS
         _dStopTime = ros::Time::now().toSec();
-        ROS_INFO("Time = %f s    Traveled  %f    Error = %f", _dStopTime - _dStartTime, _dTraveledDistance, _dDeviationIntegral);
+        ROS_INFO("Time = %f s    Traveled  %f    Error = %f     Traveled %d points     Missed %d points", _dStopTime - _dStartTime, _dTraveledDistance, _dDeviationIntegral, _iWaypointCount, _iMissedWaypointsCount);
         #endif
         return xStopRobot();
     }
@@ -376,20 +376,20 @@ namespace simple_local_planner
 
         double factorDeviation = DEVIATION_WEIGHT*deviation/(1+deviation);
         double factorParallelness = PARALLELNESS_WEIGHT*(1-fabs(cos(dAngleBetweenFrames(goal, _pLastWaypoint)-robotCenter.az)));
-        if (dAngleBetweenFrames(goal, robotCenter) - dAngleBetweenFrames(goal, _pLastWaypoint) < 0)
+        if (dLimitAngle(dAngleBetweenFrames(goal, robotCenter) - dAngleBetweenFrames(goal, _pLastWaypoint)) < 0)
         {
             factorDeviation *= -1;
         }
         
-        if (dAngleBetweenFrames(goal, _pLastWaypoint) - robotCenter.az < 0)
+        if (dLimitAngle(dAngleBetweenFrames(goal, _pLastWaypoint) - robotCenter.az) < 0)
         {
             factorParallelness *= -1;
         }
-
+        
         velocity.angular.z = (factorDeviation + factorParallelness) * MAX_LINEAR_VEL  / MIN_RADIUS;
         return velocity;
     }
-
+ 
     geometry_msgs::Twist SimplePlannerROS::xLinearSpeedLimitedApproach(pos goal, pos robotCenter)
     {
         geometry_msgs::Twist velocity;
