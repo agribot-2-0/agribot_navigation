@@ -47,7 +47,7 @@ namespace simple_local_planner
             _xTFListener = new tf2_ros::TransformListener(*tfBuffer);
 
             ros::NodeHandle gn;
-            _rOdomSub = gn.subscribe("/agribot/odom/estimated", 100, &SimplePlannerROS::vOdomCallback, this);
+            _rOdomSub = gn.subscribe("/odom", 100, &SimplePlannerROS::vOdomCallback, this);
             _rPathPub = gn.advertise<visualization_msgs::Marker>("travelled_path", 10);
             _rPredictedPathPub = gn.advertise<visualization_msgs::Marker>("predicted_path", 10);
             _rGoalRangePub = gn.advertise<visualization_msgs::Marker>("goal_range", 10);
