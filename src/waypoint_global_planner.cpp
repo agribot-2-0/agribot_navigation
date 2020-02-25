@@ -26,7 +26,7 @@ WaypointGlobalPlanner::~WaypointGlobalPlanner()
 
 void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros)
 {
-  if(!initialized_)
+  if (!initialized_)
   {
     // get the costmap
     costmap_ros_ = costmap_ros;

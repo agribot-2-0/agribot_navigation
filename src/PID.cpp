@@ -1,8 +1,8 @@
 #include <agribot_navigation/PID.h>
-#include <cmath>
-#include <sstream>
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <cmath>
+#include <sstream>
 
 #define DEBUG
 #define RAD_TO_DEG (180/M_PI)
@@ -16,7 +16,7 @@ PID::PID()
     this->_dLowLimit = -20*RAD_TO_DEG;
     this->_dHighLimit = 20*RAD_TO_DEG;
     this->_dBias = 0;
-    this->_dError = 0;   
+    this->_dError = 0;
     this->_dProcessValue = 0;
     this->_dProcessValuePrior = 0;
     this->_dDerPrior = 0;
@@ -24,7 +24,7 @@ PID::PID()
     this->_dControlValue = 0;
     this->_dErrorIntegral = 0;
     this->_dSetPoint = 0;
-    this->_dNextSetPoint =0 ;
+    this->_dNextSetPoint = 0;
     this->_dDesiredSetPoint = 0;
     this->_dSubstepStepSize = 0;
     this->_iSubsteps = 0;
@@ -38,7 +38,7 @@ PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
     this->_dLowLimit = LL;
     this->_dHighLimit = HL;
     this->_dBias = 0;
-    this->_dError = 0;   
+    this->_dError = 0;
     this->_dProcessValue = 0;
     this->_dProcessValuePrior = 0;
     this->_dDerPrior = 0;
@@ -46,7 +46,7 @@ PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
     this->_dControlValue = 0;
     this->_dErrorIntegral = 0;
     this->_dSetPoint = 0;
-    this->_dNextSetPoint =0 ;
+    this->_dNextSetPoint = 0;
     this->_dDesiredSetPoint = 0;
     this->_dSubstepStepSize = 0;
     this->_iSubsteps = 0;
@@ -125,7 +125,8 @@ double PID::dGetDesiredSetPoint()
     return this->_dDesiredSetPoint;
 }
 
-double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps, double SubstepStepSize)
+double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint,
+int Substeps, double SubstepStepSize)
 {
     if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
     {
@@ -144,12 +145,11 @@ double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValu
         {
             return DesiredSetPoint;
         }
-    } 
+    }
     else
     {
         return ActualNextSetPoint;
     }
-    
 }
 
 double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize)
@@ -163,7 +163,7 @@ double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double 
         else
         {
             return ActualSetPoint - SubstepStepSize;
-        }  
+        }
     }
     else
     {
@@ -178,9 +178,11 @@ double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double 
     }
 }
 
-double PID::dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize, double ActualNextSetPoint, int Substeps)
+double PID::dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint,
+ double SubstepStepSize, double ActualNextSetPoint, int Substeps)
 {
-     this->_dNextSetPoint = this->dCalculateNextSetPoint(ActualNextSetPoint,ProcessValue, DesiredSetPoint, Substeps, SubstepStepSize);
+     this->_dNextSetPoint = this->dCalculateNextSetPoint(
+         ActualNextSetPoint, ProcessValue, DesiredSetPoint, Substeps, SubstepStepSize);
      return this->dSetPointSubstep(ActualSetPoint, this->_dNextSetPoint, SubstepStepSize);
 }
 
@@ -250,7 +252,7 @@ double PID::dIntegralPart(double ErrorIntegral)
 
 double PID::dProportionalPart(double Error)
 {
-    return this->_dKp * Error; 
+    return this->_dKp * Error;
 }
 
 double PID::dBiasPart()
@@ -260,23 +262,23 @@ double PID::dBiasPart()
 
 double PID::dDerivativePart(double Derrivative)
 {
-    return this->_dKd * Derrivative; 
+    return this->_dKd * Derrivative;
 }
 
 void PID::vRememberPriorValues()
 {
     this->_dDerPrevious = this->_dDerPrior;
     this->_dDerPrior = this->_dDerivative;
-    this->_dProcessValuePrior = this->_dProcessValue;   
+    this->_dProcessValuePrior = this->_dProcessValue;
 }
 
 double PID::Update(double ProcessValue, double dt)
 {
     this->vUpdateProcessValue(ProcessValue);
-    this->_dSetPoint = this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint, 
+    this->_dSetPoint = this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint,
                                         this->_dSubstepStepSize, this->_dNextSetPoint, this->_iSubsteps);
     this->_dError = this->dCalculateError(this->_dSetPoint, this->_dProcessValue);
-    if(! this->bAntiWindup(this->_dError,this->_dControlValue, dt))
+    if (!this->bAntiWindup(this->_dError, this->_dControlValue, dt))
     {
         this->_dErrorIntegral += this->dErrorIntegration(this->_dError, dt);
     }
@@ -285,11 +287,11 @@ double PID::Update(double ProcessValue, double dt)
     Assuming SP_prev = SP:
     Derrivative = PV_prev - PV =  -(PV - PV_prev) = -dPV.
     */
-    this->_dDerivative = -dCalculateDerivative(this->_dProcessValue,this->_dProcessValuePrior, dt);
+    this->_dDerivative = -dCalculateDerivative(this->_dProcessValue, this->_dProcessValuePrior, dt);
     this->_dControlValue =  this->dProportionalPart(this->_dError) +
-                            this->dIntegralPart(this->_dErrorIntegral) +
-                            this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +
-                            this->dBiasPart();
+        this->dIntegralPart(this->_dErrorIntegral) +
+        this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +
+        this->dBiasPart();
     this->_dControlValue = this->dLimiter(this->_dControlValue);
     this->vRememberPriorValues();
     return this->_dControlValue;
