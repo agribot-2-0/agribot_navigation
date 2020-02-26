@@ -1,12 +1,12 @@
-#include < ros/ros.h>
-#include < ros/console.h>
-#include < geometry_msgs/PointStamped.h>
-#include < geometry_msgs/Point.h>
-#include < std_msgs/Int32.h>
-#include < nav_msgs/Odometry.h>
-#include < tf/tf.h>
-#include < queue>
-#include < cmath>
+#include <ros/ros.h>
+#include <ros/console.h>
+#include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/Point.h>
+#include <std_msgs/Int32.h>
+#include <nav_msgs/Odometry.h>
+#include <tf/tf.h>
+#include <queue>
+#include <cmath>
 
 #define DEG_TO_RAD (M_PI/180)
 #define RAD_TO_DEG (180/M_PI)
@@ -60,14 +60,14 @@ void polygonCCWPath(double radius, int edges, int max_circle_deg,
     pivot_x = radius*cos(2*(90*(edges-2)/edges)*DEG_TO_RAD);
     pivot_y = radius*sin(2*(90*(edges-2)/edges)*DEG_TO_RAD);
 
-    for (double theta = 0; theta <= max_circle_deg; theta + = max_circle_deg/edges)
+    for (double theta = 0; theta <= max_circle_deg; theta += max_circle_deg/edges)
     {
         // finding verticles on circumscribed circle
         tmp.x = radius*cos(theta*DEG_TO_RAD+2*(90*(edges-2)/edges)*DEG_TO_RAD);
         tmp.y = radius*sin(theta*DEG_TO_RAD+2*(90*(edges-2)/edges)*DEG_TO_RAD);
 
-        tmp.x - = pivot_x;
-        tmp.y - = pivot_y;
+        tmp.x -= pivot_x;
+        tmp.y -= pivot_y;
 
         // rotating the polygon to match robot orientation
         point.x = tmp.x * cos(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az) -
@@ -80,12 +80,12 @@ void polygonCCWPath(double radius, int edges, int max_circle_deg,
         point.y = -(pivot_y + point.y);
 
         // moving the begining of polygon to robot position
-        if (theta = = 0)
+        if (theta == 0)
         {
             first_point = point;
         }
-        point.x - = (first_point.x - startingPoint.x);
-        point.y - = (first_point.y - startingPoint.y);
+        point.x -= (first_point.x - startingPoint.x);
+        point.y -= (first_point.y - startingPoint.y);
         plan.push(point);
     }
     // last point published twice to finish the path
@@ -105,8 +105,8 @@ void straightForwardPath(double segment_length, int segments, pos startingPoint,
     plan.push(point);
     for (int i = 0; i < segments; i++)
     {
-        point.x + = segment_length*cos(startingPoint.az);
-        point.y + = segment_length*sin(startingPoint.az);
+        point.x += segment_length*cos(startingPoint.az);
+        point.y += segment_length*sin(startingPoint.az);
         plan.push(point);
     }
     // last point published twice to finish the path
@@ -120,7 +120,7 @@ void makeNewPath(int choice)
 {
     plan = std::queue < geometry_msgs::Point>();
 
-    if (choice = = 123)
+    if (choice == 123)
     {
         double move_straight_distance = 5;
         double turn_radius_distance = 4;
