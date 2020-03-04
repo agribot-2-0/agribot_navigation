@@ -1,0 +1,3 @@
+<launch>
+    <node name="path_publisher_node" pkg="agribot_navigation" type="path_publisher"/>
+</launch>

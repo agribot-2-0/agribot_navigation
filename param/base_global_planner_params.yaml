@@ -1,3 +1,7 @@
+WaypointGlobalPlanner:
+  epsilon: 1e-1  # distance threshold for final waypoint
+  waypoints_per_meter: 0.0  # number of waypoints per meter for the interpolation of the path
+
 NavfnROS:
   allow_unknow: true
   use_dijkstra: true
