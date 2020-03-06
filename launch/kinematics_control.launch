@@ -1,3 +1,8 @@
 <launch>
+    <arg name="starting_state" default="navigation"/>
+
     <node name="kinematics_control_node" pkg="agribot_navigation" type="kinematics_control"/>
+    <node name="cmd_vel_arbiter_node" pkg="agribot_navigation" type="cmd_vel_arbiter_node">
+        <param name="starting_state" value="$(arg starting_state)" type="str"/>
+    </node>
 </launch>

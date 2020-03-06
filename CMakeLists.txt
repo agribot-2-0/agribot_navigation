@@ -155,7 +155,7 @@ add_library(simple_local_planner
   src/simple_local_planner.cpp
 )
 
-add_library(waypoint_global_planner 
+add_library(waypoint_global_planner
 	src/waypoint_global_planner.cpp
 )
 
@@ -165,6 +165,10 @@ add_executable(kinematics_control
 
 add_executable(path_publisher
   src/PathPublisher_node.cpp
+)
+
+add_executable(cmd_vel_arbiter_node
+  src/cmd_vel_arbiter_node.cpp
 )
 
 target_link_libraries(kinematics_control
@@ -177,11 +181,15 @@ target_link_libraries(simple_local_planner
 	${catkin_LIBRARIES}
 )
 
-target_link_libraries(waypoint_global_planner 
+target_link_libraries(waypoint_global_planner
 	${catkin_LIBRARIES}
 )
 
 target_link_libraries(path_publisher
+	${catkin_LIBRARIES}
+)
+
+target_link_libraries(cmd_vel_arbiter_node
 	${catkin_LIBRARIES}
 )
 
