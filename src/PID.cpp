@@ -26,6 +26,7 @@ PID::PID()
     this->_dSetPoint = 0;
     this->_dNextSetPoint = 0;
     this->_dDesiredSetPoint = 0;
+    this->_dLastDesiredSetPoint = 0;
     this->_dSubstepStepSize = 0;
     this->_iSubsteps = 0;
 }
@@ -48,6 +49,7 @@ PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
     this->_dSetPoint = 0;
     this->_dNextSetPoint = 0;
     this->_dDesiredSetPoint = 0;
+    this->_dLastDesiredSetPoint = 0;
     this->_dSubstepStepSize = 0;
     this->_iSubsteps = 0;
 }
@@ -125,9 +127,21 @@ double PID::dGetDesiredSetPoint()
     return this->_dDesiredSetPoint;
 }
 
+bool PID::bDesiredSetPointCrossedNextSetPoint(double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint)
+{
+    return (ProcessValue - DesiredSetPoint)*(ProcessValue - LastDesiredSetPoint) <= -1;
+}
+
 double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint,
 int Substeps, double SubstepStepSize)
 {
+    if(this->bDesiredSetPointCrossedNextSetPoint(ProcessValue, DesiredSetPoint, this->_dLastDesiredSetPoint))
+    {
+        this->vResetError();
+        ActualNextSetPoint = ProcessValue;
+    }
+    this->_dLastDesiredSetPoint = DesiredSetPoint;
+
     if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
     {
         if (abs(DesiredSetPoint - ActualNextSetPoint) > Substeps * SubstepStepSize)
@@ -300,8 +314,17 @@ double PID::Update(double ProcessValue, double dt)
 std::string PID::cPrintDebugInfo()
 {
     std::stringstream ss;
-    ss << "SP=" << this->_dSetPoint << ";PV=" << this->_dProcessValue << ";CV=" << this->_dControlValue <<
-         ";ER=" << this->_dError << ";IE=" << this->_dErrorIntegral << ";DE=" << this->_dDerivative <<
-         ";KP=" << this->_dKp << ";KI=" << this->_dKi << ";KD=" << this->_dKd;
+    ss << "DSP=" << this->_dDesiredSetPoint * DEG_TO_RAD
+    << "NSP=" << this->_dNextSetPoint * DEG_TO_RAD
+    << "dSP=" << this->_dSubstepStepSize * _iSubsteps * DEG_TO_RAD
+    << "SP=" << this->_dSetPoint * DEG_TO_RAD
+    << ";PV=" << this->_dProcessValue * DEG_TO_RAD
+    << ";CV=" << this->_dControlValue * DEG_TO_RAD
+    << ";ER=" << this->_dError * DEG_TO_RAD
+    << ";IE=" << this->_dErrorIntegral * DEG_TO_RAD
+    << ";DE=" << this->_dDerivative * DEG_TO_RAD
+    << ";KP=" << this->_dKp
+    << ";KI=" << this->_dKi
+    << ";KD=" << this->_dKd;
     return ss.str();
 }

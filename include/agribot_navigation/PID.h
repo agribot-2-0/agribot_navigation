@@ -20,12 +20,14 @@ private:
     double _dSetPoint;
     double _dNextSetPoint;
     double _dDesiredSetPoint;
+    double _dLastDesiredSetPoint;
     double _dMaxStep;
     double _dSubstepStepSize;
     int _iSubsteps;
     void vUpdateProcessValue(double PV);
     void vRememberPriorValues();
     bool bAntiWindup(double Error, double ControlValue, double dt);
+    bool bDesiredSetPointCrossedNextSetPoint(double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint);
     double dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps, double SubstepSize);
     double dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize);
     double dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize, double ActualNextSetPoint, int Substeps);
