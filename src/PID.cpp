@@ -81,6 +81,7 @@ void PID::vSetHighLimit(double HL)
 
 void PID::vSetSP(double SP)
 {
+    this->_dLastDesiredSetPoint = this->_dDesiredSetPoint;
     this->_dDesiredSetPoint = SP;
 }
 
@@ -129,7 +130,7 @@ double PID::dGetDesiredSetPoint()
 
 bool PID::bDesiredSetPointCrossedNextSetPoint(double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint)
 {
-    return (ProcessValue - DesiredSetPoint)*(ProcessValue - LastDesiredSetPoint) <= -1;
+    return (ProcessValue - DesiredSetPoint)*(ProcessValue - LastDesiredSetPoint) <= 0;
 }
 
 double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint,
@@ -139,8 +140,8 @@ int Substeps, double SubstepStepSize)
     {
         this->vResetError();
         ActualNextSetPoint = ProcessValue;
+        this->_dLastDesiredSetPoint = this->_dDesiredSetPoint;
     }
-    this->_dLastDesiredSetPoint = DesiredSetPoint;
 
     if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
     {
@@ -195,9 +196,9 @@ double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double 
 double PID::dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint,
  double SubstepStepSize, double ActualNextSetPoint, int Substeps)
 {
-     this->_dNextSetPoint = this->dCalculateNextSetPoint(
+    this->_dNextSetPoint = this->dCalculateNextSetPoint(
          ActualNextSetPoint, ProcessValue, DesiredSetPoint, Substeps, SubstepStepSize);
-     return this->dSetPointSubstep(ActualSetPoint, this->_dNextSetPoint, SubstepStepSize);
+    return this->dSetPointSubstep(ActualSetPoint, this->_dNextSetPoint, SubstepStepSize);
 }
 
 double PID::dLimiter(double Value)
@@ -314,17 +315,19 @@ double PID::Update(double ProcessValue, double dt)
 std::string PID::cPrintDebugInfo()
 {
     std::stringstream ss;
-    ss << "DSP=" << this->_dDesiredSetPoint * DEG_TO_RAD
-    << "NSP=" << this->_dNextSetPoint * DEG_TO_RAD
-    << "dSP=" << this->_dSubstepStepSize * _iSubsteps * DEG_TO_RAD
-    << "SP=" << this->_dSetPoint * DEG_TO_RAD
-    << ";PV=" << this->_dProcessValue * DEG_TO_RAD
-    << ";CV=" << this->_dControlValue * DEG_TO_RAD
-    << ";ER=" << this->_dError * DEG_TO_RAD
-    << ";IE=" << this->_dErrorIntegral * DEG_TO_RAD
-    << ";DE=" << this->_dDerivative * DEG_TO_RAD
+    ss << "DSP=" << this->_dDesiredSetPoint * RAD_TO_DEG
+    << ";LDSP=" << this->_dLastDesiredSetPoint * RAD_TO_DEG
+    << ";NSP=" << this->_dNextSetPoint * RAD_TO_DEG
+    << ";dSP=" << this->_dSubstepStepSize * _iSubsteps * RAD_TO_DEG
+    << ";SP=" << this->_dSetPoint * RAD_TO_DEG
+    << ";PV=" << this->_dProcessValue * RAD_TO_DEG
+    << ";CV=" << this->_dControlValue * RAD_TO_DEG
+    << ";ER=" << this->_dError * RAD_TO_DEG
+    << ";IE=" << this->_dErrorIntegral * RAD_TO_DEG
+    << ";DE=" << this->_dDerivative * RAD_TO_DEG
     << ";KP=" << this->_dKp
     << ";KI=" << this->_dKi
-    << ";KD=" << this->_dKd;
+    << ";KD=" << this->_dKd
+    << ";CROSS=" << this->bDesiredSetPointCrossedNextSetPoint(this->_dProcessValue, this->_dDesiredSetPoint, this->_dLastDesiredSetPoint);
     return ss.str();
 }
