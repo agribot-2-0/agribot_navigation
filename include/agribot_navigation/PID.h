@@ -38,7 +38,6 @@ private:
     double dProportionalPart(double Error);
     double dBiasPart();
     double dLimiter(double Value);
-    double dAverageFilter(double ValueNow, double ValueBack1, double ValueBack2);
     double dCalculateDerivative(double Actual, double Previous,double dt);
 public:
     PID();
@@ -58,4 +57,5 @@ public:
     double dGetDesiredSetPoint();
     double Update(double PV, double dt);
     std::string cPrintDebugInfo();
+    double dAverageFilter(double ValueNow, double ValueBack1, double ValueBack2);
 };
