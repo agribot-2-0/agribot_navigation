@@ -5,8 +5,8 @@ pipelines:
      - step:
          name: "Cpplint"
          script:
-           - apk add --update bash coreutils tar py3-pip
-           - pip install cpplint
+           - apk add --update bash coreutils tar python3 py3-pip
+           - pip3 install cpplint
            - cpplint src/*
      - step:
          name: "ROS build"
