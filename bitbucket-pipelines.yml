@@ -3,10 +3,10 @@ image: docker:git
 pipelines:
   default:
      - step:
-       name: "Cpplint"
-       script:
-         - "pip install cpplint"
-         - "cpplint src/*"
+         name: "Cpplint"
+         script:
+           - "pip install cpplint"
+           - "cpplint src/*"
      - step:
          name: "ROS build"
          services:
