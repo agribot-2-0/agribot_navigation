@@ -18,8 +18,10 @@ bool bDataReceived = false;
 
 void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 {
-    KinControl.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
-    KinControl.vSetInputAngular(cmd_msg.angular.x, cmd_msg.angular.y, cmd_msg.angular.z);
+    KinControl.vSetInputLinear(
+        cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
+    KinControl.vSetInputAngular(
+        cmd_msg.angular.x, cmd_msg.angular.y, cmd_msg.angular.z);
     bDataReceived = true;
 }
 
@@ -51,10 +53,14 @@ int main(int argc, char **argv)
         command_sub_topic = argv[1];
     }
 
-    ros::Subscriber kinematics_control_sub = n.subscribe(command_sub_topic, 1000, cmdVelCallback);
-    ros::Subscriber front_cart_sub = n.subscribe("/agribot/encoder/cart/front", 1000, encoderFrontCallback);
-    ros::Subscriber back_cart_kinematics_sub = n.subscribe("/agribot/encoder/cart/back", 1000, encoderBackCallback);
-    ros::Publisher kinematics_control_pub = n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar", 1);
+    ros::Subscriber kinematics_control_sub = n.subscribe(
+        command_sub_topic, 1000, cmdVelCallback);
+    ros::Subscriber front_cart_sub = n.subscribe(
+        "/agribot/encoder/cart/front", 1000, encoderFrontCallback);
+    ros::Subscriber back_cart_kinematics_sub = n.subscribe(
+        "/agribot/encoder/cart/back", 1000, encoderBackCallback);
+    ros::Publisher kinematics_control_pub = n.advertise<
+        agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar", 1);
     agribot_msgs::AgribotCaterpillar caterpilar_msg;
 
     while (ros::ok())
@@ -63,13 +69,18 @@ int main(int argc, char **argv)
         {
             bDataReceived = false;
             KinControl.update();
-            double *fpCaterpilarVelocities = KinControl.pdGetCaterpillarVelocities();
+            double *fpCaterpilarVelocities =
+                KinControl.pdGetCaterpillarVelocities();
             caterpilar_msg.header.frame_id = "chassis_link";
             caterpilar_msg.header.stamp = ros::Time::now();
-            caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];
-            caterpilar_msg.front_angular = fpCaterpilarVelocities[FRONT_ANGULAR];
-            caterpilar_msg.back_linear = fpCaterpilarVelocities[BACK_LINEAR];
-            caterpilar_msg.back_angular = fpCaterpilarVelocities[BACK_ANGULAR];
+            caterpilar_msg.front_linear =
+                fpCaterpilarVelocities[FRONT_LINEAR];
+            caterpilar_msg.front_angular =
+                fpCaterpilarVelocities[FRONT_ANGULAR];
+            caterpilar_msg.back_linear =
+                fpCaterpilarVelocities[BACK_LINEAR];
+            caterpilar_msg.back_angular =
+                fpCaterpilarVelocities[BACK_ANGULAR];
             kinematics_control_pub.publish(caterpilar_msg);
         }
         ros::spinOnce();

@@ -3,17 +3,20 @@
 #include <tf/tf.h>
 #include <nav_msgs/Path.h>
 
-PLUGINLIB_EXPORT_CLASS(waypoint_global_planner::WaypointGlobalPlanner, nav_core::BaseGlobalPlanner)
+PLUGINLIB_EXPORT_CLASS(
+  waypoint_global_planner::WaypointGlobalPlanner, nav_core::BaseGlobalPlanner)
 
 namespace waypoint_global_planner
 {
 
-WaypointGlobalPlanner::WaypointGlobalPlanner() : costmap_ros_(NULL), initialized_(false), clear_waypoints_(false)
+WaypointGlobalPlanner::WaypointGlobalPlanner() :
+  costmap_ros_(NULL), initialized_(false), clear_waypoints_(false)
 {
 }
 
 
-WaypointGlobalPlanner::WaypointGlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros)
+WaypointGlobalPlanner::WaypointGlobalPlanner(
+  std::string name, costmap_2d::Costmap2DROS* costmap_ros)
 {
   initialize(name, costmap_ros);
 }
@@ -24,7 +27,8 @@ WaypointGlobalPlanner::~WaypointGlobalPlanner()
 }
 
 
-void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros)
+void WaypointGlobalPlanner::initialize(
+  std::string name, costmap_2d::Costmap2DROS* costmap_ros)
 {
   if (!initialized_)
   {
@@ -41,11 +45,16 @@ void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DRO
     pnh.param("waypoints_per_meter", waypoints_per_meter_, 20);
 
     // initialize publishers and subscribers
-    waypoint_sub_ = pnh.subscribe("/clicked_point", 100, &WaypointGlobalPlanner::waypointCallback, this);
-    external_path_sub_ = pnh.subscribe("external_path", 1, &WaypointGlobalPlanner::externalPathCallback, this);
-    waypoint_marker_pub_ = pnh.advertise<visualization_msgs::MarkerArray>("waypoints", 1);
-    goal_pub_ = nh.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1);
-    plan_pub_ = pnh.advertise<nav_msgs::Path>("global_plan", 1);
+    waypoint_sub_ = pnh.subscribe(
+      "/clicked_point", 100, &WaypointGlobalPlanner::waypointCallback, this);
+    external_path_sub_ = pnh.subscribe(
+      "external_path", 1, &WaypointGlobalPlanner::externalPathCallback, this);
+    waypoint_marker_pub_ = pnh.advertise<
+      visualization_msgs::MarkerArray>("waypoints", 1);
+    goal_pub_ = nh.advertise<
+      geometry_msgs::PoseStamped>("/move_base_simple/goal", 1);
+    plan_pub_ = pnh.advertise<
+      nav_msgs::Path>("global_plan", 1);
 
     initialized_ = true;
     ROS_INFO("Planner has been initialized");
@@ -57,8 +66,10 @@ void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DRO
 }
 
 
-bool WaypointGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start_pose,
-  const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan)
+bool WaypointGlobalPlanner::makePlan(
+  const geometry_msgs::PoseStamped& start_pose,
+  const geometry_msgs::PoseStamped& goal,
+  std::vector<geometry_msgs::PoseStamped>& plan)
 {
   path_.poses.insert(path_.poses.begin(), start_pose);
   interpolatePath(path_);
@@ -69,7 +80,8 @@ bool WaypointGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start_pos
 }
 
 
-void WaypointGlobalPlanner::waypointCallback(const geometry_msgs::PointStampedConstPtr& waypoint)
+void WaypointGlobalPlanner::waypointCallback(
+  const geometry_msgs::PointStampedConstPtr& waypoint)
 {
   if (clear_waypoints_)
   {
@@ -93,11 +105,14 @@ void WaypointGlobalPlanner::waypointCallback(const geometry_msgs::PointStampedCo
   geometry_msgs::Pose *p2 = &(waypoints_.end()-1)->pose;
 
   // calculate orientation of waypoints
-  double yaw = atan2(p2->position.y - p1->position.y, p2->position.x - p1->position.x);
+  double yaw = atan2(p2->position.y - p1->position.y,
+                     p2->position.x - p1->position.x);
   p1->orientation = tf::createQuaternionMsgFromYaw(yaw);
 
-  // calculate distance between latest two waypoints and check if it surpasses the threshold epsilon
-  double dist = hypot(p1->position.x - p2->position.x, p1->position.y - p2->position.y);
+  // calculate distance between latest two waypoints
+  // and check if it surpasses the threshold epsilon
+  double dist = hypot(p1->position.x - p2->position.x,
+                      p1->position.y - p2->position.y);
   if (dist < epsilon_)
   {
     p2->orientation = p1->orientation;
@@ -110,7 +125,8 @@ void WaypointGlobalPlanner::waypointCallback(const geometry_msgs::PointStampedCo
   }
 }
 
-void WaypointGlobalPlanner::interpolatePath(nav_msgs::Path& path)
+void WaypointGlobalPlanner::interpolatePath(
+  nav_msgs::Path& path)
 {
   std::vector<geometry_msgs::PoseStamped> temp_path;
   for (int i = 0; i < static_cast<int>(path.poses.size()-1); i++)
@@ -141,7 +157,8 @@ void WaypointGlobalPlanner::interpolatePath(nav_msgs::Path& path)
   path.poses = temp_path;
 }
 
-void WaypointGlobalPlanner::externalPathCallback(const nav_msgs::PathConstPtr& plan)
+void WaypointGlobalPlanner::externalPathCallback(
+  const nav_msgs::PathConstPtr& plan)
 {
   path_.poses.clear();
   clear_waypoints_ = true;
@@ -152,7 +169,8 @@ void WaypointGlobalPlanner::externalPathCallback(const nav_msgs::PathConstPtr& p
 }
 
 
-void WaypointGlobalPlanner::createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path)
+void WaypointGlobalPlanner::createAndPublishMarkersFromPath(
+  const std::vector<geometry_msgs::PoseStamped>& path)
 {
   // clear previous markers
   visualization_msgs::MarkerArray markers;

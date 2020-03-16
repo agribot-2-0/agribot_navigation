@@ -128,15 +128,19 @@ double PID::dGetDesiredSetPoint()
     return this->_dDesiredSetPoint;
 }
 
-bool PID::bDesiredSetPointCrossedNextSetPoint(double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint)
+bool PID::bDesiredSetPointCrossedNextSetPoint(
+    double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint)
 {
-    return (ProcessValue - DesiredSetPoint)*(ProcessValue - LastDesiredSetPoint) <= 0;
+    return (ProcessValue - DesiredSetPoint) *
+    (ProcessValue - LastDesiredSetPoint) <= 0;
 }
 
-double PID::dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint,
+double PID::dCalculateNextSetPoint(
+    double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint,
 int Substeps, double SubstepStepSize)
 {
-    if(this->bDesiredSetPointCrossedNextSetPoint(ProcessValue, DesiredSetPoint, this->_dLastDesiredSetPoint))
+    if (this->bDesiredSetPointCrossedNextSetPoint(
+        ProcessValue, DesiredSetPoint, this->_dLastDesiredSetPoint))
     {
         this->vResetError();
         ActualNextSetPoint = ProcessValue;
@@ -145,7 +149,8 @@ int Substeps, double SubstepStepSize)
 
     if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
     {
-        if (abs(DesiredSetPoint - ActualNextSetPoint) > Substeps * SubstepStepSize)
+        if (abs(DesiredSetPoint - ActualNextSetPoint) >
+        Substeps * SubstepStepSize)
         {
             if (DesiredSetPoint - ActualNextSetPoint > 0)
             {
@@ -167,7 +172,8 @@ int Substeps, double SubstepStepSize)
     }
 }
 
-double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize)
+double PID::dSetPointSubstep(
+    double ActualSetPoint, double NextSetPoint, double SubstepStepSize)
 {
     if (NextSetPoint - ActualSetPoint < 0)
     {
@@ -193,12 +199,15 @@ double PID::dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double 
     }
 }
 
-double PID::dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint,
- double SubstepStepSize, double ActualNextSetPoint, int Substeps)
+double PID::dSetPointRamp(
+    double DesiredSetPoint, double ProcessValue, double ActualSetPoint,
+    double SubstepStepSize, double ActualNextSetPoint, int Substeps)
 {
     this->_dNextSetPoint = this->dCalculateNextSetPoint(
-         ActualNextSetPoint, ProcessValue, DesiredSetPoint, Substeps, SubstepStepSize);
-    return this->dSetPointSubstep(ActualSetPoint, this->_dNextSetPoint, SubstepStepSize);
+         ActualNextSetPoint, ProcessValue,
+         DesiredSetPoint, Substeps, SubstepStepSize);
+    return this->dSetPointSubstep(
+        ActualSetPoint, this->_dNextSetPoint, SubstepStepSize);
 }
 
 double PID::dLimiter(double Value)
@@ -222,7 +231,8 @@ double PID::dCalculateError(double SetPoint, double ProcessValue)
     return SetPoint - ProcessValue;
 }
 
-double PID::dCalculateDerivative(double Actual, double Previous, double dt)
+double PID::dCalculateDerivative(
+    double Actual, double Previous, double dt)
 {
     double derrivative = (Actual - Previous) / dt;
     if (isnan(derrivative))
@@ -235,7 +245,8 @@ double PID::dCalculateDerivative(double Actual, double Previous, double dt)
     }
 }
 
-double PID::dAverageFilter(double ValueNow, double ValueBack1, double ValueBack2)
+double PID::dAverageFilter(
+    double ValueNow, double ValueBack1, double ValueBack2)
 {
     return (ValueNow + ValueBack1 + ValueBack2) / 3;
 }
@@ -257,7 +268,8 @@ bool PID::bAntiWindup(double Error, double ControlValue, double dt)
         control error and the control variable have the same sign (i.e., when u · e >
         0).
     */
-    return ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) && (ControlValue  * Error > 0));
+    return ((ControlValue > this->_dHighLimit ||
+    ControlValue < this->_dLowLimit) && (ControlValue  * Error > 0));
 }
 
 double PID::dIntegralPart(double ErrorIntegral)
@@ -290,9 +302,15 @@ void PID::vRememberPriorValues()
 double PID::Update(double ProcessValue, double dt)
 {
     this->vUpdateProcessValue(ProcessValue);
-    this->_dSetPoint = this->dSetPointRamp(this->_dDesiredSetPoint, this->_dProcessValue, this->_dSetPoint,
-                                        this->_dSubstepStepSize, this->_dNextSetPoint, this->_iSubsteps);
-    this->_dError = this->dCalculateError(this->_dSetPoint, this->_dProcessValue);
+    this->_dSetPoint = this->dSetPointRamp(
+        this->_dDesiredSetPoint,
+        this->_dProcessValue,
+        this->_dSetPoint,
+        this->_dSubstepStepSize,
+        this->_dNextSetPoint,
+        this->_iSubsteps);
+    this->_dError = this->dCalculateError(
+        this->_dSetPoint, this->_dProcessValue);
     if (!this->bAntiWindup(this->_dError, this->_dControlValue, dt))
     {
         this->_dErrorIntegral += this->dErrorIntegration(this->_dError, dt);
@@ -302,10 +320,12 @@ double PID::Update(double ProcessValue, double dt)
     Assuming SP_prev = SP:
     Derrivative = PV_prev - PV =  -(PV - PV_prev) = -dPV.
     */
-    this->_dDerivative = -dCalculateDerivative(this->_dProcessValue, this->_dProcessValuePrior, dt);
+    this->_dDerivative = -dCalculateDerivative(
+        this->_dProcessValue, this->_dProcessValuePrior, dt);
     this->_dControlValue =  this->dProportionalPart(this->_dError) +
         this->dIntegralPart(this->_dErrorIntegral) +
-        this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +
+        this->dDerivativePart(this->dAverageFilter(
+            this->_dDerivative, this->_dDerPrior, this->_dDerPrevious)) +
         this->dBiasPart();
     this->_dControlValue = this->dLimiter(this->_dControlValue);
     this->vRememberPriorValues();
@@ -327,7 +347,6 @@ std::string PID::cPrintDebugInfo()
     << ";DE=" << this->_dDerivative * RAD_TO_DEG
     << ";KP=" << this->_dKp
     << ";KI=" << this->_dKi
-    << ";KD=" << this->_dKd
-    << ";CROSS=" << this->bDesiredSetPointCrossedNextSetPoint(this->_dProcessValue, this->_dDesiredSetPoint, this->_dLastDesiredSetPoint);
+    << ";KD=" << this->_dKd;
     return ss.str();
 }
