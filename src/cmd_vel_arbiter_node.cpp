@@ -11,105 +11,105 @@ enum ArbiterState
 
 class CmdVelArbiter
 {
-    private:
-        ros::NodeHandle _nh;
-        ros::Publisher _outPub;
-        ros::Subscriber _inSub;
+ private:
+    ros::NodeHandle _nh;
+    ros::Publisher _outPub;
+    ros::Subscriber _inSub;
 
-        ros::ServiceServer switchToNavigationService;
-        ros::ServiceServer switchToTeleopService;
+    ros::ServiceServer switchToNavigationService;
+    ros::ServiceServer switchToTeleopService;
 
-        ArbiterState _arbiterState;
-        std::string _navTopic;
-        std::string _teleopTopic;
+    ArbiterState _arbiterState;
+    std::string _navTopic;
+    std::string _teleopTopic;
 
-    public:
-        CmdVelArbiter(ros::NodeHandle *nh):
-        _nh(*nh),
-        _arbiterState(NO_SELECTION)
+ public:
+    explicit CmdVelArbiter(ros::NodeHandle *nh):
+    _nh(*nh),
+    _arbiterState(NO_SELECTION)
+    {
+        // Out topic
+        _outPub = _nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+
+        // Read topic parameters
+        _navTopic = "/cmd_vel_navigation";
+        _teleopTopic = "/cmd_vel_teleop";
+
+        std::string startingState;
+        _nh.param<std::string>("starting_state", startingState, "teleop");
+
+        if (startingState == "navigation")
         {
-            // Out topic
-            _outPub = _nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-
-            // Read topic parameters
-            _navTopic = "/cmd_vel_navigation";
-            _teleopTopic = "/cmd_vel_teleop";
-
-            std::string startingState;
-            _nh.param<std::string>("starting_state", startingState, "teleop");
-
-            if (startingState == "navigation")
-            {
-                subscribeToNavigation();
-            }
-            else if (startingState == "teleop")
-            {
-                subscribeToTeleop();
-            }
-            else
-            {
-                ROS_ERROR_STREAM(
-                    "Unsuported starting_state provided. Exiting...");
-                exit(0);
-            }
-
-            // Switching services
-            switchToNavigationService = _nh.advertiseService(
-                "switch_to_navigation",
-                &CmdVelArbiter::switchToNavigation, this);
-            switchToTeleopService = _nh.advertiseService(
-                "switch_to_teleop", &CmdVelArbiter::switchToTeleop, this);
+            subscribeToNavigation();
+        }
+        else if (startingState == "teleop")
+        {
+            subscribeToTeleop();
+        }
+        else
+        {
+            ROS_ERROR_STREAM(
+                "Unsuported starting_state provided. Exiting...");
+            exit(0);
         }
 
-        void subscribeToNavigation()
-        {
-            _inSub = _nh.subscribe(
-                _navTopic, 1, &CmdVelArbiter::inCallback, this);
-            ROS_INFO_STREAM(
-                "cmd_vel switched to navigation (topic: " << _navTopic << ")");
-            _arbiterState = NAVIGATION;
-        }
+        // Switching services
+        switchToNavigationService = _nh.advertiseService(
+            "switch_to_navigation",
+            &CmdVelArbiter::switchToNavigation, this);
+        switchToTeleopService = _nh.advertiseService(
+            "switch_to_teleop", &CmdVelArbiter::switchToTeleop, this);
+    }
 
-        void subscribeToTeleop()
-        {
-            _inSub = _nh.subscribe(
-                _teleopTopic, 1, &CmdVelArbiter::inCallback, this);
-            ROS_INFO_STREAM(
-                "cmd_vel switched to teleop (topic: " << _teleopTopic << ")");
-            _arbiterState = TELEOP;
-        }
+    void subscribeToNavigation()
+    {
+        _inSub = _nh.subscribe(
+            _navTopic, 1, &CmdVelArbiter::inCallback, this);
+        ROS_INFO_STREAM(
+            "cmd_vel switched to navigation (topic: " << _navTopic << ")");
+        _arbiterState = NAVIGATION;
+    }
 
-        bool switchToNavigation(std_srvs::Empty::Request &req,
-                                std_srvs::Empty::Response &res)
-        {
-            if (_arbiterState != NAVIGATION)
-            {
-                _inSub.shutdown();
-                subscribeToNavigation();
-            }
-            return true;
-        }
+    void subscribeToTeleop()
+    {
+        _inSub = _nh.subscribe(
+            _teleopTopic, 1, &CmdVelArbiter::inCallback, this);
+        ROS_INFO_STREAM(
+            "cmd_vel switched to teleop (topic: " << _teleopTopic << ")");
+        _arbiterState = TELEOP;
+    }
 
-        bool switchToTeleop(std_srvs::Empty::Request &req,
+    bool switchToNavigation(std_srvs::Empty::Request &req,
                             std_srvs::Empty::Response &res)
+    {
+        if (_arbiterState != NAVIGATION)
         {
-            if (_arbiterState != TELEOP)
-            {
-                _inSub.shutdown();
-                subscribeToTeleop();
-            }
-            return true;
+            _inSub.shutdown();
+            subscribeToNavigation();
         }
+        return true;
+    }
 
-        void inCallback(const geometry_msgs::Twist::ConstPtr& msg)
+    bool switchToTeleop(std_srvs::Empty::Request &req,
+                        std_srvs::Empty::Response &res)
+    {
+        if (_arbiterState != TELEOP)
         {
-            _outPub.publish(msg);
+            _inSub.shutdown();
+            subscribeToTeleop();
         }
+        return true;
+    }
 
-        void run()
-        {
-            ros::spin();
-        }
+    void inCallback(const geometry_msgs::Twist::ConstPtr& msg)
+    {
+        _outPub.publish(msg);
+    }
+
+    void run()
+    {
+        ros::spin();
+    }
 };
 
 
