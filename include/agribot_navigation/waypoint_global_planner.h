@@ -12,6 +12,9 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <nav_msgs/Path.h>
 
+#include <string>
+#include <vector>
+
 namespace waypoint_global_planner
 {
 
@@ -21,7 +24,7 @@ namespace waypoint_global_planner
  */
 class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
 {
-  public:
+ public:
     /**
      * @brief Default Constructor
      */
@@ -32,7 +35,8 @@ class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
      * @param name The name of this planner
      * @param costmap_ros A pointer to the ROS wrapper of the costmap to use for planning
      */
-    WaypointGlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
+    WaypointGlobalPlanner(std::string name,
+                          costmap_2d::Costmap2DROS* costmap_ros);
 
     /**
      * @brief Default destructor
@@ -73,7 +77,8 @@ class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
      * @brief Creates and publishes visualization markers from an input path
      * @param path The input path to be used for the creation of visualization markers
      */
-    void createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path);
+    void createAndPublishMarkersFromPath(const std::vector
+                                         <geometry_msgs::PoseStamped>& path);
 
     /**
      * @brief Interpolates a path (position and orientation) using a fixed number of points per meter
@@ -81,29 +86,39 @@ class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
      */
     void interpolatePath(nav_msgs::Path& path);
 
-  private:
+ private:
     bool initialized_;  //!< flag indicating the planner has been initialized
     costmap_2d::Costmap2DROS* costmap_ros_;  //!< costmap ros wrapper
     costmap_2d::Costmap2D* costmap_;  //!< costmap container
     base_local_planner::WorldModel* world_model_;  //!< world model
 
     // subscribers and publishers
-    ros::Subscriber waypoint_sub_;  //!< subscriber of manually inserted waypoints
-    ros::Subscriber external_path_sub_;  //!< subscriber of external input path
-    ros::Publisher waypoint_marker_pub_;  //!< publisher of waypoint visualization markers
-    ros::Publisher goal_pub_;  //!< publisher of goal corresponding to the final waypoint
+    //!< subscriber of manually inserted waypoints
+    ros::Subscriber waypoint_sub_;
+    //!< subscriber of external input path
+    ros::Subscriber external_path_sub_;
+    //!< publisher of waypoint visualization markers
+    ros::Publisher waypoint_marker_pub_;
+    //!< publisher of goal corresponding to the final waypoint
+    ros::Publisher goal_pub_;
     ros::Publisher plan_pub_;  //!< publisher of the global plan
 
     // configuration parameters
-    double epsilon_;  //!< distance threshold between two waypoints that signifies the last waypoint
-    int waypoints_per_meter_;  //!< number of waypoints per meter of generated path used for interpolation
+    // !< distance threshold between two waypoints that
+    // signifies the last waypoint
+    double epsilon_;
+    // !< number of waypoints per meter of generated path used for interpolation
+    int waypoints_per_meter_;
 
     // containers
-    std::vector<geometry_msgs::PoseStamped> waypoints_;  //!< container for the manually inserted waypoints
+    //!< container for the manually inserted waypoints
+    std::vector<geometry_msgs::PoseStamped> waypoints;
     nav_msgs::Path path_;  //!< container for the generated interpolated path
 
-    //flags
-    bool clear_waypoints_;  //!< flag indicating that the waypoint container must be cleared to start anew
+    // flags
+    // !< flag indicating that the waypoint container must be cleared
+    // to start anew
+    bool clear_waypoints_;
 };
 
 }  // namespace waypoint_global_planner
