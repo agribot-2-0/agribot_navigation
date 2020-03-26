@@ -60,7 +60,9 @@ void polygonCCWPath(double radius, int edges, int max_circle_deg,
     pivot_x = radius*cos(2*(90*(edges-2)/edges)*DEG_TO_RAD);
     pivot_y = radius*sin(2*(90*(edges-2)/edges)*DEG_TO_RAD);
 
-    for (double theta = 0; theta <= max_circle_deg; theta += max_circle_deg/edges)
+    for (double theta = 0;
+        theta <= max_circle_deg;
+        theta += max_circle_deg/edges)
     {
         // finding verticles on circumscribed circle
         tmp.x = radius*cos(theta*DEG_TO_RAD+2*(90*(edges-2)/edges)*DEG_TO_RAD);
@@ -70,12 +72,17 @@ void polygonCCWPath(double radius, int edges, int max_circle_deg,
         tmp.y -= pivot_y;
 
         // rotating the polygon to match robot orientation
-        point.x = tmp.x * cos(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az) -
-        tmp.y * sin(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az);
-        point.y = tmp.x * sin(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az) +
-        tmp.y * cos(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az);
+        point.x = tmp.x *
+                cos(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az) -
+                tmp.y *
+                sin(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az);
+        point.y = tmp.x *
+                sin(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az) +
+                tmp.y *
+                cos(-(90*(edges-2)/edges)*DEG_TO_RAD+robotPosition.az);
 
-        // first edge is in front of robot and following edges go counterclockwise
+        // first edge is in front of robot
+        // and following edges go counterclockwise
         point.x = -(pivot_x + point.x);
         point.y = -(pivot_y + point.y);
 
@@ -161,9 +168,12 @@ int main(int argc, char **argv)
         path_topic = argv[1];
     }
 
-    ros::Subscriber odom_sub = n.subscribe("/agribot/odometry", 100, odomCallback);
-    ros::Subscriber path_choice_sub = n.subscribe("/path_publisher/choice", 100, choiceCallback);
-    ros::Publisher path_pub = n.advertise < geometry_msgs::PointStamped>(path_topic, 1);
+    ros::Subscriber odom_sub = n.subscribe(
+        "/agribot/odometry", 100, odomCallback);
+    ros::Subscriber path_choice_sub = n.subscribe(
+        "/path_publisher/choice", 100, choiceCallback);
+    ros::Publisher path_pub = n.advertise<
+        geometry_msgs::PointStamped>(path_topic, 1);
     geometry_msgs::PointStamped point_msg;
     plan = std::queue < geometry_msgs::Point>();
 

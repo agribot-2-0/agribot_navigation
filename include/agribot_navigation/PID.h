@@ -1,8 +1,8 @@
-#include <string> 
+#include <string>
 
 class PID
 {
-private:
+ private:
     double _dKp;
     double _dKd;
     double _dKi;
@@ -27,10 +27,23 @@ private:
     void vUpdateProcessValue(double PV);
     void vRememberPriorValues();
     bool bAntiWindup(double Error, double ControlValue, double dt);
-    bool bDesiredSetPointCrossedNextSetPoint(double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint);
-    double dCalculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps, double SubstepSize);
-    double dSetPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize);
-    double dSetPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize, double ActualNextSetPoint, int Substeps);
+    bool bDesiredSetPointCrossedNextSetPoint(double ProcessValue,
+                                             double DesiredSetPoint,
+                                             double LastDesiredSetPoint);
+    double dCalculateNextSetPoint(double ActualNextSetPoint,
+                                  double ProcessValue,
+                                  double DesiredSetPoint,
+                                  int Substeps,
+                                  double SubstepSize);
+    double dSetPointSubstep(double ActualSetPoint,
+                            double NextSetPoint,
+                            double SubstepStepSize);
+    double dSetPointRamp(double DesiredSetPoint,
+                         double ProcessValue,
+                         double ActualSetPoint,
+                         double SubstepStepSize,
+                         double ActualNextSetPoint,
+                         int Substeps);
     double dCalculateError(double SetPoint, double ProcessValue);
     double dDerivativePart(double Derrivative);
     double dErrorIntegration(double Error, double dt);
@@ -38,9 +51,8 @@ private:
     double dProportionalPart(double Error);
     double dBiasPart();
     double dLimiter(double Value);
-    double dAverageFilter(double ValueNow, double ValueBack1, double ValueBack2);
-    double dCalculateDerivative(double Actual, double Previous,double dt);
-public:
+    double dCalculateDerivative(double Actual, double Previous, double dt);
+ public:
     PID();
     PID(double Kp, double Kd, double Ki, double LL, double HL);
     void vSetKp(double Kp);
@@ -58,4 +70,7 @@ public:
     double dGetDesiredSetPoint();
     double Update(double PV, double dt);
     std::string cPrintDebugInfo();
+    double dAverageFilter(double ValueNow,
+                          double ValueBack1,
+                          double ValueBack2);
 };

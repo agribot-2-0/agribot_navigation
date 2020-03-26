@@ -159,6 +159,10 @@ add_library(waypoint_global_planner
 	src/waypoint_global_planner.cpp
 )
 
+add_library(pid
+	src/PID.cpp
+)
+
 add_executable(kinematics_control
   src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp
 )
@@ -182,6 +186,10 @@ target_link_libraries(simple_local_planner
 )
 
 target_link_libraries(waypoint_global_planner
+	${catkin_LIBRARIES}
+)
+
+target_link_libraries(pid
 	${catkin_LIBRARIES}
 )
 
@@ -296,10 +304,10 @@ install(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_agribot_navigation.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+catkin_add_gtest(${PROJECT_NAME}-test test/utest.cpp)
+if(TARGET ${PROJECT_NAME}-test)
+  target_link_libraries(${PROJECT_NAME}-test pid)
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
