@@ -4,22 +4,22 @@
 
 enum
 {
-	X,
-	Y,
-	Z,
+  X,
+  Y,
+  Z,
 };
 
-enum 
+enum
 {
-	FRONT_LINEAR,
-	FRONT_ANGULAR,
-	BACK_LINEAR,
-	BACK_ANGULAR
+  FRONT_LINEAR,
+  FRONT_ANGULAR,
+  BACK_LINEAR,
+  BACK_ANGULAR
 };
 
 enum {
-	FRONT_CART,
-	BACK_CART
+  FRONT_CART,
+  BACK_CART
 };
 
 struct PID_terms_coefficients
@@ -37,7 +37,7 @@ struct Carts_Setpoints
 
 class KinematicsControl: public AgribotComponent
 {
-private:
+ private:
     double _pdInputLinear [3];
     double _pdInputAngular [3];
     double _pdCaterpillarVelocities  [4];
@@ -72,9 +72,10 @@ private:
     double dMultiplierRoot4(double x);
     double dMultiplierLinear(double x);
     double dMultiplierExponential(double x);
-    Carts_Setpoints xCalculatePIDSetPoints(double linear_vel, double angular_vel);
+    Carts_Setpoints xCalculatePIDSetPoints(double linear_vel,
+                                           double angular_vel);
     PID_terms_coefficients xSelectPIDCoefficients(double Error);
-public: 
+ public:
     KinematicsControl();
     virtual int configure();
     virtual bool startup();
@@ -82,7 +83,7 @@ public:
     virtual bool stop();
     virtual bool cleanup();
     void vSetInputLinear(double x, double y, double z);
-    void vSetInputAngular(double x, double y, double z);   
+    void vSetInputAngular(double x, double y, double z);
     void vSetChassisAngle(double theta);
     void vSetFrontCartAngle(double theta);
     void vSetBackCartAngle(double theta);
