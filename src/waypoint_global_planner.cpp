@@ -58,6 +58,7 @@ void WaypointGlobalPlanner::initialize(
 
     initialized_ = true;
     ROS_INFO("Planner has been initialized");
+    nh.setParam("/agribot/waypoint_global_planer/is_inited", true);
   }
   else
   {

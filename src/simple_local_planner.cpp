@@ -72,6 +72,7 @@ namespace simple_local_planner
             #endif
 
             ROS_DEBUG("Simple Local Planner plugin initialized.");
+            gn.setParam("/agribot/simple_local_planer/is_inited", true);
         }
         else
         {
