@@ -58,20 +58,8 @@ class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
      * @return True if a valid plan was found, false otherwise
      */
     bool makePlan(const geometry_msgs::PoseStamped& start_pose,
-      const geometry_msgs::PoseStamped& goal,
-      std::vector<geometry_msgs::PoseStamped>& plan);
-
-    /**
-     * @brief Waypoint callback
-     * @param waypoint The received waypoint
-     */
-    void waypointCallback(const geometry_msgs::PointStampedConstPtr& waypoint);
-
-    /**
-     * @brief External path callback
-     * @param plan The received plan
-     */
-    void externalPathCallback(const nav_msgs::PathConstPtr& plan);
+                  const geometry_msgs::PoseStamped& goal,
+                  std::vector<geometry_msgs::PoseStamped>& plan);
 
     /**
      * @brief Creates and publishes visualization markers from an input path
@@ -92,33 +80,19 @@ class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
     costmap_2d::Costmap2D* costmap_;  //!< costmap container
     base_local_planner::WorldModel* world_model_;  //!< world model
 
-    // subscribers and publishers
-    //!< subscriber of manually inserted waypoints
-    ros::Subscriber waypoint_sub_;
-    //!< subscriber of external input path
-    ros::Subscriber external_path_sub_;
     //!< publisher of waypoint visualization markers
     ros::Publisher waypoint_marker_pub_;
     //!< publisher of goal corresponding to the final waypoint
     ros::Publisher goal_pub_;
     ros::Publisher plan_pub_;  //!< publisher of the global plan
 
-    // configuration parameters
-    // !< distance threshold between two waypoints that
-    // signifies the last waypoint
-    double epsilon_;
     // !< number of waypoints per meter of generated path used for interpolation
-    int waypoints_per_meter_;
+    double waypoints_per_meter_;
 
     // containers
     //!< container for the manually inserted waypoints
     std::vector<geometry_msgs::PoseStamped> waypoints_;
     nav_msgs::Path path_;  //!< container for the generated interpolated path
-
-    // flags
-    // !< flag indicating that the waypoint container must be cleared
-    // to start anew
-    bool clear_waypoints_;
 };
 
 }  // namespace waypoint_global_planner
