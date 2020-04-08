@@ -73,13 +73,13 @@ namespace simple_local_planner
                 _dActualTime = 0;
             #endif
 
-            ROS_DEBUG("Simple Local Planner plugin initialized.");
+            ROS_DEBUG_STREAM("[SimplePlanner] Plugin initialized.");
             gn.setParam("/agribot/simple_local_planer/is_inited", true);
         }
         else
         {
-            ROS_WARN(
-                "This planner has already been initialized, doing nothing.");
+            ROS_WARN_STREAM("[SimplePlanner] This planner has already been " <<
+                            "initialized, doing nothing.");
         }
     }
 
@@ -88,8 +88,8 @@ namespace simple_local_planner
     {
         if (!_bInitialized)
         {
-            ROS_ERROR(
-                "Planner not initialized, call initialize() before planner");
+            ROS_ERROR_STREAM("[SimplePlanner] Planner not initialized, " <<
+                             "call initialize() before planner");
             return false;
         }
         _iWaypointCount = 1;
@@ -110,7 +110,8 @@ namespace simple_local_planner
             _dActualTime = 0;
         #endif
 
-        ROS_INFO("Received new plan, plan length = %d", _iPlanLength);
+        ROS_INFO_STREAM("[SimplePlanner] Received new plan, " <<
+                        "plan length = " << _iPlanLength);
         return true;
     }
 
@@ -122,8 +123,8 @@ namespace simple_local_planner
 
         if (!_bInitialized)
         {
-            ROS_ERROR(
-                "Planner not initialized, call initialize() before planner");
+            ROS_ERROR_STREAM("[SimplePlanner] Planner not initialized, " <<
+                             "call initialize() before planner");
             return false;
         }
         if (_iPlanLength != 0)
@@ -150,7 +151,7 @@ namespace simple_local_planner
             if (bWaypointMissedCondition(
                 _pRobotCenter, _pLastWaypoint, nextWaypoint))
             {
-                 ROS_ERROR("OUT OF PATH!");
+                 ROS_ERROR_STREAM("[SimplePlanner] OUT OF PATH!");
                 _iMissedWaypointsCount++;
             }
 
@@ -162,7 +163,8 @@ namespace simple_local_planner
                       _pRobotCenter, _pLastWaypoint, nextWaypoint)))
             {
                 #ifdef STATISTICS
-                    ROS_INFO("GOAL REACHED! Traveled  %f", _dTraveledDistance);
+                    ROS_INFO_STREAM("[SimplePlanner] GOAL REACHED! Traveled  "
+                                     <<_dTraveledDistance);
                 #endif
                 vTakeNextGoal(goal, _pRobotCenter);
             }
@@ -328,7 +330,7 @@ namespace simple_local_planner
         _iPlanLength = 0;
         #ifdef STATISTICS
         _dStopTime = ros::Time::now().toSec();
-        ROS_INFO("T = %f;l¸= %f;Er = %f;n = %d;x = %d",
+        ROS_INFO("[SimplePlanner] T = %f;l¸= %f;Er = %f;n = %d;x = %d",
         _dStopTime - _dStartTime, _dTraveledDistance,
         _dDeviationIntegral, _iWaypointCount, _iMissedWaypointsCount);
         #endif
@@ -339,8 +341,8 @@ namespace simple_local_planner
     {
         if (!_bInitialized)
         {
-            ROS_ERROR(
-                "Planner not initialized, call initialize() before planner");
+            ROS_ERROR_STREAM("[SimplePlanner] Planner not initialized, " <<
+                             "call initialize() before planner");
             return false;
         }
         return _bGoalReached;
