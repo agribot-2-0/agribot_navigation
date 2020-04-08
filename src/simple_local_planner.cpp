@@ -51,15 +51,17 @@ namespace simple_local_planner
             _xTFListener = new tf2_ros::TransformListener(*tfBuffer);
 
             ros::NodeHandle gn;
+            ros::NodeHandle pnh("~" + name);
+
             _rOdomSub = gn.subscribe(
                 "/odom", 100, &SimplePlannerROS::vOdomCallback, this);
-            _rPathPub = gn.advertise<
+            _rPathPub = pnh.advertise<
                 visualization_msgs::Marker>("travelled_path", 10);
-            _rPredictedPathPub = gn.advertise<
+            _rPredictedPathPub = pnh.advertise<
                 visualization_msgs::Marker>("predicted_path", 10);
-            _rGoalRangePub = gn.advertise<
+            _rGoalRangePub = pnh.advertise<
                 visualization_msgs::Marker>("goal_range", 10);
-            _rNextGoalPub = gn.advertise<
+            _rNextGoalPub = pnh.advertise<
                 visualization_msgs::Marker>("next_goal", 10);
 
             _bInitialized = true;
@@ -715,9 +717,9 @@ namespace simple_local_planner
         _traveledPoints.id = 0;
         _traveledPoints.type = visualization_msgs::Marker::LINE_STRIP;
         _traveledPoints.scale.x = 0.1;
-        _traveledPoints.scale.y = 0.1;
         _traveledPoints.color.b = 1.0;
         _traveledPoints.color.a = 1.0;
+        _traveledPoints.pose.orientation.w = 1;
         geometry_msgs::Point p;
         p.x = robotCenter.x;
         p.y = robotCenter.y;
@@ -737,9 +739,9 @@ namespace simple_local_planner
         futurePoints.id = 1;
         futurePoints.type = visualization_msgs::Marker::LINE_STRIP;
         futurePoints.scale.x = 0.1;
-        futurePoints.scale.y = 0.1;
         futurePoints.color.r = 1.0;
         futurePoints.color.a = 1.0;
+        futurePoints.pose.orientation.w = 1;
 
         // calculating turn radius from angular and linear velocity
         // R = v / w
@@ -809,11 +811,10 @@ namespace simple_local_planner
         marker.id = 2;
         marker.type = visualization_msgs::Marker::LINE_STRIP;
         marker.scale.x = 0.1;
-        marker.scale.y = 0.1;
-        marker.scale.z = 3;
         marker.color.b = 1;
         marker.color.r = 1;
         marker.color.a = 1.0;
+        marker.pose.orientation.w = 1;
 
         geometry_msgs::Point p;
         p.x = lastWaypoint.x;
@@ -839,11 +840,10 @@ namespace simple_local_planner
         marker.id = 2;
         marker.type = visualization_msgs::Marker::LINE_STRIP;
         marker.scale.x = 0.1;
-        marker.scale.y = 0.1;
-        marker.scale.z = 0.1;
         marker.color.b = 1;
         marker.color.r = 1;
         marker.color.a = 1.0;
+        marker.pose.orientation.w = 1;
 
         geometry_msgs::Point p;
         p.x = goal.x - range.x;
