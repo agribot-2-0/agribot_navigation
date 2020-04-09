@@ -562,15 +562,17 @@ namespace simple_local_planner
         geometry_msgs::PoseStamped nextPose = _xPlan[count];
         geometry_msgs::PoseStamped nextPoseTransformed;
 
+
         try
         {
-          _xTFBuffer->transform(nextPose, nextPoseTransformed,
+            nextPose.header.stamp = ros::Time::now();
+            _xTFBuffer->transform(nextPose, nextPoseTransformed,
                                 "odom", ros::Duration(0.2));
         }
         catch (tf2::ExtrapolationException e)
         {
-          ROS_ERROR_STREAM("[LocalPlanner] ExtrapolationException occur");
-          bAbortExecuting = true;
+            ROS_ERROR_STREAM("[LocalPlanner] ExtrapolationException occur");
+            bAbortExecuting = true;
         }
         pos frame;
         frame.x = nextPoseTransformed.pose.position.x;
