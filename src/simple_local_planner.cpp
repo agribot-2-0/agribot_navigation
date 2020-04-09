@@ -92,6 +92,7 @@ namespace simple_local_planner
                              "call initialize() before planner");
             return false;
         }
+        bAbortExecuting = false;
         _iWaypointCount = 1;
         _iMissedWaypointsCount = 0;
         _xPlan = orig_global_plan;
