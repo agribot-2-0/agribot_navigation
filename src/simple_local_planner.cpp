@@ -92,6 +92,7 @@ namespace simple_local_planner
                              "call initialize() before planner");
             return false;
         }
+        bAbortExecuting = false;
         _iWaypointCount = 1;
         _iMissedWaypointsCount = 0;
         _xPlan = orig_global_plan;
@@ -195,8 +196,18 @@ namespace simple_local_planner
             vVisualizations(_pLastWaypoint, goal, nextWaypoint,
             _pRobotCenter, velocity);
         }
-        cmd_vel = velocity;
-        return true;
+        if (bAbortExecuting)
+        {
+          cmd_vel.linear.x = 0;
+          cmd_vel.angular.z = 0;
+          ROS_ERROR("[SimplePlanner] Abort plan");
+          return false;
+        }
+        else
+        {
+          cmd_vel = velocity;
+          return true;
+        }
     }
 
     double SimplePlannerROS::dCloseToZero(double value)
@@ -550,9 +561,17 @@ namespace simple_local_planner
     {
         geometry_msgs::PoseStamped nextPose = _xPlan[count];
         geometry_msgs::PoseStamped nextPoseTransformed;
-        _xTFBuffer->transform(nextPose, nextPoseTransformed,
-        "odom", ros::Duration(0.2));
 
+        try
+        {
+          _xTFBuffer->transform(nextPose, nextPoseTransformed,
+                                "odom", ros::Duration(0.2));
+        }
+        catch (tf2::ExtrapolationException e)
+        {
+          ROS_ERROR_STREAM("[LocalPlanner] ExtrapolationException occur");
+          bAbortExecuting = true;
+        }
         pos frame;
         frame.x = nextPoseTransformed.pose.position.x;
         frame.y = nextPoseTransformed.pose.position.y;

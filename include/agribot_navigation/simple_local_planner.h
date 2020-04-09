@@ -64,6 +64,8 @@ class SimplePlannerROS : public nav_core::BaseLocalPlanner{
     // distance and deviation measuring for statistics
     double _dDeviationIntegral, _dTraveledDistance;
 
+    bool bAbortExecuting = false;
+
     void vOdomCallback(const nav_msgs::Odometry odometry_msg);
     pos pCalculateRobotFrontPosition(pos robotCenter);
     pos pGetFrame(int count);
