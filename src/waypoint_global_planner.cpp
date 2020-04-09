@@ -10,7 +10,7 @@ namespace waypoint_global_planner
 {
 
 WaypointGlobalPlanner::WaypointGlobalPlanner() :
-  costmap_ros_(NULL), initialized_(false), clear_waypoints_(false)
+  costmap_ros_(NULL), initialized_(false)
 {
 }
 
@@ -41,28 +41,22 @@ void WaypointGlobalPlanner::initialize(
     ros::NodeHandle pnh("~" + name);
 
     // load parameters
-    pnh.param("epsilon", epsilon_, 1e-3);
-    pnh.param("waypoints_per_meter", waypoints_per_meter_, 20);
+    pnh.param("waypoints_per_meter", waypoints_per_meter_, 20.0);
 
-    // initialize publishers and subscribers
-    waypoint_sub_ = pnh.subscribe(
-      "/clicked_point", 100, &WaypointGlobalPlanner::waypointCallback, this);
-    external_path_sub_ = pnh.subscribe(
-      "external_path", 1, &WaypointGlobalPlanner::externalPathCallback, this);
     waypoint_marker_pub_ = pnh.advertise<
       visualization_msgs::MarkerArray>("waypoints", 1);
-    goal_pub_ = nh.advertise<
-      geometry_msgs::PoseStamped>("/move_base_simple/goal", 1);
     plan_pub_ = pnh.advertise<
       nav_msgs::Path>("global_plan", 1);
 
+    path_.header.frame_id = "map";
+
     initialized_ = true;
-    ROS_INFO("Planner has been initialized");
+    ROS_INFO("[GlobalPlanner] Planner has been initialized");
     nh.setParam("/agribot/waypoint_global_planer/is_inited", true);
   }
   else
   {
-    ROS_WARN("This planner has already been initialized");
+    ROS_WARN("[GlobalPlanner] This planner has already been initialized");
   }
 }
 
@@ -72,58 +66,17 @@ bool WaypointGlobalPlanner::makePlan(
   const geometry_msgs::PoseStamped& goal,
   std::vector<geometry_msgs::PoseStamped>& plan)
 {
+  ROS_INFO("[GlobalPlanner] Make plan start");
+  path_.header.stamp = ros::Time::now();
+  path_.poses.clear();
   path_.poses.insert(path_.poses.begin(), start_pose);
+  path_.poses.insert(path_.poses.end(), goal);
   interpolatePath(path_);
   plan_pub_.publish(path_);
+  createAndPublishMarkersFromPath(path_.poses);
   plan = path_.poses;
-  ROS_INFO("Published global plan");
+  ROS_INFO("[GlobalPlanner] Make plan finish");
   return true;
-}
-
-
-void WaypointGlobalPlanner::waypointCallback(
-  const geometry_msgs::PointStampedConstPtr& waypoint)
-{
-  if (clear_waypoints_)
-  {
-    waypoints_.clear();
-    clear_waypoints_ = false;
-  }
-
-  // add waypoint to the waypoint vector
-  waypoints_.push_back(geometry_msgs::PoseStamped());
-  waypoints_.back().header = waypoint->header;
-  waypoints_.back().pose.position = waypoint->point;
-  waypoints_.back().pose.orientation.w = 1.0;
-
-  // create and publish markers
-  createAndPublishMarkersFromPath(waypoints_);
-
-  if (waypoints_.size() < 2)
-    return;
-
-  geometry_msgs::Pose *p1 = &(waypoints_.end()-2)->pose;
-  geometry_msgs::Pose *p2 = &(waypoints_.end()-1)->pose;
-
-  // calculate orientation of waypoints
-  double yaw = atan2(p2->position.y - p1->position.y,
-                     p2->position.x - p1->position.x);
-  p1->orientation = tf::createQuaternionMsgFromYaw(yaw);
-
-  // calculate distance between latest two waypoints
-  // and check if it surpasses the threshold epsilon
-  double dist = hypot(p1->position.x - p2->position.x,
-                      p1->position.y - p2->position.y);
-  if (dist < epsilon_)
-  {
-    p2->orientation = p1->orientation;
-    path_.header = waypoint->header;
-    path_.poses.clear();
-    path_.poses.insert(path_.poses.end(), waypoints_.begin(), waypoints_.end());
-    goal_pub_.publish(waypoints_.back());
-    clear_waypoints_ = true;
-    ROS_INFO("Published goal pose");
-  }
 }
 
 void WaypointGlobalPlanner::interpolatePath(
@@ -158,18 +111,6 @@ void WaypointGlobalPlanner::interpolatePath(
   path.poses = temp_path;
 }
 
-void WaypointGlobalPlanner::externalPathCallback(
-  const nav_msgs::PathConstPtr& plan)
-{
-  path_.poses.clear();
-  clear_waypoints_ = true;
-  path_.header = plan->header;
-  path_.poses = plan->poses;
-  createAndPublishMarkersFromPath(path_.poses);
-  goal_pub_.publish(path_.poses.back());
-}
-
-
 void WaypointGlobalPlanner::createAndPublishMarkersFromPath(
   const std::vector<geometry_msgs::PoseStamped>& path)
 {
@@ -197,6 +138,7 @@ void WaypointGlobalPlanner::createAndPublishMarkersFromPath(
   {
     marker.id = i;
     marker.pose.position = path[i].pose.position;
+    marker.pose.orientation.w = 1;
     markers.markers.push_back(marker);
   }
 
