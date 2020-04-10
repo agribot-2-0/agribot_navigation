@@ -834,8 +834,7 @@ namespace simple_local_planner
         marker.id = 2;
         marker.type = visualization_msgs::Marker::LINE_STRIP;
         marker.scale.x = 0.1;
-        marker.color.b = 1;
-        marker.color.r = 1;
+        marker.color.r = 1.0;
         marker.color.a = 1.0;
         marker.pose.orientation.w = 1;
 
@@ -863,8 +862,7 @@ namespace simple_local_planner
         marker.id = 2;
         marker.type = visualization_msgs::Marker::LINE_STRIP;
         marker.scale.x = 0.1;
-        marker.color.b = 1;
-        marker.color.r = 1;
+        marker.color.r = 1.0;
         marker.color.a = 1.0;
         marker.pose.orientation.w = 1;
 
