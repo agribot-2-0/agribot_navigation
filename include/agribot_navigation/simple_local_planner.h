@@ -63,8 +63,27 @@ class SimplePlannerROS : public nav_core::BaseLocalPlanner{
     double _dStopTime, _dStartTime, _dLastTime, _dActualTime;
     // distance and deviation measuring for statistics
     double _dDeviationIntegral, _dTraveledDistance;
-
     bool bAbortExecuting = false;
+    // params
+    int param_missed_points_tollerance;
+    int param_prediction_time;
+    int param_prediction_points_per_second;
+    double param_goal_distance_tolerance;
+    double param_goal_range;
+    double param_chassis_length;
+    double param_min_radius;
+    double param_dead_zone;
+    double param_max_linear_vel;
+    double param_min_linear_vel;
+    double param_deviation_weight;
+    double param_parallelness_weight;
+    double param_epsilon;
+
+    bool param_arch_approach;
+    bool param_speed_limit;
+    bool param_debug;
+    bool param_statistics;
+    bool param_take_front;
 
     void vOdomCallback(const nav_msgs::Odometry odometry_msg);
     pos pCalculateRobotFrontPosition(pos robotCenter);

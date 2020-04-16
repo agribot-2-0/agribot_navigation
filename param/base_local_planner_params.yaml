@@ -1,3 +1,24 @@
+SimplePlannerROS:
+  param_chassis_length: 2.1
+  param_max_linear_vel: 0.7
+  param_min_linear_vel: 0.1
+  param_min_radius: 2.0
+  param_dead_zone: 3.0
+  param_deviation_weight: 0.1
+  param_parallelness_weight: 10.0
+  param_goal_distance_tolerance: 0.75
+  param_goal_range: 0.66
+  param_missed_points_tollerance: 10000
+  param_prediction_time: 60
+  param_prediction_points_per_second: 2
+  param_epsilon: 1e-3
+  param_param_arch_approach: false
+  param_speed_limit: true
+  param_debug: false
+  param_statistics: true
+  param_take_front: false
+
+
 TrajectoryPlannerROS:
 
 # Robot Configuration Parameters
