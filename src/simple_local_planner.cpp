@@ -38,36 +38,69 @@ namespace simple_local_planner
             _rNextGoalPub = pnh.advertise<
                 visualization_msgs::Marker>("next_goal", 10);
 
-            pnh.param("param_goal_distance_tolerance", param_goal_distance_tolerance, 0.75);
-            pnh.param("param_goal_range", param_goal_range, 0.66);
-            pnh.param("param_missed_points_tollerance", param_missed_points_tollerance, 10000);
+            pnh.param("param_goal_distance_tolerance",
+                        param_goal_distance_tolerance,
+                        0.75);
+            pnh.param("param_goal_range",
+                        param_goal_range,
+                        0.66);
+            pnh.param("param_missed_points_tollerance",
+                        param_missed_points_tollerance,
+                        10000);
 
-            pnh.param("param_chassis_length", param_chassis_length, 2.1);
-            pnh.param("param_min_radius", param_min_radius, 2.0);
+            pnh.param("param_chassis_length",
+                        param_chassis_length,
+                        2.1);
+            pnh.param("param_min_radius",
+                        param_min_radius,
+                        2.0);
 
-            pnh.param("param_prediction_time", param_prediction_time, 60);
-            pnh.param("param_prediction_points_per_second", param_prediction_points_per_second, 2);
-            
+            pnh.param("param_prediction_time",
+                        param_prediction_time,
+                        60);
+            pnh.param("param_prediction_points_per_second",
+                        param_prediction_points_per_second,
+                        2);
 
-            pnh.param("param_dead_zone", param_dead_zone, 3.0);
-            pnh.param("param_max_linear_vel", param_max_linear_vel, 0.7);
-            pnh.param("param_min_linear_vel", param_min_linear_vel, 0.1);
+            pnh.param("param_dead_zone",
+                        param_dead_zone,
+                        3.0);
+            pnh.param("param_max_linear_vel",
+                        param_max_linear_vel,
+                        0.7);
+            pnh.param("param_min_linear_vel",
+                        param_min_linear_vel,
+                        0.1);
 
-            pnh.param("param_deviation_weight", param_deviation_weight, 0.1);
-            pnh.param("param_parallelness_weight", param_parallelness_weight, 10.0);
-            pnh.param("param_epsilon", param_epsilon, 1e-3);
-            
+            pnh.param("param_deviation_weight",
+                        param_deviation_weight,
+                        0.1);
+            pnh.param("param_parallelness_weight",
+                        param_parallelness_weight,
+                        10.0);
+            pnh.param("param_epsilon",
+                        param_epsilon,
+                        1e-3);
 
-            pnh.param("arch_approach", param_arch_approach, false);
-            pnh.param("speed_limit", param_speed_limit, true);
-            pnh.param("debug", param_debug, false);
-            pnh.param("statistics", param_statistics, true);
-            pnh.param("take_front", param_take_front, false);
-            
+            pnh.param("arch_approach",
+                        param_arch_approach,
+                        false);
+            pnh.param("speed_limit",
+                        param_speed_limit,
+                        true);
+            pnh.param("debug",
+                        param_debug,
+                        false);
+            pnh.param("statistics",
+                        param_statistics,
+                        true);
+            pnh.param("take_front",
+                        param_take_front,
+                        false);
 
             _bInitialized = true;
 
-            if(param_statistics)
+            if (param_statistics)
             {
                 _dStopTime = 0;
                 _dStartTime = 0;
@@ -104,7 +137,7 @@ namespace simple_local_planner
 
         _pLastWaypoint = _pRobotCenter;
 
-        if(param_statistics)
+        if (param_statistics)
         {
             _dDeviationIntegral = 0;
             _dTraveledDistance = 0;
@@ -138,7 +171,7 @@ namespace simple_local_planner
             {
                 nextWaypoint.az = dAngleBetweenFrames(
                     nextWaypoint, pGetFrame(_iWaypointCount-1));
-                if(param_take_front)    
+                if (param_take_front)
                 {
                     nextWaypoint = pCalculateRobotFrontPosition(nextWaypoint);
                 }
@@ -148,7 +181,7 @@ namespace simple_local_planner
 
 
             // Deviation error for statistics
-            if(param_statistics)
+            if (param_statistics)
             {
                     vCalculateDeviationIntegral(
                     _pLastWaypoint, nextWaypoint, _pRobotCenter);
@@ -169,7 +202,7 @@ namespace simple_local_planner
                   bWaypointMissedCondition(
                       _pRobotCenter, _pLastWaypoint, nextWaypoint)))
             {
-                if(param_statistics)
+                if (param_statistics)
                 {
                     ROS_INFO_STREAM("[SimplePlanner] GOAL REACHED! Traveled  "
                                      <<_dTraveledDistance);
@@ -237,7 +270,7 @@ namespace simple_local_planner
     bool SimplePlannerROS::bWaypointHitCondition(
         pos robotCenter, pos lastWaypoint, pos nextWaypoint)
     {
-        if(param_take_front)
+        if (param_take_front)
         {
             return
             (bTraveledDistanceBetweenWaypoints(
@@ -324,13 +357,14 @@ namespace simple_local_planner
         {
             nextWaypoint.az = dAngleBetweenFrames(
                 nextWaypoint, pGetFrame(_iWaypointCount-1));
-            if(param_take_front)    
+            if (param_take_front)
             {
                 nextWaypoint = pCalculateRobotFrontPosition(nextWaypoint);
             }
         }
 
-        if (dDistanceBetweenFrames(nextWaypoint, currentGoal) > param_chassis_length)
+        if (dDistanceBetweenFrames(nextWaypoint, currentGoal) >
+            param_chassis_length)
         {
             _pLastWaypoint = currentGoal;
         }
@@ -365,7 +399,7 @@ namespace simple_local_planner
     {
         _bGoalReached = true;
         _iPlanLength = 0;
-        if(param_statistics)
+        if (param_statistics)
         {
             _dStopTime = ros::Time::now().toSec();
             ROS_INFO("[SimplePlanner] T = %f;l¸= %f;Er = %f;n = %d;x = %d",
@@ -395,7 +429,7 @@ namespace simple_local_planner
         _pRobotCenter.az = dGetYawFromQuaternion(
             odometry_msg.pose.pose.orientation);
 
-        if(param_statistics)
+        if (param_statistics)
         {
                 _dTraveledDistance += dDistanceBetweenFrames(
                 lastRobotPosition, _pRobotCenter);
@@ -405,8 +439,10 @@ namespace simple_local_planner
     pos SimplePlannerROS::pCalculateRobotFrontPosition(pos robotCenter)
     {
         pos frontPos;
-        frontPos.x = robotCenter.x + cos(robotCenter.az) * param_chassis_length/2;
-        frontPos.y = robotCenter.y + sin(robotCenter.az) * param_chassis_length/2;
+        frontPos.x = robotCenter.x +
+                    cos(robotCenter.az) * param_chassis_length/2;
+        frontPos.y = robotCenter.y +
+                    sin(robotCenter.az) * param_chassis_length/2;
         frontPos.az = robotCenter.az;
         return frontPos;
     }
@@ -429,7 +465,7 @@ namespace simple_local_planner
         pos goal, pos nextWaypoint, pos robotCenter)
     {
         geometry_msgs::Twist velocity;
-        if(param_speed_limit)
+        if (param_speed_limit)
         {
             velocity.linear.x = xLinearSpeedLimitedApproach(
             goal, robotCenter).linear.x;
@@ -439,7 +475,7 @@ namespace simple_local_planner
             velocity.linear.x = param_max_linear_vel;
         }
 
-        if(param_arch_approach)
+        if (param_arch_approach)
         {
             velocity.angular.z = xArchApproach(
             goal, robotCenter, velocity).angular.z;
@@ -551,7 +587,8 @@ namespace simple_local_planner
                 }
                 else
                 {
-                    velocity.angular.z = - 2*velocity.linear.x/param_chassis_length;
+                    velocity.angular.z =
+                    -2*velocity.linear.x/param_chassis_length;
                 }
             }
             else
@@ -563,7 +600,8 @@ namespace simple_local_planner
                 }
                 else
                 {
-                    velocity.angular.z = 2*velocity.linear.x/param_chassis_length;
+                    velocity.angular.z =
+                    2*velocity.linear.x/param_chassis_length;
                 }
             }
         }
@@ -679,11 +717,12 @@ namespace simple_local_planner
 
     pos SimplePlannerROS::pCalculateGoal(pos nextWaypoint, pos robotCenter)
     {
-        if(param_arch_approach)
+        if (param_arch_approach)
         {
             pos goal_min, goal_max, goal;
             pos goalRange = pCalculateGoalRange(
-                nextWaypoint, robotCenter, param_goal_range*param_goal_distance_tolerance);
+                nextWaypoint, robotCenter,
+                param_goal_range*param_goal_distance_tolerance);
 
             goal_min.x = nextWaypoint.x - goalRange.x;
             goal_min.y = nextWaypoint.y - goalRange.y;
@@ -922,7 +961,8 @@ namespace simple_local_planner
     {
        vNextGoalVisualization(lastWaypoint, goal);
        vGoalRangeVisualization(nextWaypoint, pCalculateGoalRange(
-           nextWaypoint, robotCenter, param_goal_range*param_goal_distance_tolerance));
+           nextWaypoint, robotCenter,
+           param_goal_range*param_goal_distance_tolerance));
     //    vPathVisualization(robotCenter);
        vPredictedPathVisualization(velocity, robotCenter);
     }
