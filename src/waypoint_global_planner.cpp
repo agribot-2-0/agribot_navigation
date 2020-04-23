@@ -42,6 +42,9 @@ void WaypointGlobalPlanner::initialize(
 
     // load parameters
     pnh.param("waypoints_per_meter", waypoints_per_meter_, 20.0);
+    pnh.param("goal_distance_tolerance",
+                        param_goal_distance_tolerance,
+                        0.75);
 
     waypoint_marker_pub_ = pnh.advertise<
       visualization_msgs::MarkerArray>("waypoints", 1);
@@ -95,7 +98,7 @@ void WaypointGlobalPlanner::interpolatePath(
 
     temp_path.push_back(path.poses[i]);
     geometry_msgs::PoseStamped p = path.poses[i];
-    for (int j = 0; j < num_wpts - 2; j++)
+    for (int j = 0; j < num_wpts; j++)
     {
       p.pose.position.x = x1 + static_cast<double>(j) / num_wpts * (x2 - x1);
       p.pose.position.y = y1 + static_cast<double>(j) / num_wpts * (y2 - y1);
@@ -108,6 +111,7 @@ void WaypointGlobalPlanner::interpolatePath(
     temp_path[i].header.seq = static_cast<int>(i);
 
   temp_path.push_back(path.poses.back());
+  // temp_path.push_back(path.poses.back());
   path.poses = temp_path;
 }
 
@@ -121,10 +125,10 @@ void WaypointGlobalPlanner::createAndPublishMarkersFromPath(
   marker.ns = "/move_base/waypoint_global_planner";
   marker.type = visualization_msgs::Marker::SPHERE;
   marker.action = visualization_msgs::Marker::DELETEALL;
-  marker.scale.x = 0.2;
-  marker.scale.y = 0.2;
-  marker.scale.z = 0.2;
-  marker.color.a = 1.0;
+  marker.scale.x = 2*param_goal_distance_tolerance;
+  marker.scale.y = 2*param_goal_distance_tolerance;
+  marker.scale.z = 0.01;
+  marker.color.a = 0.5;
   marker.color.g = 1.0;
   marker.id = 0;
   markers.markers.push_back(marker);

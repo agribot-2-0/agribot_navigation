@@ -88,6 +88,7 @@ class SimplePlannerROS : public nav_core::BaseLocalPlanner{
     void vOdomCallback(const nav_msgs::Odometry odometry_msg);
     pos pCalculateRobotFrontPosition(pos robotCenter);
     pos pGetFrame(int count);
+    pos pGetWaypoint(int count);
     pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
     pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter, double range);
     pos pCalculateProjection(pos lastWaypoint,

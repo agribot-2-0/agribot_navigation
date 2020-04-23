@@ -88,6 +88,7 @@ class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
 
     // !< number of waypoints per meter of generated path used for interpolation
     double waypoints_per_meter_;
+    double param_goal_distance_tolerance;
 
     // containers
     //!< container for the manually inserted waypoints
