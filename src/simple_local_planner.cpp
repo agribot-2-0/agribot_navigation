@@ -167,20 +167,24 @@ namespace simple_local_planner
         {
             // Check where robot is
             pos nextWaypoint = pGetWaypoint(_iWaypointCount);
+            pos lastWaypoint =
+                pFrameFromPoseStamped(xTransformPose(_pLastWaypoint));
+            pos robotCenter =
+                pFrameFromPoseStamped(xTransformPose(_pRobotCenter));
 
-            goal = pCalculateGoal(nextWaypoint, _pRobotCenter);
+            goal = pCalculateGoal(nextWaypoint, robotCenter);
 
 
             // Deviation error for statistics
             if (param_statistics)
             {
                     vCalculateDeviationIntegral(
-                    _pLastWaypoint, nextWaypoint, _pRobotCenter);
+                    lastWaypoint, nextWaypoint, robotCenter);
             }
 
             // Increment missed points number
             if (bWaypointMissedCondition(
-                _pRobotCenter, _pLastWaypoint, nextWaypoint))
+                robotCenter, lastWaypoint, nextWaypoint))
             {
                  ROS_ERROR_STREAM("[SimplePlanner] OUT OF PATH!");
                 _iMissedWaypointsCount++;
@@ -189,21 +193,21 @@ namespace simple_local_planner
             // Next goal condition
             if (!bIsLastWaypointInPath(_iWaypointCount) &&
                  (bWaypointHitCondition(
-                     _pRobotCenter, _pLastWaypoint, nextWaypoint) ||
+                     robotCenter, lastWaypoint, nextWaypoint) ||
                   bWaypointMissedCondition(
-                      _pRobotCenter, _pLastWaypoint, nextWaypoint)))
+                      robotCenter, lastWaypoint, nextWaypoint)))
             {
                 if (param_statistics)
                 {
                     ROS_INFO_STREAM("[SimplePlanner] NEXT GOAL - Traveled "
                                      <<_dTraveledDistance);
                 }
-                vTakeNextGoal(goal, _pRobotCenter);
+                vTakeNextGoal(goal, robotCenter);
                 nextWaypoint = pGetWaypoint(_iWaypointCount);
             }
 
             // Calculate velocities
-            velocity = xSetVel(goal, nextWaypoint, _pRobotCenter);
+            velocity = xSetVel(goal, nextWaypoint, lastWaypoint, robotCenter);
 
             velocity.linear.x = dCloseToZero(velocity.linear.x);
             velocity.linear.y = dCloseToZero(velocity.linear.y);
@@ -216,17 +220,17 @@ namespace simple_local_planner
            if (bMissedTooManyWaypointsCondition(_iMissedWaypointsCount) ||
             (bIsLastWaypointInPath(_iWaypointCount) &&
              bWaypointHitCondition(
-                _pRobotCenter, _pLastWaypoint, nextWaypoint)) ||
+                robotCenter, lastWaypoint, nextWaypoint)) ||
             (bIsLastWaypointInPath(_iWaypointCount) &&
              bWaypointMissedCondition(
-                _pRobotCenter, _pLastWaypoint, nextWaypoint)))
+                robotCenter, lastWaypoint, nextWaypoint)))
             {
                 velocity = xFinishedPathBehaviour();
             }
 
             // Visualization
-            vVisualizations(_pLastWaypoint, goal, nextWaypoint,
-            _pRobotCenter, velocity);
+            vVisualizations(lastWaypoint, goal, nextWaypoint,
+            robotCenter, velocity);
         }
         if (bAbortExecuting)
         {
@@ -352,11 +356,11 @@ namespace simple_local_planner
         if (dDistanceBetweenFrames(nextWaypoint, currentGoal) >
             param_chassis_length)
         {
-            _pLastWaypoint = currentGoal;
+            _pLastWaypoint = _xPlan[_iWaypointCount-1];
         }
         else
         {
-            _pLastWaypoint = robotCenter;
+            _pLastWaypoint = _pRobotCenter;
         }
     }
 
@@ -408,17 +412,17 @@ namespace simple_local_planner
 
     void SimplePlannerROS::vOdomCallback(const nav_msgs::Odometry odometry_msg)
     {
-        pos lastRobotPosition = _pRobotCenter;
+        pos lastRobotPosition = pFrameFromPoseStamped(_pRobotCenter);
+        geometry_msgs::PoseStamped robotPose;
 
-        _pRobotCenter.x = odometry_msg.pose.pose.position.x;
-        _pRobotCenter.y = odometry_msg.pose.pose.position.y;
-        _pRobotCenter.az = dGetYawFromQuaternion(
-            odometry_msg.pose.pose.orientation);
+        robotPose.header = odometry_msg.header;
+        robotPose.pose = odometry_msg.pose.pose;
+        _pRobotCenter = xTransformPose(robotPose);
 
         if (param_statistics)
         {
                 _dTraveledDistance += dDistanceBetweenFrames(
-                lastRobotPosition, _pRobotCenter);
+                lastRobotPosition, pFrameFromPoseStamped(_pRobotCenter));
         }
     }
 
@@ -448,13 +452,13 @@ namespace simple_local_planner
     }
 
     geometry_msgs::Twist SimplePlannerROS::xSetVel(
-        pos goal, pos nextWaypoint, pos robotCenter)
+        pos goal, pos nextWaypoint, pos lastWaypoint, pos robotCenter)
     {
         geometry_msgs::Twist velocity;
         if (param_speed_limit)
         {
             velocity.linear.x = xLinearSpeedLimitedApproach(
-            goal, robotCenter).linear.x;
+            goal, lastWaypoint, robotCenter).linear.x;
         }
         else
         {
@@ -469,7 +473,7 @@ namespace simple_local_planner
         else
         {
             velocity.angular.z = xDeviationApproach(
-            nextWaypoint, robotCenter, velocity).angular.z;
+            nextWaypoint, lastWaypoint, robotCenter, velocity).angular.z;
         }
         // Velocity limiter
         return xLimitVelocities(velocity);
@@ -498,23 +502,24 @@ namespace simple_local_planner
     }
 
     geometry_msgs::Twist SimplePlannerROS::xDeviationApproach(
-        pos goal, pos robotCenter, geometry_msgs::Twist velocity)
+        pos goal, pos lastWaypoint,
+        pos robotCenter, geometry_msgs::Twist velocity)
     {
         double deviation =  dCalculateDeviation(
-            _pLastWaypoint, goal, _pRobotCenter);
+            lastWaypoint, goal, robotCenter);
 
         double factorDeviation = param_deviation_weight*deviation/(1+deviation);
         double factorParallelness =
         param_parallelness_weight*(1-fabs(cos(dAngleBetweenFrames(
-            goal, _pLastWaypoint)-robotCenter.az)));
+            goal, lastWaypoint)-robotCenter.az)));
         if (dLimitAngle(
             dAngleBetweenFrames(goal, robotCenter) -
-            dAngleBetweenFrames(goal, _pLastWaypoint)) < 0)
+            dAngleBetweenFrames(goal, lastWaypoint)) < 0)
         {
             factorDeviation *= -1;
         }
         if (dLimitAngle(
-            dAngleBetweenFrames(goal, _pLastWaypoint) - robotCenter.az) < 0)
+            dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az) < 0)
         {
             factorParallelness *= -1;
         }
@@ -525,19 +530,19 @@ namespace simple_local_planner
     }
 
     geometry_msgs::Twist SimplePlannerROS::xLinearSpeedLimitedApproach(
-        pos goal, pos robotCenter)
+        pos goal, pos lastWaypoint, pos robotCenter)
     {
         geometry_msgs::Twist velocity;
         double distanceWaypoints =
-        dDistanceBetweenFrames(goal, _pLastWaypoint);
+        dDistanceBetweenFrames(goal, lastWaypoint);
         double distanceToNext =
         dDistanceBetweenFrames(goal, robotCenter);
         double waypointsDistanceFactor =
         distanceWaypoints / (1+ distanceWaypoints);
         double deviation =
-        dCalculateDeviation(_pLastWaypoint, goal, _pRobotCenter);
+        dCalculateDeviation(lastWaypoint, goal, robotCenter);
         double parallelnessFactor =
-        fabs(cos(dAngleBetweenFrames(goal, _pLastWaypoint)-robotCenter.az));
+        fabs(cos(dAngleBetweenFrames(goal, lastWaypoint)-robotCenter.az));
         double deviationFactor =
         1 / (1 + deviation);
         double distanceFactor =
@@ -618,24 +623,9 @@ namespace simple_local_planner
     {
         geometry_msgs::PoseStamped nextPose = _xPlan[count];
         geometry_msgs::PoseStamped nextPoseTransformed;
+        nextPoseTransformed = xTransformPose(nextPose);
 
-
-        try
-        {
-            nextPose.header.stamp = ros::Time::now();
-            _xTFBuffer->transform(nextPose, nextPoseTransformed,
-                                "odom", ros::Duration(0.2));
-        }
-        catch (tf2::ExtrapolationException e)
-        {
-            ROS_ERROR_STREAM("[LocalPlanner] ExtrapolationException occur");
-            bAbortExecuting = true;
-        }
-        pos frame;
-        frame.x = nextPoseTransformed.pose.position.x;
-        frame.y = nextPoseTransformed.pose.position.y;
-        frame.az = dGetYawFromQuaternion(nextPoseTransformed.pose.orientation);
-        return frame;
+        return pFrameFromPoseStamped(nextPoseTransformed);
     }
 
     pos SimplePlannerROS::pGetWaypoint(int count)
@@ -651,6 +641,33 @@ namespace simple_local_planner
                 }
             }
         return waypoint;
+    }
+
+    geometry_msgs::PoseStamped SimplePlannerROS::xTransformPose(
+        geometry_msgs::PoseStamped ps)
+    {
+        geometry_msgs::PoseStamped poseTransformed;
+        try
+        {
+            ps.header.stamp = ros::Time::now();
+            _xTFBuffer->transform(ps, poseTransformed,
+                                "map", ros::Duration(0.2));
+        }
+        catch (tf2::ExtrapolationException e)
+        {
+            ROS_ERROR_STREAM("[LocalPlanner] ExtrapolationException occur");
+            bAbortExecuting = true;
+        }
+        return poseTransformed;
+    }
+
+    pos SimplePlannerROS::pFrameFromPoseStamped(geometry_msgs::PoseStamped ps)
+    {
+        pos frame;
+        frame.x = ps.pose.position.x;
+        frame.y = ps.pose.position.y;
+        frame.az = dGetYawFromQuaternion(ps.pose.orientation);
+        return frame;
     }
 
     double SimplePlannerROS::dLimitAngle(double angle)
@@ -700,8 +717,8 @@ namespace simple_local_planner
         pos lastWaypoint, pos nextWaypoint, pos robotCenter)
     {
         pos projection;
-        double a = dDistanceBetweenFrames(nextWaypoint, _pLastWaypoint);
-        double b = dDistanceBetweenFrames(_pLastWaypoint, robotCenter);
+        double a = dDistanceBetweenFrames(nextWaypoint, lastWaypoint);
+        double b = dDistanceBetweenFrames(lastWaypoint, robotCenter);
         double c = dDistanceBetweenFrames(nextWaypoint, robotCenter);
         double dx = nextWaypoint.x - lastWaypoint.x;
         double dy = nextWaypoint.y - lastWaypoint.y;
@@ -807,7 +824,7 @@ namespace simple_local_planner
 
     void SimplePlannerROS::vPathVisualization(pos robotCenter)
     {
-        _traveledPoints.header.frame_id = "/odom";
+        _traveledPoints.header.frame_id = "/map";
         _traveledPoints.header.stamp = ros::Time::now();
         _traveledPoints.ns = "travelled_path";
         _traveledPoints.action = visualization_msgs::Marker::ADD;
@@ -829,7 +846,7 @@ namespace simple_local_planner
         geometry_msgs::Twist velocity, pos robotCenter)
     {
         visualization_msgs::Marker futurePoints;
-        futurePoints.header.frame_id = "/odom";
+        futurePoints.header.frame_id = "/map";
         futurePoints.header.stamp = ros::Time::now();
         futurePoints.ns = "predicted_path";
         futurePoints.action = visualization_msgs::Marker::ADD;
@@ -901,7 +918,7 @@ namespace simple_local_planner
     void SimplePlannerROS::vNextGoalVisualization(pos lastWaypoint, pos goal)
     {
         visualization_msgs::Marker marker;
-        marker.header.frame_id = "/odom";
+        marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
         marker.ns = "next_goal";
         marker.action = visualization_msgs::Marker::ADD;
@@ -929,7 +946,7 @@ namespace simple_local_planner
     void SimplePlannerROS::vGoalRangeVisualization(pos goal, pos range)
     {
         visualization_msgs::Marker marker;
-        marker.header.frame_id = "/odom";
+        marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
         marker.ns = "goal_range";
         marker.action = visualization_msgs::Marker::ADD;

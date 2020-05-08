@@ -50,8 +50,8 @@ class SimplePlannerROS : public nav_core::BaseLocalPlanner{
     std::vector<geometry_msgs::PoseStamped> _xPlan;
     geometry_msgs::Twist _xVelocities;  // contains the velocity
     visualization_msgs::Marker _traveledPoints;
-    pos _pRobotCenter;  // present robot center frame
-    pos _pLastWaypoint;  // last target frame
+    geometry_msgs::PoseStamped _pRobotCenter;  // present robot center frame
+    geometry_msgs::PoseStamped _pLastWaypoint;  // last target frame
     int _iPlanLength;  // number of frames in the global plan
     // keeps track of the number of ommited frames
     int _iMissedWaypointsCount;
@@ -94,14 +94,19 @@ class SimplePlannerROS : public nav_core::BaseLocalPlanner{
     pos pCalculateProjection(pos lastWaypoint,
                              pos nextWaypoint,
                              pos robotCenter);
-    geometry_msgs::Twist xSetVel(pos goal, pos nextWaypoint, pos robotCenter);
+    geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps);
+    pos pFrameFromPoseStamped(geometry_msgs::PoseStamped ps);
+    geometry_msgs::Twist xSetVel(pos goal, pos nextWaypoint,
+                                 pos lastWaypoint, pos robotCenter);
     geometry_msgs::Twist xArchApproach(pos goal,
                                        pos robotCenter,
                                        geometry_msgs::Twist velocity);
     geometry_msgs::Twist xDeviationApproach(pos goal,
+                                            pos lastWaipoint,
                                             pos robotCenter,
                                             geometry_msgs::Twist velocity);
     geometry_msgs::Twist xLinearSpeedLimitedApproach(pos goal,
+                                                     pos lastWaypoint,
                                                      pos robotCenter);
     geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
     geometry_msgs::Twist xStopRobot();
