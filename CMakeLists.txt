@@ -239,11 +239,7 @@ target_link_libraries(cmd_vel_arbiter_node
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 install(TARGETS
   kinematics_control
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-)
-
-install(TARGETS
+  cmd_vel_arbiter_node
   path_publisher
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -293,11 +289,10 @@ install(
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(DIRECTORY launch param
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  PATTERN ".svn" EXCLUDE
+)
 
 #############
 ## Testing ##
