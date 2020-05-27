@@ -155,8 +155,12 @@ add_library(simple_local_planner
   src/simple_local_planner.cpp
 )
 
-add_library(waypoint_global_planner 
+add_library(waypoint_global_planner
 	src/waypoint_global_planner.cpp
+)
+
+add_library(pid
+	src/PID.cpp
 )
 
 add_executable(kinematics_control
@@ -165,6 +169,10 @@ add_executable(kinematics_control
 
 add_executable(path_publisher
   src/PathPublisher_node.cpp
+)
+
+add_executable(cmd_vel_arbiter_node
+  src/cmd_vel_arbiter_node.cpp
 )
 
 target_link_libraries(kinematics_control
@@ -177,11 +185,19 @@ target_link_libraries(simple_local_planner
 	${catkin_LIBRARIES}
 )
 
-target_link_libraries(waypoint_global_planner 
+target_link_libraries(waypoint_global_planner
+	${catkin_LIBRARIES}
+)
+
+target_link_libraries(pid
 	${catkin_LIBRARIES}
 )
 
 target_link_libraries(path_publisher
+	${catkin_LIBRARIES}
+)
+
+target_link_libraries(cmd_vel_arbiter_node
 	${catkin_LIBRARIES}
 )
 
@@ -223,11 +239,7 @@ target_link_libraries(path_publisher
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 install(TARGETS
   kinematics_control
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-)
-
-install(TARGETS
+  cmd_vel_arbiter_node
   path_publisher
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -277,21 +289,20 @@ install(
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(DIRECTORY launch param
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  PATTERN ".svn" EXCLUDE
+)
 
 #############
 ## Testing ##
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_agribot_navigation.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+catkin_add_gtest(${PROJECT_NAME}-test test/utest.cpp)
+if(TARGET ${PROJECT_NAME}-test)
+  target_link_libraries(${PROJECT_NAME}-test pid)
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

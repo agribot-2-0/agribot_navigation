@@ -1,9 +1,9 @@
 #include <agribot_navigation/KinematicsControl.h>
-#include <cmath>
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <cmath>
 
-// #define DEBUG
+#define DEBUG
 #define HISTERESIS 0.05
 #define RAD_TO_DEG (180/M_PI)
 #define DEG_TO_RAD (M_PI/180)
@@ -31,16 +31,16 @@ KinematicsControl::KinematicsControl()
     this->_dWheelSeparation = 1.05 + 0.025;
     this->_dChassisLength = 2.42 - 2 * _dWheelRadius;
     this->_dLinearMultiplier = 1;
-    this->_pFrontCartPID = new PID(KP_VAL, KD_VAL, KI_VAL, -LIMIT, LIMIT); 
+    this->_pFrontCartPID = new PID(KP_VAL, KD_VAL, KI_VAL, -LIMIT, LIMIT);
     this->_pBackCartPID = new PID(KP_VAL, KD_VAL, KI_VAL, -LIMIT, LIMIT);
 }
 
-int KinematicsControl::configure() 
+int KinematicsControl::configure()
 {
     return 0;
 }
 
-bool KinematicsControl::startup() 
+bool KinematicsControl::startup()
 {
     return false;
 }
@@ -51,12 +51,12 @@ bool KinematicsControl::update()
     return true;
 }
 
-bool KinematicsControl::stop() 
+bool KinematicsControl::stop()
 {
     return false;
 }
 
-bool KinematicsControl::cleanup() 
+bool KinematicsControl::cleanup()
 {
     return false;
 }
@@ -64,7 +64,7 @@ bool KinematicsControl::cleanup()
 PID_terms_coefficients KinematicsControl::xSelectPIDCoefficients(double Error)
 {
     PID_terms_coefficients coefficients;
-    if (abs(Error*RAD_TO_DEG)>PRECISE_PID_RANGE)
+    if (abs(Error*RAD_TO_DEG) > PRECISE_PID_RANGE)
     {
         coefficients = {KP_VAL, KI_VAL, KD_VAL};
     }
@@ -79,21 +79,24 @@ void KinematicsControl::vSetPIDsParameters()
 {
     PID_terms_coefficients coefficients;
 
-    coefficients=xSelectPIDCoefficients(_pFrontCartPID->dGetError());
+    coefficients = xSelectPIDCoefficients(_pFrontCartPID->dGetError());
     this->_pFrontCartPID->vSetKp(coefficients.dKp);
     this->_pFrontCartPID->vSetKi(coefficients.dKi);
     this->_pFrontCartPID->vSetKd(coefficients.dKd);
 
-    coefficients=xSelectPIDCoefficients(_pFrontCartPID->dGetError());
+    coefficients = xSelectPIDCoefficients(_pFrontCartPID->dGetError());
     this->_pBackCartPID->vSetKp(coefficients.dKp);
     this->_pBackCartPID->vSetKi(coefficients.dKi);
     this->_pBackCartPID->vSetKd(coefficients.dKd);
 
-    this->_pFrontCartPID->vSetSPAcceleration(SP_RAMP_SUBSTEP*DEG_TO_RAD, SP_RAMP_SUBSTEPS_NUMBER);
-    this->_pBackCartPID->vSetSPAcceleration(SP_RAMP_SUBSTEP*DEG_TO_RAD, SP_RAMP_SUBSTEPS_NUMBER);
+    this->_pFrontCartPID->vSetSPAcceleration(
+        SP_RAMP_SUBSTEP*DEG_TO_RAD, SP_RAMP_SUBSTEPS_NUMBER);
+    this->_pBackCartPID->vSetSPAcceleration(
+        SP_RAMP_SUBSTEP*DEG_TO_RAD, SP_RAMP_SUBSTEPS_NUMBER);
 }
 
-Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, double angular_vel)
+Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(
+    double linear_vel, double angular_vel)
 {
     Carts_Setpoints SP;
     // provide PIDs with Set Points, basing on received v and w
@@ -107,15 +110,20 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
             {
                 // Desired radius too small
                 SP = {M_PI / 2 , -M_PI / 2};
-                ROS_WARN_NAMED("agribot_navigation", "Radius = %f, lower than half of chasis length = %f", linear_vel/angular_vel, _dChassisLength / 2);
+                ROS_WARN_NAMED(
+                    "agribot_navigation",
+                    "Radius = %f, lower than half of chasis length = %f",
+                    linear_vel/angular_vel, _dChassisLength / 2);
             }
-            else 
+            else
             {
                 if (angular_vel * _dChassisLength / 2 / linear_vel < -1)
                 {
                     // Desired radius too small
                     SP = {-M_PI / 2 , M_PI / 2};
-                    ROS_WARN_NAMED("agribot_navigation", "Radius = %f, lower than half of chasis length = %f", linear_vel/angular_vel, _dChassisLength / 2);
+                    ROS_WARN_NAMED("agribot_navigation",
+                    "Radius = %f, lower than half of chasis length = %f",
+                    linear_vel/angular_vel, _dChassisLength / 2);
                 }
                 else
                 {
@@ -123,12 +131,20 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
                     if (linear_vel > 0)
                     {
                         // Moving forward - back cart is pulled
-                       SP = {this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel, angular_vel)) , -_pdCartAngle[FRONT_CART]};
+                       SP = {
+                           this->dRadiusToAngle(
+                               this->dVelocitiesToRadius(
+                                   linear_vel, angular_vel)),
+                           -_pdCartAngle[FRONT_CART]};
                     }
                     else
                     {
                         // Moving backwards - front cart is pulled
-                        SP = {-_pdCartAngle[BACK_CART], -this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel, angular_vel))};
+                        SP = {
+                            -_pdCartAngle[BACK_CART],
+                            -this->dRadiusToAngle(
+                                this->dVelocitiesToRadius(
+                                    linear_vel, angular_vel))};
                     }
                 }
             }
@@ -138,9 +154,9 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
             // Angular - yes / Linear -no
             SP = {M_PI / 2 , -M_PI / 2};
         }
-    }    
+    }
     else
-    {    
+    {
         // Angular - no
         if (linear_vel != 0)
         {
@@ -156,7 +172,8 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
     return SP;
 }
 
-double KinematicsControl::dCalculateLinearControls(double linear_vel, double angular_vel)
+double KinematicsControl::dCalculateLinearControls(
+    double linear_vel, double angular_vel)
 {
     if (angular_vel != 0)
     {
@@ -187,7 +204,8 @@ double KinematicsControl::dCalculateLinearControls(double linear_vel, double ang
     }
 }
 
-double KinematicsControl::dCalculateFrontAngularControl(double linear_vel, double angular_vel)
+double KinematicsControl::dCalculateFrontAngularControl(
+    double linear_vel, double angular_vel)
 {
     vUpdatePIDs(ros::Time::now().toSec());
     if (linear_vel == 0 && angular_vel == 0)
@@ -202,7 +220,8 @@ double KinematicsControl::dCalculateFrontAngularControl(double linear_vel, doubl
     }
 }
 
-double KinematicsControl::dCalculateBackAngularControl(double linear_vel, double angular_vel)
+double KinematicsControl::dCalculateBackAngularControl(
+    double linear_vel, double angular_vel)
 {
     vUpdatePIDs(ros::Time::now().toSec());
     if (linear_vel == 0 && angular_vel == 0)
@@ -220,10 +239,11 @@ double KinematicsControl::dCalculateBackAngularControl(double linear_vel, double
 void KinematicsControl::vSetPIDsSetpoints()
 {
     Carts_Setpoints CartsSetPoints;
-    CartsSetPoints = this->xCalculatePIDSetPoints(_pdInputLinear[X], _pdInputAngular[Z]);
+    CartsSetPoints = this->xCalculatePIDSetPoints(
+        _pdInputLinear[X], _pdInputAngular[Z]);
     this->_pFrontCartPID->vSetSP(CartsSetPoints.dFrontCartSP);
     this->_pBackCartPID->vSetSP(CartsSetPoints.dBackCartSP);
-    
+
     if (_pdInputLinear[X] == 0 && _pdInputAngular[Z] == 0)
     {
         this->_pFrontCartPID->vResetError();
@@ -292,7 +312,8 @@ double KinematicsControl::dMultiplierRoot4(double x)
 
 double KinematicsControl::dFrontCartAngleDifference()
 {
-    return abs(_pdCartAngle[FRONT_CART] - _pFrontCartPID->dGetDesiredSetPoint());
+    return abs(_pdCartAngle[FRONT_CART] -
+    _pFrontCartPID->dGetDesiredSetPoint());
 }
 
 double KinematicsControl::dBackCartAngleDifference()
@@ -300,32 +321,55 @@ double KinematicsControl::dBackCartAngleDifference()
     return abs(_pdCartAngle[BACK_CART] - _pBackCartPID->dGetDesiredSetPoint());
 }
 
-double KinematicsControl::dMaximumCartAngleDifference(double diff_front, double diff_back)
+double KinematicsControl::dMaximumCartAngleDifference(
+    double diff_front, double diff_back)
 {
     return std::max(diff_front, diff_back);
-}  
+}
 
 void KinematicsControl::vCalculateKinematicsControl()
 {
     this->vSetPIDsParameters();
     this->vSetPIDsSetpoints();
-    
-    _pdControl[0] = this->dCalculateLinearControls(_pdInputLinear[X], _pdInputAngular[Z]);
-    _pdControl[1] = this->dCalculateFrontAngularControl(_pdInputLinear[X], _pdInputAngular[Z]);
-    _pdControl[2] = this->dCalculateBackAngularControl(_pdInputLinear[X], _pdInputAngular[Z]);
-    
-    this->_dLinearMultiplier = this->dMultiplierGaussian(this->dMaximumCartAngleDifference(this->dFrontCartAngleDifference(), this->dBackCartAngleDifference())/ANGLE_RANGE);
-    this->_dAngularMultiplier = this->dCalculateAngularMultiplier(this->_dLinearMultiplier);
-    
-    _pdCaterpillarVelocities[FRONT_LINEAR] = this->_dLinearMultiplier * _pdControl[0];
-    _pdCaterpillarVelocities[FRONT_ANGULAR] = this->_dAngularMultiplier * _pdControl[1];
-    _pdCaterpillarVelocities[BACK_LINEAR] = this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) / cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
-    _pdCaterpillarVelocities[BACK_ANGULAR] = this->_dAngularMultiplier * _pdControl[2];
-    
-    #ifdef DEBUG 
-        ROS_INFO_NAMED("kinematics_control", "FRONT;%s", _pFrontCartPID->cPrintDebugInfo().c_str());
-        ROS_INFO_NAMED("kinematics_control", "BACK;%s", _pBackCartPID->cPrintDebugInfo().c_str());
-        ROS_INFO_NAMED("kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f", _pdCaterpillarVelocities[FRONT_LINEAR], _pdCaterpillarVelocities[BACK_LINEAR], this->_dLinearMultiplier, _pdControl[0], this->dFrontCartAngleDifference()*RAD_TO_DEG, this->dBackCartAngleDifference()*RAD_TO_DEG);
+
+    _pdControl[0] = this->dCalculateLinearControls(
+        _pdInputLinear[X], _pdInputAngular[Z]);
+    _pdControl[1] = this->dCalculateFrontAngularControl(
+        _pdInputLinear[X], _pdInputAngular[Z]);
+    _pdControl[2] = this->dCalculateBackAngularControl(
+        _pdInputLinear[X], _pdInputAngular[Z]);
+
+    this->_dLinearMultiplier = this->dMultiplierGaussian(
+        this->dMaximumCartAngleDifference(
+            this->dFrontCartAngleDifference(),
+            this->dBackCartAngleDifference())/ANGLE_RANGE);
+    this->_dAngularMultiplier = this->dCalculateAngularMultiplier(
+        this->_dLinearMultiplier);
+
+    _pdCaterpillarVelocities[FRONT_LINEAR] =
+    this->_dLinearMultiplier * _pdControl[0];
+    _pdCaterpillarVelocities[FRONT_ANGULAR] =
+    this->_dAngularMultiplier * _pdControl[1];
+    _pdCaterpillarVelocities[BACK_LINEAR] =
+    this->_dLinearMultiplier * cos(_pdCartAngle[FRONT_CART]) /
+        cos(_pdCartAngle[BACK_CART]) * _pdControl[0];
+    _pdCaterpillarVelocities[BACK_ANGULAR] =
+    this->_dAngularMultiplier * _pdControl[2];
+
+    #ifdef DEBUG
+        ROS_INFO_NAMED(
+            "kinematics_control", "FRONT;%s",
+            _pFrontCartPID->cPrintDebugInfo().c_str());
+        ROS_INFO_NAMED(
+            "kinematics_control", "BACK;%s",
+            _pBackCartPID->cPrintDebugInfo().c_str());
+        ROS_INFO_NAMED(
+            "kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f",
+            _pdCaterpillarVelocities[FRONT_LINEAR],
+            _pdCaterpillarVelocities[BACK_LINEAR],
+            this->_dLinearMultiplier, _pdControl[0],
+            this->dFrontCartAngleDifference()*RAD_TO_DEG,
+            this->dBackCartAngleDifference()*RAD_TO_DEG);
     #endif
     }
 
