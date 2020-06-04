@@ -155,6 +155,10 @@ add_library(simple_local_planner
   src/simple_local_planner.cpp
 )
 
+add_library(agribot_local_planner
+  src/agribot_local_planner.cpp
+)
+
 add_library(waypoint_global_planner
 	src/waypoint_global_planner.cpp
 )
@@ -182,6 +186,10 @@ target_link_libraries(kinematics_control
 )
 
 target_link_libraries(simple_local_planner
+	${catkin_LIBRARIES}
+)
+
+target_link_libraries(agribot_local_planner
 	${catkin_LIBRARIES}
 )
 
@@ -247,6 +255,12 @@ install(TARGETS
 
 install(
   TARGETS simple_local_planner
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(
+  TARGETS agribot_local_planner
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )

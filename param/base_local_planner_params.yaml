@@ -18,6 +18,30 @@ SimplePlannerROS:
   statistics: true
   take_front: false
 
+AgribotPlannerROS:
+  chassis_length: 2.1
+  max_linear_vel: 0.7
+  min_linear_vel: 0.1
+  min_radius: 1.5
+  dead_zone: 3.0
+  deviation_weight: 0.6
+  parallelness_weight: 10.0
+  goal_distance_tolerance: 0.75 # RADIUS
+  goal_range: 0.66 # COEFFICIENT
+  missed_points_tollerance: 10000
+  prediction_time: 60
+  prediction_points_per_second: 2
+  epsilon: 1e-3
+  design_dead_zone: 0.0 # degrees
+  design_arch_radius: 4.0 # metres
+  design_arch_step: 10.0 # degrees
+
+  arch_approach: false
+  speed_limit: true
+  debug: false
+  statistics: true
+  take_front: false
+
 
 TrajectoryPlannerROS:
 
