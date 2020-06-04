@@ -1,6 +1,8 @@
 # pragma once
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_navigation/PID.h>
+#include <ros/ros.h>
+#include <std_msgs/Float64.h>
 
 enum
 {
@@ -38,6 +40,29 @@ struct Carts_Setpoints
 class KinematicsControl: public AgribotComponent
 {
  private:
+    ros::Publisher _rFrontSetPointPub;
+    ros::Publisher _rFrontControlValuePub;
+    ros::Publisher _rFrontProcessValuePub;
+    ros::Publisher _rFrontErrorPub;
+    ros::Publisher _rFrontIntegralPub;
+    ros::Publisher _rFrontDerivativePub;
+    ros::Publisher _rFrontDesSetPointPub;
+
+    ros::Publisher _rBackSetPointPub;
+    ros::Publisher _rBackControlValuePub;
+    ros::Publisher _rBackProcessValuePub;
+    ros::Publisher _rBackErrorPub;
+    ros::Publisher _rBackIntegralPub;
+    ros::Publisher _rBackDerivativePub;
+    ros::Publisher _rBackDesSetPointPub;
+
+    ros::Publisher _rFrontVelPub;
+    ros::Publisher _rBackVelPub;
+    ros::Publisher _rMultipiterPub;
+    ros::Publisher _rSetPointPub;
+    ros::Publisher _rFrontDifPub;
+    ros::Publisher _rBackDifPub;
+
     double _pdInputLinear [3];
     double _pdInputAngular [3];
     double _pdCaterpillarVelocities  [4];
@@ -82,6 +107,7 @@ class KinematicsControl: public AgribotComponent
     virtual bool update();
     virtual bool stop();
     virtual bool cleanup();
+    void vCreatePubs(ros::NodeHandle n);
     void vSetInputLinear(double x, double y, double z);
     void vSetInputAngular(double x, double y, double z);
     void vSetChassisAngle(double theta);

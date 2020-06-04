@@ -73,4 +73,11 @@ class PID
     double dAverageFilter(double ValueNow,
                           double ValueBack1,
                           double ValueBack2);
+    double dGetSP();
+    double dGetCV();
+    double dGetPV();
+    double dGetER();
+    double dGetIE();
+    double dGetDE();
+    double dGetDSP();
 };

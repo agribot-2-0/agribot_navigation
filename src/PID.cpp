@@ -350,3 +350,33 @@ std::string PID::cPrintDebugInfo()
     << ";KD=" << this->_dKd;
     return ss.str();
 }
+
+
+double PID::dGetSP()
+{
+    return this->_dSetPoint * RAD_TO_DEG;
+}
+double PID::dGetCV()
+{
+    return this->_dControlValue * RAD_TO_DEG;
+}
+double PID::dGetPV()
+{
+    return this->_dProcessValue * RAD_TO_DEG;
+}
+double PID::dGetER()
+{
+    return this->_dError * RAD_TO_DEG;
+}
+double PID::dGetIE()
+{
+    return this->_dErrorIntegral * RAD_TO_DEG;
+}
+double PID::dGetDE()
+{
+    return this->_dDerivative * RAD_TO_DEG;
+}
+double PID::dGetDSP()
+{
+    return this->_dDesiredSetPoint * RAD_TO_DEG;
+}
