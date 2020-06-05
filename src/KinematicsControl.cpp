@@ -39,47 +39,47 @@ void KinematicsControl::vCreatePubs(ros::NodeHandle n)
 {
     #ifdef DEBUG
         _rFrontSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/frontPID/SP", 10);
+            std_msgs::Float64>("agribot/kin_controler/frontPID/SP", 10);
         _rFrontControlValuePub = n.advertise<
-            std_msgs::Float64>("agribot/debug/frontPID/CV", 10);
+            std_msgs::Float64>("agribot/kin_controler/frontPID/CV", 10);
         _rFrontProcessValuePub = n.advertise<
-            std_msgs::Float64>("agribot/debug/frontPID/PV", 10);
+            std_msgs::Float64>("agribot/kin_controler/frontPID/PV", 10);
         _rFrontErrorPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/frontPID/ER", 10);
+            std_msgs::Float64>("agribot/kin_controler/frontPID/ER", 10);
         _rFrontIntegralPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/frontPID/IN", 10);
+            std_msgs::Float64>("agribot/kin_controler/frontPID/IN", 10);
         _rFrontDerivativePub = n.advertise<
-            std_msgs::Float64>("agribot/debug/frontPID/DE", 10);
+            std_msgs::Float64>("agribot/kin_controler/frontPID/DE", 10);
         _rFrontDesSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/frontPID/DSP", 10);
+            std_msgs::Float64>("agribot/kin_controler/frontPID/DSP", 10);
 
         _rBackSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/backPID/SP", 10);
+            std_msgs::Float64>("agribot/kin_controler/backPID/SP", 10);
         _rBackControlValuePub = n.advertise<
-            std_msgs::Float64>("agribot/debug/backPID/CV", 10);
+            std_msgs::Float64>("agribot/kin_controler/backPID/CV", 10);
         _rBackProcessValuePub = n.advertise<
-            std_msgs::Float64>("agribot/debug/backPID/PV", 10);
+            std_msgs::Float64>("agribot/kin_controler/backPID/PV", 10);
         _rBackErrorPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/backPID/ER", 10);
+            std_msgs::Float64>("agribot/kin_controler/backPID/ER", 10);
         _rBackIntegralPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/backPID/IN", 10);
+            std_msgs::Float64>("agribot/kin_controler/backPID/IN", 10);
         _rBackDerivativePub = n.advertise<
-            std_msgs::Float64>("agribot/debug/backPID/DE", 10);
+            std_msgs::Float64>("agribot/kin_controler/backPID/DE", 10);
         _rBackDesSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/backPID/DSP", 10);
+            std_msgs::Float64>("agribot/kin_controler/backPID/DSP", 10);
 
         _rFrontVelPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/limiter/FV", 10);
+            std_msgs::Float64>("agribot/kin_controler/limiter/FV", 10);
         _rBackVelPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/limiter/BV", 10);
+            std_msgs::Float64>("agribot/kin_controler/limiter/BV", 10);
         _rMultipiterPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/limiter/MP", 10);
+            std_msgs::Float64>("agribot/kin_controler/limiter/MP", 10);
         _rSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/limiter/SP", 10);
+            std_msgs::Float64>("agribot/kin_controler/limiter/SP", 10);
         _rFrontDifPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/limiter/FD", 10);
+            std_msgs::Float64>("agribot/kin_controler/limiter/FD", 10);
         _rBackDifPub = n.advertise<
-            std_msgs::Float64>("agribot/debug/limiter/BD", 10);
+            std_msgs::Float64>("agribot/kin_controler/limiter/BD", 10);
     #endif
 }
 
