@@ -113,21 +113,6 @@ void PID::vSetSPAcceleration(double SubstepStepSize, int Substeps)
     this->_iSubsteps = Substeps;
 }
 
-double PID::dGetControlValue()
-{
-    return this->_dControlValue;
-}
-
-double PID::dGetError()
-{
-    return this->_dError;
-}
-
-double PID::dGetDesiredSetPoint()
-{
-    return this->_dDesiredSetPoint;
-}
-
 bool PID::bDesiredSetPointCrossedNextSetPoint(
     double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint)
 {
@@ -352,31 +337,37 @@ std::string PID::cPrintDebugInfo()
 }
 
 
-double PID::dGetSP()
+double PID::dGetSetPoint()
 {
-    return this->_dSetPoint * RAD_TO_DEG;
+    return this->_dSetPoint;
 }
-double PID::dGetCV()
+
+double PID::dGetControlValue()
 {
-    return this->_dControlValue * RAD_TO_DEG;
+    return this->_dControlValue;
 }
-double PID::dGetPV()
+
+double PID::dGetProcessValue()
 {
-    return this->_dProcessValue * RAD_TO_DEG;
+    return this->_dProcessValue;
 }
-double PID::dGetER()
+
+double PID::dGetError()
 {
-    return this->_dError * RAD_TO_DEG;
+    return this->_dError;
 }
-double PID::dGetIE()
+
+double PID::dGetIntegrationError()
 {
-    return this->_dErrorIntegral * RAD_TO_DEG;
+    return this->_dErrorIntegral;
 }
-double PID::dGetDE()
+
+double PID::dGetDerivativeError()
 {
-    return this->_dDerivative * RAD_TO_DEG;
+    return this->_dDerivative;
 }
-double PID::dGetDSP()
+
+double PID::dGetDesiredSetPoint()
 {
-    return this->_dDesiredSetPoint * RAD_TO_DEG;
+    return this->_dDesiredSetPoint;
 }

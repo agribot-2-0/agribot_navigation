@@ -39,47 +39,87 @@ void KinematicsControl::vCreatePubs(ros::NodeHandle n)
 {
     #ifdef DEBUG
         _rFrontSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/frontPID/SP", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/frontPID/SetPoint",
+                10);
         _rFrontControlValuePub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/frontPID/CV", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/frontPID/ControlValue",
+                10);
         _rFrontProcessValuePub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/frontPID/PV", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/frontPID/ProcessValue",
+                10);
         _rFrontErrorPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/frontPID/ER", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/frontPID/Error",
+                10);
         _rFrontIntegralPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/frontPID/IN", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/frontPID/IntegrationError",
+                10);
         _rFrontDerivativePub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/frontPID/DE", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/frontPID/DerivativeError",
+                10);
         _rFrontDesSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/frontPID/DSP", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/frontPID/DesiredSetPoint",
+                10);
 
         _rBackSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/backPID/SP", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/backPID/SetPoint",
+                10);
         _rBackControlValuePub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/backPID/CV", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/backPID/ControlValue",
+                10);
         _rBackProcessValuePub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/backPID/PV", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/backPID/ProcessValue",
+                10);
         _rBackErrorPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/backPID/ER", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/backPID/Error",
+                10);
         _rBackIntegralPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/backPID/IN", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/backPID/IntegrationError",
+                10);
         _rBackDerivativePub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/backPID/DE", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/backPID/DerivativeError",
+                10);
         _rBackDesSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/backPID/DSP", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/backPID/DesiredSetPoint",
+                10);
 
         _rFrontVelPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/limiter/FV", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/limiter/FrontVelocity",
+                10);
         _rBackVelPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/limiter/BV", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/limiter/BackVelocity",
+                10);
         _rMultipiterPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/limiter/MP", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/limiter/Multiplier",
+                10);
         _rSetPointPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/limiter/SP", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/limiter/SetPoint",
+                10);
         _rFrontDifPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/limiter/FD", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/limiter/FrontDifference",
+                10);
         _rBackDifPub = n.advertise<
-            std_msgs::Float64>("agribot/kin_controler/limiter/BD", 10);
+            std_msgs::Float64>(
+                "agribot/kin_controler/limiter/BackDifference",
+                10);
     #endif
 }
 
@@ -405,20 +445,6 @@ void KinematicsControl::vCalculateKinematicsControl()
     this->_dAngularMultiplier * _pdControl[2];
 
     #ifdef DEBUG
-    // ROS_INFO_NAMED(
-    //     "kinematics_control", "FRONT;%s",
-    //     _pFrontCartPID->cPrintDebugInfo().c_str());
-    // ROS_INFO_NAMED(
-    //     "kinematics_control", "BACK;%s",
-    //     _pBackCartPID->cPrintDebugInfo().c_str());
-    // ROS_INFO_NAMED(
-    //     "kinematics_control", "LINEAR;FV=%f;BV=%f;mp=%f;SP=%f;dF=%f;dB=%f",
-    //     _pdCaterpillarVelocities[FRONT_LINEAR],
-    //     _pdCaterpillarVelocities[BACK_LINEAR],
-    //     this->_dLinearMultiplier, _pdControl[0],
-    //     this->dFrontCartAngleDifference()*RAD_TO_DEG,
-    //     this->dBackCartAngleDifference()*RAD_TO_DEG);
-
         std_msgs::Float64 message_front_SP;
         std_msgs::Float64 message_front_CV;
         std_msgs::Float64 message_front_PV;
@@ -426,13 +452,20 @@ void KinematicsControl::vCalculateKinematicsControl()
         std_msgs::Float64 message_front_IE;
         std_msgs::Float64 message_front_DE;
         std_msgs::Float64 message_front_DSP;
-        message_front_SP.data = _pFrontCartPID->dGetSP();
-        message_front_CV.data = _pFrontCartPID->dGetCV();
-        message_front_PV.data = _pFrontCartPID->dGetPV();
-        message_front_ER.data = _pFrontCartPID->dGetER();
-        message_front_IE.data = _pFrontCartPID->dGetIE();
-        message_front_DE.data = _pFrontCartPID->dGetDE();
-        message_front_DSP.data = _pFrontCartPID->dGetDSP();
+        message_front_SP.data =
+            _pFrontCartPID->dGetSetPoint() * RAD_TO_DEG;
+        message_front_CV.data =
+            _pFrontCartPID->dGetControlValue() * RAD_TO_DEG;
+        message_front_PV.data =
+            _pFrontCartPID->dGetProcessValue() * RAD_TO_DEG;
+        message_front_ER.data =
+            _pFrontCartPID->dGetError() * RAD_TO_DEG;
+        message_front_IE.data =
+            _pFrontCartPID->dGetIntegrationError() * RAD_TO_DEG;
+        message_front_DE.data =
+            _pFrontCartPID->dGetDerivativeError() * RAD_TO_DEG;
+        message_front_DSP.data =
+            _pFrontCartPID->dGetDesiredSetPoint() * RAD_TO_DEG;
 
         std_msgs::Float64 message_back_SP;
         std_msgs::Float64 message_back_CV;
@@ -441,13 +474,20 @@ void KinematicsControl::vCalculateKinematicsControl()
         std_msgs::Float64 message_back_IE;
         std_msgs::Float64 message_back_DE;
         std_msgs::Float64 message_back_DSP;
-        message_back_SP.data = _pBackCartPID->dGetSP();
-        message_back_CV.data = _pBackCartPID->dGetCV();
-        message_back_PV.data = _pBackCartPID->dGetPV();
-        message_back_ER.data = _pBackCartPID->dGetER();
-        message_back_IE.data = _pBackCartPID->dGetIE();
-        message_back_DE.data = _pBackCartPID->dGetDE();
-        message_back_DSP.data = _pBackCartPID->dGetDSP();
+        message_back_SP.data =
+            _pBackCartPID->dGetSetPoint() * RAD_TO_DEG;
+        message_back_CV.data =
+            _pBackCartPID->dGetControlValue() * RAD_TO_DEG;
+        message_back_PV.data =
+            _pBackCartPID->dGetProcessValue() * RAD_TO_DEG;
+        message_back_ER.data =
+            _pBackCartPID->dGetError() * RAD_TO_DEG;
+        message_back_IE.data =
+            _pBackCartPID->dGetIntegrationError() * RAD_TO_DEG;
+        message_back_DE.data =
+            _pBackCartPID->dGetDerivativeError() * RAD_TO_DEG;
+        message_back_DSP.data =
+            _pBackCartPID->dGetDesiredSetPoint() * RAD_TO_DEG;
 
         std_msgs::Float64 message_linear_FV;
         std_msgs::Float64 message_linear_BV;
@@ -455,12 +495,18 @@ void KinematicsControl::vCalculateKinematicsControl()
         std_msgs::Float64 message_linear_SP;
         std_msgs::Float64 message_linear_FD;
         std_msgs::Float64 message_linear_BD;
-        message_linear_FV.data = _pdCaterpillarVelocities[FRONT_LINEAR];
-        message_linear_BV.data = _pdCaterpillarVelocities[BACK_LINEAR];
-        message_linear_MP.data = this->_dLinearMultiplier;
-        message_linear_SP.data = _pdControl[0];
-        message_linear_FD.data = this->dFrontCartAngleDifference()*RAD_TO_DEG;
-        message_linear_BD.data = this->dBackCartAngleDifference()*RAD_TO_DEG;
+        message_linear_FV.data =
+            _pdCaterpillarVelocities[FRONT_LINEAR];
+        message_linear_BV.data =
+            _pdCaterpillarVelocities[BACK_LINEAR];
+        message_linear_MP.data =
+            this->_dLinearMultiplier;
+        message_linear_SP.data =
+            _pdControl[0];
+        message_linear_FD.data =
+            this->dFrontCartAngleDifference()*RAD_TO_DEG;
+        message_linear_BD.data =
+            this->dBackCartAngleDifference()*RAD_TO_DEG;
 
         _rFrontSetPointPub.publish(message_front_SP);
         _rFrontControlValuePub.publish(message_front_CV);
