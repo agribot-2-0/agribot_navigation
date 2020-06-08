@@ -1,7 +1,6 @@
 #include "agribot_navigation/agribot_local_planner.h"
 
 #include <pluginlib/class_list_macros.h>
-#include <cmath>
 
 PLUGINLIB_EXPORT_CLASS(agribot_local_planner::AgribotPlannerROS,
 nav_core::BaseLocalPlanner)
@@ -117,12 +116,12 @@ namespace agribot_local_planner
                 _dActualTime = 0;
             }
 
-            ROS_DEBUG_STREAM("[SimplePlanner] Plugin initialized.");
+            ROS_DEBUG_STREAM("[AgribotPlanner] Plugin initialized.");
             gn.setParam("/agribot/simple_local_planer/is_inited", true);
         }
         else
         {
-            ROS_WARN_STREAM("[SimplePlanner] This planner has already been " <<
+            ROS_WARN_STREAM("[AgribotPlanner] This planner has already been " <<
                             "initialized, doing nothing.");
         }
     }
@@ -132,7 +131,7 @@ namespace agribot_local_planner
     {
         if (!_bInitialized)
         {
-            ROS_ERROR_STREAM("[SimplePlanner] Planner not initialized, " <<
+            ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, " <<
                              "call initialize() before planner");
             return false;
         }
@@ -161,7 +160,7 @@ namespace agribot_local_planner
             _dLastTime = 0;
             _dActualTime = 0;
         }
-        ROS_INFO_STREAM("[SimplePlanner] Received new plan, " <<
+        ROS_INFO_STREAM("[AgribotPlanner] Received new plan, " <<
                         "plan length = " << _iPlanLength);
         return true;
     }
@@ -174,7 +173,7 @@ namespace agribot_local_planner
 
         if (!_bInitialized)
         {
-            ROS_ERROR_STREAM("[SimplePlanner] Planner not initialized, " <<
+            ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, " <<
                              "call initialize() before planner");
             return false;
         }
@@ -189,19 +188,18 @@ namespace agribot_local_planner
 
             goal = nextWaypoint;
 
-
             // Deviation error for statistics
             if (param_statistics)
             {
-                    vCalculateDeviationIntegral(
-                    lastWaypoint, nextWaypoint, robotCenter);
+                vCalculateDeviationIntegral(
+                lastWaypoint, nextWaypoint, robotCenter);
             }
 
             // Increment missed points number
             if (bWaypointMissedCondition(
                 robotCenter, lastWaypoint, nextWaypoint))
             {
-                 ROS_ERROR_STREAM("[SimplePlanner] OUT OF PATH!");
+                 ROS_ERROR_STREAM("[AgribotPlanner] OUT OF PATH!");
                 _iMissedWaypointsCount++;
             }
 
@@ -214,7 +212,7 @@ namespace agribot_local_planner
             {
                 if (param_statistics)
                 {
-                    ROS_INFO_STREAM("[SimplePlanner] NEXT GOAL - Traveled "
+                    ROS_INFO_STREAM("[AgribotPlanner] NEXT GOAL - Traveled "
                                      <<_dTraveledDistance);
                 }
                 vTakeNextGoal(goal, robotCenter);
@@ -251,7 +249,7 @@ namespace agribot_local_planner
         {
           cmd_vel.linear.x = 0;
           cmd_vel.angular.z = 0;
-          ROS_ERROR("[SimplePlanner] Abort plan");
+          ROS_ERROR("[AgribotPlanner] Abort plan");
           return false;
         }
         else
@@ -420,18 +418,18 @@ namespace agribot_local_planner
         {
             // calculate angles and spans for archs
             double a_p1_ps = fmod(
-                dAngleBetweenFrames(tangent_point, c1_center) + 2 * PI,
-                2 * PI);
+                dAngleBetweenFrames(tangent_point, c1_center) + 2 * M_PI,
+                2 * M_PI);
             double a_p1_p2 = fmod(
-                dAngleBetweenFrames(c2_center, c1_center) + 2 * PI,
-                2 * PI);
+                dAngleBetweenFrames(c2_center, c1_center) + 2 * M_PI,
+                2 * M_PI);
             double c1_span = dLimitAngle(a_p1_p2 - a_p1_ps);
             double a_p2_p1 = fmod(
-                dAngleBetweenFrames(c1_center, c2_center) + 2 * PI,
-                2 * PI);
+                dAngleBetweenFrames(c1_center, c2_center) + 2 * M_PI,
+                2 * M_PI);
             double a_p2_pk = fmod(
-                dAngleBetweenFrames(endPoint, c2_center)+ 2 * PI,
-                2 * PI);
+                dAngleBetweenFrames(endPoint, c2_center)+ 2 * M_PI,
+                2 * M_PI);
             double c2_span = ((a_p2_pk - a_p2_p1));
 
             // append piece of global plan from start point to tangent point
@@ -641,7 +639,7 @@ namespace agribot_local_planner
         if (param_statistics)
         {
             _dStopTime = ros::Time::now().toSec();
-            ROS_INFO("[SimplePlanner] T = %f;l¸= %f;Er = %f;n = %d;x = %d",
+            ROS_INFO("[AgribotPlanner] T = %f;l¸= %f;Er = %f;n = %d;x = %d",
             _dStopTime - _dStartTime, _dTraveledDistance,
             _dDeviationIntegral, _iWaypointCount, _iMissedWaypointsCount);
         }
@@ -652,7 +650,7 @@ namespace agribot_local_planner
     {
         if (!_bInitialized)
         {
-            ROS_ERROR_STREAM("[SimplePlanner] Planner not initialized, " <<
+            ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, " <<
                              "call initialize() before planner");
             return false;
         }

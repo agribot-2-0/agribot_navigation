@@ -16,9 +16,9 @@
 #include <costmap_2d/costmap_2d_ros.h>
 #include <vector>
 #include <string>
-#define PI 3.14159265
-#define DEG_TO_RAD (PI/180)
-#define RAD_TO_DEG (180/PI)
+#include <cmath>
+#define DEG_TO_RAD (M_PI/180)
+#define RAD_TO_DEG (180/M_PI)
 
 namespace agribot_local_planner{
 struct pos
@@ -86,7 +86,6 @@ class AgribotPlannerROS : public nav_core::BaseLocalPlanner{
     double param_arch_radius;
     double param_arch_step;
 
-    bool param_arch_approach;
     bool param_speed_limit;
     bool param_debug;
     bool param_statistics;
@@ -99,7 +98,6 @@ class AgribotPlannerROS : public nav_core::BaseLocalPlanner{
     pos pCalculateRobotFrontPosition(pos robotCenter);
     pos pGetFrame(int count);
     pos pGetWaypoint(int count);
-    pos pCalculateGoal(pos nextWaypoint, pos robotCenter);
     pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter, double range);
     pos pCalculateProjection(pos lastWaypoint,
                              pos nextWaypoint,
@@ -108,9 +106,6 @@ class AgribotPlannerROS : public nav_core::BaseLocalPlanner{
     pos pFrameFromPoseStamped(geometry_msgs::PoseStamped ps);
     geometry_msgs::Twist xSetVel(pos goal, pos nextWaypoint,
                                  pos lastWaypoint, pos robotCenter);
-    geometry_msgs::Twist xArchApproach(pos goal,
-                                       pos robotCenter,
-                                       geometry_msgs::Twist velocity);
     geometry_msgs::Twist xDeviationApproach(pos goal,
                                             pos lastWaipoint,
                                             pos robotCenter,
