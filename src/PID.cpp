@@ -113,21 +113,6 @@ void PID::vSetSPAcceleration(double SubstepStepSize, int Substeps)
     this->_iSubsteps = Substeps;
 }
 
-double PID::dGetControlValue()
-{
-    return this->_dControlValue;
-}
-
-double PID::dGetError()
-{
-    return this->_dError;
-}
-
-double PID::dGetDesiredSetPoint()
-{
-    return this->_dDesiredSetPoint;
-}
-
 bool PID::bDesiredSetPointCrossedNextSetPoint(
     double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint)
 {
@@ -349,4 +334,40 @@ std::string PID::cPrintDebugInfo()
     << ";KI=" << this->_dKi
     << ";KD=" << this->_dKd;
     return ss.str();
+}
+
+
+double PID::dGetSetPoint()
+{
+    return this->_dSetPoint;
+}
+
+double PID::dGetControlValue()
+{
+    return this->_dControlValue;
+}
+
+double PID::dGetProcessValue()
+{
+    return this->_dProcessValue;
+}
+
+double PID::dGetError()
+{
+    return this->_dError;
+}
+
+double PID::dGetIntegrationError()
+{
+    return this->_dErrorIntegral;
+}
+
+double PID::dGetDerivativeError()
+{
+    return this->_dDerivative;
+}
+
+double PID::dGetDesiredSetPoint()
+{
+    return this->_dDesiredSetPoint;
 }

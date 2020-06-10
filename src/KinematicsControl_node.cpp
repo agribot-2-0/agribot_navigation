@@ -41,6 +41,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "kinematics_control");
     ros::NodeHandle n;
+    KinControl.vCreatePubs(n);
     ros::Rate loop_rate(100);
     std::string command_sub_topic;
 
