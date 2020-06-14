@@ -37,7 +37,8 @@ namespace agribot_local_planner
             _rNextGoalPub = pnh.advertise<
                 visualization_msgs::Marker>("next_goal", 10);
             _rLocalPathPub = pnh.advertise<
-                visualization_msgs::MarkerArray>("local_path", 10);
+                nav_msgs::Path>("local_path", 10);
+            _xLocalPath.header.frame_id = "map";
 
             pnh.param("goal_distance_tolerance",
                         param_goal_distance_tolerance,
@@ -142,7 +143,6 @@ namespace agribot_local_planner
         _xLocalPlan = orig_global_plan;
         _xDisplayPlan.clear();
         _xDisplayPlan = xDesignLocalPath(orig_global_plan);
-        vLocalPathVisualization(_xDisplayPlan);
         _xLocalPlan.clear();
         _xLocalPlan = _xDisplayPlan;
         _iPlanLength = _xLocalPlan.size();
@@ -170,6 +170,7 @@ namespace agribot_local_planner
     {
         geometry_msgs::Twist velocity;
         pos goal;
+        vLocalPathVisualization(_xDisplayPlan);
 
         if (!_bInitialized)
         {
@@ -1109,32 +1110,10 @@ namespace agribot_local_planner
     void AgribotPlannerROS::vLocalPathVisualization(
     const std::vector<geometry_msgs::PoseStamped>& path)
     {
-        // clear previous markers
-        visualization_msgs::MarkerArray markers;
-        visualization_msgs::Marker marker;
-        marker.header = path[0].header;
-        marker.ns = "/move_base/local_planner";
-        marker.type = visualization_msgs::Marker::SPHERE;
-        marker.action = visualization_msgs::Marker::DELETEALL;
-        marker.scale.x = 0.25;
-        marker.scale.y = 0.25;
-        marker.scale.z = 0.01;
-        marker.color.a = 1.0;
-        marker.color.r = 1.0;
-        marker.id = 0;
-        markers.markers.push_back(marker);
-        _rLocalPathPub.publish(markers);
-        marker.action = visualization_msgs::Marker::ADD;
-        markers.markers.clear();
-        size_t i;
-        for (i = 0; i < path.size(); i++)
-        {
-            marker.id = i;
-            marker.pose.position = path[i].pose.position;
-            marker.pose.orientation.w = 1;
-            markers.markers.push_back(marker);
-        }
-        _rLocalPathPub.publish(markers);
+        _xLocalPath.header.stamp = ros::Time::now();
+        _xLocalPath.poses.clear();
+        _xLocalPath.poses = path;
+        _rLocalPathPub.publish(_xLocalPath);
     }
 
     void AgribotPlannerROS::vVisualizations(

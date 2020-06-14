@@ -51,6 +51,7 @@ class AgribotPlannerROS : public nav_core::BaseLocalPlanner{
     std::vector<geometry_msgs::PoseStamped> _xPlan;
     std::vector<geometry_msgs::PoseStamped> _xLocalPlan;
     std::vector<geometry_msgs::PoseStamped> _xDisplayPlan;
+    nav_msgs::Path _xLocalPath;
     geometry_msgs::Twist _xVelocities;  // contains the velocity
     visualization_msgs::Marker _traveledPoints;
     geometry_msgs::PoseStamped _pRobotCenter;  // present robot center frame
