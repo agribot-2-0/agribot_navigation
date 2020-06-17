@@ -8,14 +8,6 @@
 #define RAD_TO_DEG (180/M_PI)
 #define DEG_TO_RAD (M_PI/180)
 #define ANGLE_RANGE (M_PI/2)
-#define LIMIT (10.0*DEG_TO_RAD)
-#define KP_VAL 0.75
-#define KI_VAL 0.208333
-#define KD_VAL (1.378125/2)
-#define KP_PRECISE (KP_VAL*2.0/7)
-#define KI_PRECISE (KI_VAL*8.0/35)
-#define KD_PRECISE (KD_VAL*40.0/63)
-#define PRECISE_PID_RANGE 2.0
 #define LINEARITY_RANGE 5.0
 #define SP_RAMP_SUBSTEP 0.225
 #define SP_RAMP_SUBSTEPS_NUMBER 20
@@ -31,8 +23,21 @@ KinematicsControl::KinematicsControl()
     this->_dWheelSeparation = 1.05 + 0.025;
     this->_dChassisLength = 2.42 - 2 * _dWheelRadius;
     this->_dLinearMultiplier = 1;
-    this->_pFrontCartPID = new PID(KP_VAL, KD_VAL, KI_VAL, -LIMIT, LIMIT);
-    this->_pBackCartPID = new PID(KP_VAL, KD_VAL, KI_VAL, -LIMIT, LIMIT);
+
+    this->_dCoarseKp = 0.0;
+    this->_dCoarseKi = 0.0;
+    this->_dCoarseKd = 0.0;
+    this->_dPreciseKp = 0.0;
+    this->_dPreciseKd = 0.0;
+    this->_dPreciseKi = 0.0;
+
+    this->_dFrontLimit = 0.0;
+    this->_dBackLimit = 0.0;
+
+    this->_dPrecisionRange = 0.0;
+
+    this->_pFrontCartPID = new PID();
+    this->_pBackCartPID = new PID();
 }
 
 void KinematicsControl::vCreatePubs(ros::NodeHandle n)
@@ -152,13 +157,17 @@ bool KinematicsControl::cleanup()
 PID_terms_coefficients KinematicsControl::xSelectPIDCoefficients(double Error)
 {
     PID_terms_coefficients coefficients;
-    if (abs(Error*RAD_TO_DEG) > PRECISE_PID_RANGE)
+    if (abs(Error*RAD_TO_DEG) > this->_dPrecisionRange)
     {
-        coefficients = {KP_VAL, KI_VAL, KD_VAL};
+        coefficients = {this->_dCoarseKp,
+                        this->_dCoarseKi,
+                        this->_dCoarseKd};
     }
     else
     {
-        coefficients = {KP_PRECISE, KI_PRECISE, KD_PRECISE};
+        coefficients = {this->_dPreciseKp,
+                        this->_dPreciseKi,
+                        this->_dPreciseKd};
     }
     return coefficients;
 }
@@ -573,4 +582,57 @@ void KinematicsControl::vUpdatePIDs(double t)
     this->_pFrontCartPID->Update(_pdCartAngle[FRONT_CART], dt);
     this->_pBackCartPID->Update(_pdCartAngle[BACK_CART], dt);
     this->_dLastTime = t;
+}
+
+void KinematicsControl::vSetPreciseKp(double Kp)
+{
+    this->_dPreciseKp = Kp;
+}
+
+void KinematicsControl::vSetPreciseKi(double Ki)
+{
+    this->_dPreciseKi = Ki;
+}
+
+void KinematicsControl::vSetPreciseKd(double Kd)
+{
+    this->_dPreciseKd = Kd;
+}
+
+void KinematicsControl::vSetCoarseKp(double Kp)
+{
+    this->_dCoarseKp = Kp;
+}
+
+void KinematicsControl::vSetCoarseKi(double Ki)
+{
+    this->_dCoarseKi = Ki;
+}
+
+void KinematicsControl::vSetCoarseKd(double Kd)
+{
+    this->_dCoarseKd = Kd;
+}
+
+void KinematicsControl::vSetFrontLimit(double limit)
+{
+    this->_dFrontLimit = limit * DEG_TO_RAD;;
+    this->_pFrontCartPID->vSetLowLimit(
+        -this->_dFrontLimit);
+    this->_pFrontCartPID->vSetHighLimit(
+        this->_dFrontLimit);
+}
+
+void KinematicsControl::vSetBackLimit(double limit)
+{
+    this->_dBackLimit = limit * DEG_TO_RAD;;
+    this->_pBackCartPID->vSetLowLimit(
+        -this->_dBackLimit);
+    this->_pBackCartPID->vSetHighLimit(
+        this->_dBackLimit);
+}
+
+void KinematicsControl::vSetPrecisionRange(double range)
+{
+    this->_dPrecisionRange = range;
 }
