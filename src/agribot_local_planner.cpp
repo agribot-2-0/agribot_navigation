@@ -293,13 +293,13 @@ namespace agribot_local_planner
         if (angle_difference < -param_local_dead_zone * DEG_TO_RAD)
         {
             double perpendicular = end_orientation - 90 * DEG_TO_RAD;
-            c2_center.x = endPoint.x - param_arch_radius * cos(perpendicular);
+            c2_center.x = endPoint.x + param_arch_radius * cos(perpendicular);
             c2_center.y = endPoint.y + param_arch_radius * sin(perpendicular);
         }
         else if (angle_difference > param_local_dead_zone * DEG_TO_RAD)
         {
             double perpendicular = end_orientation + 90 * DEG_TO_RAD;
-            c2_center.x = endPoint.x - param_arch_radius * cos(perpendicular);
+            c2_center.x = endPoint.x + param_arch_radius * cos(perpendicular);
             c2_center.y = endPoint.y + param_arch_radius * sin(perpendicular);
         }
         else
@@ -418,20 +418,32 @@ namespace agribot_local_planner
         else
         {
             // calculate angles and spans for archs
-            double a_p1_ps = fmod(
-                dAngleBetweenFrames(tangent_point, c1_center) + 2 * M_PI,
-                2 * M_PI);
-            double a_p1_p2 = fmod(
-                dAngleBetweenFrames(c2_center, c1_center) + 2 * M_PI,
-                2 * M_PI);
+            double a_p1_ps = dAngleBetweenFrames(tangent_point, c1_center);
+            double a_p1_p2 = dAngleBetweenFrames(c2_center, c1_center);
             double c1_span = dLimitAngle(a_p1_p2 - a_p1_ps);
-            double a_p2_p1 = fmod(
-                dAngleBetweenFrames(c1_center, c2_center) + 2 * M_PI,
-                2 * M_PI);
-            double a_p2_pk = fmod(
-                dAngleBetweenFrames(endPoint, c2_center)+ 2 * M_PI,
-                2 * M_PI);
-            double c2_span = ((a_p2_pk - a_p2_p1));
+            double a_p2_p1 = dAngleBetweenFrames(c1_center, c2_center);
+            double a_p2_pk = dAngleBetweenFrames(endPoint, c2_center);
+            double c2_span = a_p2_pk - a_p2_p1;
+
+            // if the final orientation relative to path is positive
+            // (robot turns left), circle C2 is followed counterclockwise
+            // C2 is followed clockwise in right turn case
+            if (angle_difference < 0)
+            {
+                if (c2_span > 0)
+                {
+                    c2_span = fmod(c2_span - 360 * DEG_TO_RAD,
+                                   360 * DEG_TO_RAD);
+                }
+            }
+            else
+            {
+                if (c2_span < 0)
+                {
+                    c2_span = fmod(c2_span + 360 * DEG_TO_RAD,
+                                   360 * DEG_TO_RAD);
+                }
+            }
 
             // append piece of global plan from start point to tangent point
             for (int i = 0; i < planLength; i++)
