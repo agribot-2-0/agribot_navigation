@@ -46,9 +46,9 @@ void callback(agribot_navigation::KinematicsConfig &config, uint32_t level) {
     KinControl.vSetCoarseKp(config.precise_Kp);
     KinControl.vSetCoarseKi(config.precise_Ki);
     KinControl.vSetCoarseKd(config.precise_Kd);
-    KinControl.vSetFrontLimit(config.precision_range);
-    KinControl.vSetBackLimit(config.front_limit);
-    KinControl.vSetPrecisionRange(config.back_limit);
+    KinControl.vSetFrontLimit(config.front_limit);
+    KinControl.vSetBackLimit(config.back_limit);
+    KinControl.vSetPrecisionRange(config.precision_range);
 }
 
 int main(int argc, char **argv)
@@ -111,9 +111,9 @@ int main(int argc, char **argv)
     KinControl.vSetCoarseKp(PreciseKp);
     KinControl.vSetCoarseKi(PreciseKd);
     KinControl.vSetCoarseKd(PreciseKi);
-    KinControl.vSetFrontLimit(PrecisionRange);
-    KinControl.vSetBackLimit(FrontLimit);
-    KinControl.vSetPrecisionRange(BackLimit);
+    KinControl.vSetFrontLimit(FrontLimit);
+    KinControl.vSetBackLimit(BackLimit);
+    KinControl.vSetPrecisionRange(PrecisionRange);
 
     KinControl.vCreatePubs(n);
     ros::Rate loop_rate(100);
