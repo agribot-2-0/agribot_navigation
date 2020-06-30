@@ -5,6 +5,7 @@
 enum ArbiterState
 {
     NO_SELECTION,
+    STOP,
     NAVIGATION,
     TELEOP
 };
@@ -16,6 +17,7 @@ class CmdVelArbiter
     ros::Publisher _outPub;
     ros::Subscriber _inSub;
 
+    ros::ServiceServer switchToStopService;
     ros::ServiceServer switchToNavigationService;
     ros::ServiceServer switchToTeleopService;
 
@@ -29,16 +31,20 @@ class CmdVelArbiter
     _arbiterState(NO_SELECTION)
     {
         // Out topic
-        _outPub = _nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+        _outPub = _nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1, true);
 
         // Read topic parameters
         _navTopic = "/cmd_vel_navigation";
         _teleopTopic = "/cmd_vel_teleop";
 
         std::string startingState;
-        _nh.param<std::string>("starting_state", startingState, "teleop");
+        _nh.param<std::string>("starting_state", startingState, "stop");
 
-        if (startingState == "navigation")
+        if (startingState == "stop")
+        {
+            switchToStop();
+        }
+        else if (startingState == "navigation")
         {
             switchToNavigation();
         }
@@ -54,6 +60,9 @@ class CmdVelArbiter
         }
 
         // Switching services
+        switchToStopService = _nh.advertiseService(
+            "switch_to_stop",
+            &CmdVelArbiter::switchToStopSrvCb, this);
         switchToNavigationService = _nh.advertiseService(
             "switch_to_navigation",
             &CmdVelArbiter::switchToNavigationSrvCb, this);
@@ -74,6 +83,26 @@ class CmdVelArbiter
             _teleopTopic, 1, &CmdVelArbiter::inCallback, this);
     }
 
+    bool switchToStop()
+    {
+        if (_arbiterState != STOP)
+        {
+            _inSub.shutdown();
+            _arbiterState = STOP;
+            publishStopCmdVel();
+
+            ROS_INFO_STREAM(
+                "cmd_vel switched to stop");
+        }
+        else
+        {
+            ROS_WARN_STREAM(
+                "cmd_vel IS ALREADY switched to stop");
+        }
+
+        return true;
+    }
+
     bool switchToNavigation()
     {
         if (_arbiterState != NAVIGATION)
@@ -85,6 +114,12 @@ class CmdVelArbiter
             ROS_INFO_STREAM(
                 "cmd_vel switched to navigation (topic: " << _navTopic << ")");
         }
+        else
+        {
+            ROS_WARN_STREAM(
+                "cmd_vel IS ALREADY switched to navigation");
+        }
+
         return true;
     }
 
@@ -99,7 +134,19 @@ class CmdVelArbiter
             ROS_INFO_STREAM(
                 "cmd_vel switched to teleop (topic: " << _teleopTopic << ")");
         }
+        else
+        {
+            ROS_WARN_STREAM(
+                "cmd_vel IS ALREADY switched to teleop");
+        }
+
         return true;
+    }
+
+    bool switchToStopSrvCb(std_srvs::Empty::Request &req,
+        std_srvs::Empty::Response &res)
+    {
+        return switchToStop();
     }
 
     bool switchToNavigationSrvCb(std_srvs::Empty::Request &req,
@@ -116,6 +163,21 @@ class CmdVelArbiter
 
     void inCallback(const geometry_msgs::Twist::ConstPtr& msg)
     {
+        _outPub.publish(msg);
+    }
+
+    void publishStopCmdVel()
+    {
+        geometry_msgs::Twist msg;
+
+        msg.linear.x = 0.0;
+        msg.linear.y = 0.0;
+        msg.linear.z = 0.0;
+
+        msg.angular.x = 0.0;
+        msg.angular.y = 0.0;
+        msg.angular.z = 0.0;
+
         _outPub.publish(msg);
     }
 
