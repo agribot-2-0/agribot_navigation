@@ -174,6 +174,7 @@ add_executable(path_publisher
 
 add_executable(cmd_vel_arbiter_node
   src/cmd_vel_arbiter_node.cpp
+  src/CmdVelArbiterNode.cpp
 )
 
 target_link_libraries(kinematics_control
