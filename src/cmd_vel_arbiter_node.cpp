@@ -66,16 +66,12 @@ class CmdVelArbiter
     {
         _inSub = _nh.subscribe(
             _navTopic, 1, &CmdVelArbiter::inCallback, this);
-        ROS_INFO_STREAM(
-            "cmd_vel switched to navigation (topic: " << _navTopic << ")");
     }
 
     void subscribeToTeleop()
     {
         _inSub = _nh.subscribe(
             _teleopTopic, 1, &CmdVelArbiter::inCallback, this);
-        ROS_INFO_STREAM(
-            "cmd_vel switched to teleop (topic: " << _teleopTopic << ")");
     }
 
     bool switchToNavigation()
@@ -85,6 +81,9 @@ class CmdVelArbiter
             _inSub.shutdown();
             _arbiterState = NAVIGATION;
             subscribeToNavigation();
+
+            ROS_INFO_STREAM(
+                "cmd_vel switched to navigation (topic: " << _navTopic << ")");
         }
         return true;
     }
@@ -96,6 +95,9 @@ class CmdVelArbiter
             _inSub.shutdown();
             _arbiterState = TELEOP;
             subscribeToTeleop();
+
+            ROS_INFO_STREAM(
+                "cmd_vel switched to teleop (topic: " << _teleopTopic << ")");
         }
         return true;
     }
