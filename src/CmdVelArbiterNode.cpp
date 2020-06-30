@@ -2,7 +2,7 @@
 
 CmdVelArbiterNode::CmdVelArbiterNode(ros::NodeHandle *nh):
     _nh(*nh),
-    _arbiterState(NO_SELECTION)
+    _arbiterState(ArbiterState::NO_SELECTION)
 {
     // Out topic
     _outPub = _nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1, true);
@@ -21,7 +21,6 @@ CmdVelArbiterNode::CmdVelArbiterNode(ros::NodeHandle *nh):
 
     ROS_INFO_STREAM(
         "Created cmd_vel timeout timer with " << timeout << "s...");
-
 
     if (startingState == "stop")
     {
@@ -68,13 +67,13 @@ void CmdVelArbiterNode::subscribeToTeleop()
 
 bool CmdVelArbiterNode::switchToStop()
 {
-    if (_arbiterState != STOP)
+    if (_arbiterState != ArbiterState::STOP)
     {
         // Disconnect previous subscriber
         _inSub.shutdown();
 
         // Set ArbiterState
-        _arbiterState = STOP;
+        _arbiterState = ArbiterState::STOP;
 
         // Stop timeoutTimer
         stopTimeoutTimer();
@@ -96,13 +95,13 @@ bool CmdVelArbiterNode::switchToStop()
 
 bool CmdVelArbiterNode::switchToNavigation()
 {
-    if (_arbiterState != NAVIGATION)
+    if (_arbiterState != ArbiterState::NAVIGATION)
     {
         // Disconnect previous subscriber
         _inSub.shutdown();
 
         // Set ArbiterState
-        _arbiterState = NAVIGATION;
+        _arbiterState = ArbiterState::NAVIGATION;
 
         // Start timeoutTimer
         startTimeoutTimer();
@@ -124,13 +123,13 @@ bool CmdVelArbiterNode::switchToNavigation()
 
 bool CmdVelArbiterNode::switchToTeleop()
 {
-    if (_arbiterState != TELEOP)
+    if (_arbiterState != ArbiterState::TELEOP)
     {
         // Disconnect previous subscriber
         _inSub.shutdown();
 
         // Set ArbiterState
-        _arbiterState = TELEOP;
+        _arbiterState = ArbiterState::TELEOP;
 
         // Start timeoutTimer
         startTimeoutTimer();
@@ -209,16 +208,8 @@ void CmdVelArbiterNode::timeoutCallback(const ros::TimerEvent& event)
 
 void CmdVelArbiterNode::publishStopToCmdVel()
 {
+    // Publish zero velocities to stop the robot
     geometry_msgs::Twist msg;
-
-    msg.linear.x = 0.0;
-    msg.linear.y = 0.0;
-    msg.linear.z = 0.0;
-
-    msg.angular.x = 0.0;
-    msg.angular.y = 0.0;
-    msg.angular.z = 0.0;
-
     _outPub.publish(msg);
 }
 

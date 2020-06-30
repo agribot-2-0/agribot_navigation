@@ -4,7 +4,7 @@
 
 #include <string>
 
-enum ArbiterState
+enum class ArbiterState
 {
     NO_SELECTION,
     STOP,
