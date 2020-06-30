@@ -13,6 +13,15 @@ CmdVelArbiterNode::CmdVelArbiterNode(ros::NodeHandle *nh):
 
     std::string startingState;
     _nh.param<std::string>("starting_state", startingState, "stop");
+    _nh.param<float>("timeout", timeout, 0.5);
+
+    // Create one-shot timeout timer and leave it in stopped state
+    createTimeoutTimer();
+    stopTimeoutTimer();
+
+    ROS_INFO_STREAM(
+        "Created cmd_vel timeout timer with " << timeout << "s...");
+
 
     if (startingState == "stop")
     {
@@ -61,8 +70,16 @@ bool CmdVelArbiterNode::switchToStop()
 {
     if (_arbiterState != STOP)
     {
+        // Disconnect previous subscriber
         _inSub.shutdown();
+
+        // Set ArbiterState
         _arbiterState = STOP;
+
+        // Stop timeoutTimer
+        stopTimeoutTimer();
+
+        // Publish zeros to cmd_vel once to stop robot
         publishStopToCmdVel();
 
         ROS_INFO_STREAM(
@@ -81,8 +98,16 @@ bool CmdVelArbiterNode::switchToNavigation()
 {
     if (_arbiterState != NAVIGATION)
     {
+        // Disconnect previous subscriber
         _inSub.shutdown();
+
+        // Set ArbiterState
         _arbiterState = NAVIGATION;
+
+        // Start timeoutTimer
+        startTimeoutTimer();
+
+        // Subscribe to navigation cmd_vel
         subscribeToNavigation();
 
         ROS_INFO_STREAM(
@@ -101,8 +126,16 @@ bool CmdVelArbiterNode::switchToTeleop()
 {
     if (_arbiterState != TELEOP)
     {
+        // Disconnect previous subscriber
         _inSub.shutdown();
+
+        // Set ArbiterState
         _arbiterState = TELEOP;
+
+        // Start timeoutTimer
+        startTimeoutTimer();
+
+        // Subscribe to teleop cmd_vel
         subscribeToTeleop();
 
         ROS_INFO_STREAM(
@@ -115,6 +148,28 @@ bool CmdVelArbiterNode::switchToTeleop()
     }
 
     return true;
+}
+
+void CmdVelArbiterNode::createTimeoutTimer()
+{
+    timeoutTimer = _nh.createTimer(ros::Duration(timeout),
+        &CmdVelArbiterNode::timeoutCallback, this, true);
+}
+
+void CmdVelArbiterNode::stopTimeoutTimer()
+{
+    timeoutTimer.stop();
+}
+
+void CmdVelArbiterNode::startTimeoutTimer()
+{
+    timeoutTimer.start();
+}
+
+void CmdVelArbiterNode::restartTimeoutTimer()
+{
+    timeoutTimer.stop();
+    timeoutTimer.start();
 }
 
 bool CmdVelArbiterNode::switchToStopSrvCb(std_srvs::Empty::Request &req,
@@ -137,7 +192,19 @@ bool CmdVelArbiterNode::switchToTeleopSrvCb(std_srvs::Empty::Request &req,
 
 void CmdVelArbiterNode::inCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
+    // Rewrite message
     _outPub.publish(msg);
+
+    // Restart timeoutTimer
+    restartTimeoutTimer();
+}
+
+void CmdVelArbiterNode::timeoutCallback(const ros::TimerEvent& event)
+{
+    ROS_ERROR_STREAM(
+        "cmd_vel timeout exceeded " << timeout << "s...");
+
+    switchToStop();
 }
 
 void CmdVelArbiterNode::publishStopToCmdVel()

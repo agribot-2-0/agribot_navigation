@@ -23,6 +23,9 @@ class CmdVelArbiterNode
     ros::ServiceServer switchToNavigationService;
     ros::ServiceServer switchToTeleopService;
 
+    ros::Timer timeoutTimer;
+    float timeout;
+
     ArbiterState _arbiterState;
     std::string _navTopic;
     std::string _teleopTopic;
@@ -36,6 +39,11 @@ class CmdVelArbiterNode
     bool switchToNavigation();
     bool switchToTeleop();
 
+    void createTimeoutTimer();
+    void stopTimeoutTimer();
+    void startTimeoutTimer();
+    void restartTimeoutTimer();
+
     bool switchToStopSrvCb(std_srvs::Empty::Request &req,
         std_srvs::Empty::Response &res);
     bool switchToNavigationSrvCb(std_srvs::Empty::Request &req,
@@ -44,6 +52,7 @@ class CmdVelArbiterNode
         std_srvs::Empty::Response &res);
 
     void inCallback(const geometry_msgs::Twist::ConstPtr& msg);
+    void timeoutCallback(const ros::TimerEvent& event);
     void publishStopToCmdVel();
     void run();
 };
