@@ -40,11 +40,11 @@ class CmdVelArbiter
 
         if (startingState == "navigation")
         {
-            subscribeToNavigation();
+            switchToNavigation();
         }
         else if (startingState == "teleop")
         {
-            subscribeToTeleop();
+            switchToTeleop();
         }
         else
         {
@@ -56,9 +56,10 @@ class CmdVelArbiter
         // Switching services
         switchToNavigationService = _nh.advertiseService(
             "switch_to_navigation",
-            &CmdVelArbiter::switchToNavigation, this);
+            &CmdVelArbiter::switchToNavigationSrvCb, this);
         switchToTeleopService = _nh.advertiseService(
-            "switch_to_teleop", &CmdVelArbiter::switchToTeleop, this);
+            "switch_to_teleop",
+            &CmdVelArbiter::switchToTeleopSrvCb, this);
     }
 
     void subscribeToNavigation()
@@ -67,7 +68,6 @@ class CmdVelArbiter
             _navTopic, 1, &CmdVelArbiter::inCallback, this);
         ROS_INFO_STREAM(
             "cmd_vel switched to navigation (topic: " << _navTopic << ")");
-        _arbiterState = NAVIGATION;
     }
 
     void subscribeToTeleop()
@@ -76,29 +76,40 @@ class CmdVelArbiter
             _teleopTopic, 1, &CmdVelArbiter::inCallback, this);
         ROS_INFO_STREAM(
             "cmd_vel switched to teleop (topic: " << _teleopTopic << ")");
-        _arbiterState = TELEOP;
     }
 
-    bool switchToNavigation(std_srvs::Empty::Request &req,
-                            std_srvs::Empty::Response &res)
+    bool switchToNavigation()
     {
         if (_arbiterState != NAVIGATION)
         {
             _inSub.shutdown();
+            _arbiterState = NAVIGATION;
             subscribeToNavigation();
         }
         return true;
     }
 
-    bool switchToTeleop(std_srvs::Empty::Request &req,
-                        std_srvs::Empty::Response &res)
+    bool switchToTeleop()
     {
         if (_arbiterState != TELEOP)
         {
             _inSub.shutdown();
+            _arbiterState = TELEOP;
             subscribeToTeleop();
         }
         return true;
+    }
+
+    bool switchToNavigationSrvCb(std_srvs::Empty::Request &req,
+        std_srvs::Empty::Response &res)
+    {
+        return switchToNavigation();
+    }
+
+    bool switchToTeleopSrvCb(std_srvs::Empty::Request &req,
+        std_srvs::Empty::Response &res)
+    {
+        return switchToTeleop();
     }
 
     void inCallback(const geometry_msgs::Twist::ConstPtr& msg)
