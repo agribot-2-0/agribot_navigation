@@ -286,47 +286,98 @@ namespace agribot_local_planner
         double end_orientation = endPoint.az;
         double angle_difference = dLimitAngle((end_orientation - path_angle));
 
+        pos c2_center = pCalculateC2Center(endPoint,
+            end_orientation,
+            angle_difference,
+            param_arch_radius,
+            param_local_dead_zone);
+        pos c1_center = pCalculateC1Center(c2_center,
+            endPoint,
+            path_angle,
+            angle_difference,
+            param_arch_radius,
+            param_local_dead_zone);
+
+        pos tangent_point = pCalculateTangentPoint(c1_center,
+            path_angle,
+            angle_difference,
+            param_arch_radius,
+            param_local_dead_zone);
+
+        if ((dDistanceBetweenFrames(startPoint, endPoint) <
+             dDistanceBetweenFrames(tangent_point, endPoint)) ||
+        isnan(c2_center.x) || isnan(c1_center.x) || isnan(tangent_point.x))
+        {
+            localPlan = globalPath;
+        }
+        else
+        {
+            localPlan = xAssemblePath(globalPath,
+                tangent_point,
+                c1_center,
+                c2_center);
+        }
+        return localPlan;
+    }
+
+    pos AgribotPlannerROS::pCalculateC2Center(pos endPoint,
+            double end_orientation,
+            double angle_difference,
+            double arch_radius,
+            double dead_zone)
+    {
         // determine center of circle tangent to orientation vector
         // as a vector of length equals to given radius
         // perpendicular to the orientation vector
+
         pos c2_center;
-        if (angle_difference < -param_local_dead_zone * DEG_TO_RAD)
+        if (angle_difference < -dead_zone * DEG_TO_RAD)
         {
             double perpendicular = end_orientation - 90 * DEG_TO_RAD;
-            c2_center.x = endPoint.x + param_arch_radius * cos(perpendicular);
-            c2_center.y = endPoint.y + param_arch_radius * sin(perpendicular);
+            c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
+            c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
         }
-        else if (angle_difference > param_local_dead_zone * DEG_TO_RAD)
+        else if (angle_difference > dead_zone * DEG_TO_RAD)
         {
             double perpendicular = end_orientation + 90 * DEG_TO_RAD;
-            c2_center.x = endPoint.x + param_arch_radius * cos(perpendicular);
-            c2_center.y = endPoint.y + param_arch_radius * sin(perpendicular);
+            c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
+            c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
         }
         else
         {
             c2_center.x = std::numeric_limits<double>::quiet_NaN();
             c2_center.y = std::numeric_limits<double>::quiet_NaN();
         }
+        return c2_center;
+    }
 
+    pos AgribotPlannerROS::pCalculateC1Center(pos c2_center,
+            pos endPoint,
+            double path_angle,
+            double angle_difference,
+            double arch_radius,
+            double dead_zone)
+    {
         // determine center of circle tangent to original path
         // as a interception of circle with radius twice as big as given radius
         // and line parallel to original path
         // distance from line and path equals given radius
+
         pos c1_center;
         pos point_on_parallel;
         double dx, dy, a, b, c, discriminant, t1, t2, diameter;
-        diameter = param_arch_radius *2;
+        diameter = arch_radius *2;
 
         dx = cos(path_angle);
         dy = sin(path_angle);
 
-        if (angle_difference < -param_local_dead_zone * DEG_TO_RAD)
+        if (angle_difference < -dead_zone * DEG_TO_RAD)
         {
             double perpendicular = path_angle + 90 * DEG_TO_RAD;
             point_on_parallel.x = endPoint.x +
-                param_arch_radius * cos(perpendicular);
+                arch_radius * cos(perpendicular);
             point_on_parallel.y = endPoint.y +
-                param_arch_radius * sin(perpendicular);
+                arch_radius * sin(perpendicular);
             a = dx * dx + dy * dy;
             b = 2 * (dx * (point_on_parallel.x - c2_center.x) +
                      dy * (point_on_parallel.y - c2_center.y));
@@ -349,13 +400,13 @@ namespace agribot_local_planner
                 c1_center.y = std::numeric_limits<double>::quiet_NaN();
             }
         }
-        else if (angle_difference > param_local_dead_zone * DEG_TO_RAD)
+        else if (angle_difference > dead_zone * DEG_TO_RAD)
         {
             double perpendicular = path_angle - 90 * DEG_TO_RAD;
             point_on_parallel.x = endPoint.x +
-                param_arch_radius * cos(perpendicular);
+                arch_radius * cos(perpendicular);
             point_on_parallel.y = endPoint.y +
-                param_arch_radius * sin(perpendicular);
+                arch_radius * sin(perpendicular);
             a = dx * dx + dy * dy;
             b = 2 * (dx * (point_on_parallel.x - c2_center.x) +
                      dy *(point_on_parallel.y - c2_center.y));
@@ -383,87 +434,121 @@ namespace agribot_local_planner
             c1_center.x = std::numeric_limits<double>::quiet_NaN();
             c1_center.y = std::numeric_limits<double>::quiet_NaN();
         }
+        return c1_center;
+    }
 
+    pos AgribotPlannerROS::pCalculateTangentPoint(pos c1_center,
+            double path_angle,
+            double angle_difference,
+            double arch_radius,
+            double dead_zone)
+    {
         // determine the point of the intersection of
         // the circle C2 and the original path
+
         pos tangent_point;
-        if (angle_difference < -param_local_dead_zone * DEG_TO_RAD)
+        if (angle_difference < -dead_zone * DEG_TO_RAD)
         {
             double perpendicular = path_angle - 90 * DEG_TO_RAD;
             tangent_point.x = c1_center.x +
-                param_arch_radius * cos(perpendicular);
+                arch_radius * cos(perpendicular);
             tangent_point.y = c1_center.y +
-                param_arch_radius * sin(perpendicular);
+                arch_radius * sin(perpendicular);
         }
-        else if (angle_difference > param_local_dead_zone * DEG_TO_RAD)
+        else if (angle_difference > dead_zone * DEG_TO_RAD)
         {
             double perpendicular = path_angle + 90 * DEG_TO_RAD;
             tangent_point.x = c1_center.x +
-                param_arch_radius * cos(perpendicular);
+                arch_radius * cos(perpendicular);
             tangent_point.y = c1_center.y +
-                param_arch_radius * sin(perpendicular);
+                arch_radius * sin(perpendicular);
         }
         else
         {
             tangent_point.x = std::numeric_limits<double>::quiet_NaN();
             tangent_point.y = std::numeric_limits<double>::quiet_NaN();
         }
+        return tangent_point;
+    }
 
-        if ((dDistanceBetweenFrames(startPoint, endPoint) <
-             dDistanceBetweenFrames(tangent_point, endPoint)) ||
-        isnan(c2_center.x) || isnan(c1_center.x) || isnan(tangent_point.x))
+    std::vector<geometry_msgs::PoseStamped>
+    AgribotPlannerROS::xAssemblePath(
+        std::vector<geometry_msgs::PoseStamped> globalPath,
+        pos tangent_point,
+        pos c1_center,
+        pos c2_center)
+    {
+        std::vector<geometry_msgs::PoseStamped> plan;
+
+        geometry_msgs::PoseStamped startPose;
+        startPose = globalPath[0];
+        pos startPoint;
+        startPoint.x = startPose.pose.position.x;
+        startPoint.y = startPose.pose.position.y;
+        startPoint.az = dGetYawFromQuaternion(startPose.pose.orientation);
+
+        geometry_msgs::PoseStamped endPose;
+        endPose = globalPath.back();
+        pos endPoint;
+        endPoint.x = endPose.pose.position.x;
+        endPoint.y = endPose.pose.position.y;
+        endPoint.az = dGetYawFromQuaternion(endPose.pose.orientation);
+
+        double path_angle = dAngleBetweenFrames(endPoint, startPoint);
+        double end_orientation = endPoint.az;
+        double angle_difference = dLimitAngle((end_orientation - path_angle));
+
+        // calculate angles and spans for archs
+        double a_p1_ps = dAngleBetweenFrames(tangent_point, c1_center);
+        double a_p1_p2 = dAngleBetweenFrames(c2_center, c1_center);
+        double c1_span = dLimitAngle(a_p1_p2 - a_p1_ps);
+        double a_p2_p1 = dAngleBetweenFrames(c1_center, c2_center);
+        double a_p2_pk = dAngleBetweenFrames(endPoint, c2_center);
+        double c2_span = a_p2_pk - a_p2_p1;
+
+        int planLength = globalPath.size();
+
+        // if the final orientation relative to path is positive
+        // (robot turns left), circle C2 is followed counterclockwise
+        // C2 is followed clockwise in right turn case
+        if (angle_difference < 0)
         {
-            localPlan = globalPath;
+            if (c2_span > 0)
+            {
+                c2_span = fmod(c2_span - 360 * DEG_TO_RAD,
+                               360 * DEG_TO_RAD);
+            }
         }
         else
         {
-            // calculate angles and spans for archs
-            double a_p1_ps = dAngleBetweenFrames(tangent_point, c1_center);
-            double a_p1_p2 = dAngleBetweenFrames(c2_center, c1_center);
-            double c1_span = dLimitAngle(a_p1_p2 - a_p1_ps);
-            double a_p2_p1 = dAngleBetweenFrames(c1_center, c2_center);
-            double a_p2_pk = dAngleBetweenFrames(endPoint, c2_center);
-            double c2_span = a_p2_pk - a_p2_p1;
-
-            // if the final orientation relative to path is positive
-            // (robot turns left), circle C2 is followed counterclockwise
-            // C2 is followed clockwise in right turn case
-            if (angle_difference < 0)
+            if (c2_span < 0)
             {
-                if (c2_span > 0)
-                {
-                    c2_span = fmod(c2_span - 360 * DEG_TO_RAD,
-                                   360 * DEG_TO_RAD);
-                }
+                c2_span = fmod(c2_span + 360 * DEG_TO_RAD,
+                               360 * DEG_TO_RAD);
             }
-            else
-            {
-                if (c2_span < 0)
-                {
-                    c2_span = fmod(c2_span + 360 * DEG_TO_RAD,
-                                   360 * DEG_TO_RAD);
-                }
-            }
+        }
 
-            // append piece of global plan from start point to tangent point
-            for (int i = 0; i < planLength; i++)
+        // append piece of global plan from start point to tangent point
+        for (int i = 0; i < planLength; i++)
+        {
+            geometry_msgs::PoseStamped currentPose = globalPath[i];
+            pos currentPoint;
+            currentPoint.x = currentPose.pose.position.x;
+            currentPoint.y = currentPose.pose.position.y;
+            currentPoint.az = dGetYawFromQuaternion(
+                currentPose.pose.orientation);
+            if (dDistanceBetweenFrames(startPoint, currentPoint) <=
+                dDistanceBetweenFrames(startPoint, tangent_point))
             {
-                geometry_msgs::PoseStamped currentPose = globalPath[i];
-                pos currentPoint;
-                currentPoint.x = currentPose.pose.position.x;
-                currentPoint.y = currentPose.pose.position.y;
-                currentPoint.az = dGetYawFromQuaternion(
-                    currentPose.pose.orientation);
-                if (dDistanceBetweenFrames(startPoint, currentPoint) <=
-                    dDistanceBetweenFrames(startPoint, tangent_point))
-                {
-                    localPlan.push_back(currentPose);
-                }
+                plan.push_back(currentPose);
             }
+        }
 
-            // appednd arch from circle C1
-            int steps;
-            steps = abs(c1_span * RAD_TO_DEG) / param_arch_step;
+        // appednd arch from circle C1
+        int steps;
+        steps = abs(c1_span * RAD_TO_DEG) / param_arch_step;
+        if (steps > 0)
+        {
             for (int i = 0; i <= steps; i++)
             {
                 geometry_msgs::PoseStamped c1_pose;
@@ -478,11 +563,14 @@ namespace agribot_local_planner
                 c1_pose.header = startPose.header;
                 c1_pose.pose.position.x = c1_point.x;
                 c1_pose.pose.position.y = c1_point.y;
-                localPlan.push_back(c1_pose);
+                plan.push_back(c1_pose);
             }
+        }
 
-            // appednd arch from circle C2
-            steps = abs(c2_span * RAD_TO_DEG) / param_arch_step;
+        // appednd arch from circle C2
+        steps = abs(c2_span * RAD_TO_DEG) / param_arch_step;
+        if (steps > 0)
+        {
             for (int i = 0; i <= steps; i++)
             {
                 geometry_msgs::PoseStamped c2_pose;
@@ -497,12 +585,12 @@ namespace agribot_local_planner
                 c2_pose.header = startPose.header;
                 c2_pose.pose.position.x = c2_point.x;
                 c2_pose.pose.position.y = c2_point.y;
-                localPlan.push_back(c2_pose);
+                plan.push_back(c2_pose);
             }
-            // append final pose
-            localPlan.push_back(endPose);
         }
-        return localPlan;
+        // append final pose
+        plan.push_back(endPose);
+        return plan;
     }
 
     double AgribotPlannerROS::dCloseToZero(double value)

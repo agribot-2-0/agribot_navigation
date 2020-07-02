@@ -94,6 +94,27 @@ class AgribotPlannerROS : public nav_core::BaseLocalPlanner{
 
     std::vector<geometry_msgs::PoseStamped> xDesignLocalPath(
       std::vector<geometry_msgs::PoseStamped> globalPath);
+    pos pCalculateC1Center(pos c2_center,
+                           pos end_point,
+                           double path_angle,
+                           double angle_difference,
+                           double arch_radius,
+                           double dead_zone);
+    pos pCalculateC2Center(pos endPoint,
+                           double end_orientation,
+                           double angle_difference,
+                           double arch_radius,
+                           double dead_zone);
+    pos pCalculateTangentPoint(pos c1_center,
+                               double path_angle,
+                               double angle_difference,
+                               double arch_radius,
+                               double dead_zone);
+    std::vector<geometry_msgs::PoseStamped> xAssemblePath(
+      std::vector<geometry_msgs::PoseStamped> globalPath,
+      pos tangent_point,
+      pos c1_center,
+      pos c2_center);
 
     void vOdomCallback(const nav_msgs::Odometry odometry_msg);
     pos pCalculateRobotFrontPosition(pos robotCenter);
