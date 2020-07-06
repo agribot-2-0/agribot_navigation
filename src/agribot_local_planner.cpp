@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include "agribot_navigation/agribot_local_planner.h"
 
 #include <pluginlib/class_list_macros.h>

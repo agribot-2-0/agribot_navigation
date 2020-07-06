@@ -1,5 +1,8 @@
-#ifndef WAYPOINT_GLOBAL_PLANNER_H
-#define WAYPOINT_GLOBAL_PLANNER_H
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
+#pragma once
 
 #include <ros/ros.h>
 #include <costmap_2d/costmap_2d_ros.h>
@@ -59,20 +62,20 @@ class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
      */
     bool makePlan(const geometry_msgs::PoseStamped& start_pose,
                   const geometry_msgs::PoseStamped& goal,
-                  std::vector<geometry_msgs::PoseStamped>& plan);
+                  std::vector<geometry_msgs::PoseStamped>& plan);  // NOLINT(runtime/references)
 
     /**
      * @brief Creates and publishes visualization markers from an input path
      * @param path The input path to be used for the creation of visualization markers
      */
-    void createAndPublishMarkersFromPath(const std::vector
-                                         <geometry_msgs::PoseStamped>& path);
+    void createAndPublishMarkersFromPath(const std::vector <geometry_msgs::PoseStamped>&
+            path);  // NOLINT(runtime/references)
 
     /**
      * @brief Interpolates a path (position and orientation) using a fixed number of points per meter
      * @param path The input path to be interpolated
      */
-    void interpolatePath(nav_msgs::Path& path);
+    void interpolatePath(nav_msgs::Path& path);  // NOLINT(runtime/references)
 
  private:
     bool initialized_;  //!< flag indicating the planner has been initialized
@@ -97,5 +100,3 @@ class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
 };
 
 }  // namespace waypoint_global_planner
-
-#endif  // WAYPOINT_GLOBAL_PLANNER_H

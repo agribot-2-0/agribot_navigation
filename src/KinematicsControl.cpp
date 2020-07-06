@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include <agribot_navigation/KinematicsControl.h>
 #include <ros/ros.h>
 #include <ros/console.h>

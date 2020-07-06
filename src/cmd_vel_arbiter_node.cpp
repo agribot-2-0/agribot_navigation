@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <std_srvs/Empty.h>
@@ -79,8 +83,8 @@ class CmdVelArbiter
         _arbiterState = TELEOP;
     }
 
-    bool switchToNavigation(std_srvs::Empty::Request &req,
-                            std_srvs::Empty::Response &res)
+    bool switchToNavigation(std_srvs::Empty::Request &req,  // NOLINT(runtime/references)
+                            std_srvs::Empty::Response &res)  // NOLINT(runtime/references)
     {
         if (_arbiterState != NAVIGATION)
         {
@@ -90,8 +94,8 @@ class CmdVelArbiter
         return true;
     }
 
-    bool switchToTeleop(std_srvs::Empty::Request &req,
-                        std_srvs::Empty::Response &res)
+    bool switchToTeleop(std_srvs::Empty::Request &req,  // NOLINT(runtime/references)
+                        std_srvs::Empty::Response &res)  // NOLINT(runtime/references)
     {
         if (_arbiterState != TELEOP)
         {

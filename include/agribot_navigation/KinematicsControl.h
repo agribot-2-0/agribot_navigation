@@ -1,4 +1,9 @@
-# pragma once
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
+#pragma once
+
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_navigation/PID.h>
 
