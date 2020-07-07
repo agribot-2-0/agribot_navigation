@@ -71,12 +71,16 @@ class PID
     void vSetSPAcceleration(double SubstepSize, int Substeps);
     void vResetError();
     void vResetSetPoints(double SP);
-    double dGetControlValue();
-    double dGetError();
-    double dGetDesiredSetPoint();
     double Update(double PV, double dt);
     std::string cPrintDebugInfo();
     double dAverageFilter(double ValueNow,
                           double ValueBack1,
                           double ValueBack2);
+    double dGetSetPoint();
+    double dGetControlValue();
+    double dGetProcessValue();
+    double dGetError();
+    double dGetIntegrationError();
+    double dGetDerivativeError();
+    double dGetDesiredSetPoint();
 };

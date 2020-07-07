@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   move_base
   agribot_common
   tf
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -97,10 +98,9 @@ find_package(Boost REQUIRED COMPONENTS system)
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/Kinematics.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -115,7 +115,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES agribot_navigation
   CATKIN_DEPENDS
-    base_local_planner
+  base_local_planner
 	costmap_2d
 	geometry_msgs
 	nav_core
@@ -124,7 +124,7 @@ catkin_package(
 	roscpp
 	visualization_msgs
 	move_base
-	tf
+  tf
 )
 
 ###########
@@ -136,6 +136,7 @@ catkin_package(
 include_directories(include
   ${Boost_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake
   ${GAZEBO_INCLUDE_DIRS}
   ${agribot_common_SOURCE_DIR}/include
 )
@@ -177,6 +178,7 @@ add_executable(path_publisher
 
 add_executable(cmd_vel_arbiter_node
   src/cmd_vel_arbiter_node.cpp
+  src/CmdVelArbiterNode.cpp
 )
 
 target_link_libraries(kinematics_control
