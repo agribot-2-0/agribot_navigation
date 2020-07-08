@@ -1,0 +1,10 @@
+<library path="lib/libagribot_local_planner">
+  <class 
+    name ="agribot_navigation/AgribotPlannerROS" 
+    type ="agribot_local_planner::AgribotPlannerROS" 
+    base_class_type= "nav_core::BaseLocalPlanner">
+    <description>
+      Agribot local planner for MoveBase that allows you to follow the global path as it is, considering final orientation.
+    </description>
+  </class>
+</library>

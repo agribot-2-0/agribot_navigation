@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include "agribot_navigation/CmdVelArbiterNode.h"
 
 CmdVelArbiterNode::CmdVelArbiterNode(ros::NodeHandle *nh):

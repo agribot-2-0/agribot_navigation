@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include "agribot_navigation/waypoint_global_planner.h"
 #include <pluginlib/class_list_macros.h>
 #include <tf/tf.h>

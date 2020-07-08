@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <dynamic_reconfigure/server.h>
@@ -39,7 +43,9 @@ void encoderBackCallback(const std_msgs::Float32 back_cart_msg)
     bDataReceived = true;
 }
 
-void callback(agribot_navigation::KinematicsConfig &config, uint32_t level) {
+void callback(agribot_navigation::KinematicsConfig &config,  // NOLINT(runtime/references)
+        uint32_t level)
+{
     KinControl.vSetPreciseKp(config.coarse_Kp);
     KinControl.vSetPreciseKi(config.coarse_Ki);
     KinControl.vSetPreciseKd(config.coarse_Kd);

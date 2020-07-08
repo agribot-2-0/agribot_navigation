@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include <agribot_navigation/PID.h>
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -244,7 +248,7 @@ double PID::dErrorIntegration(double Error, double dt)
 bool PID::bAntiWindup(double Error, double ControlValue, double dt)
 {
     /*
-    Condition taken from 
+    Condition taken from
     Visioli, Antonio. Practical PID control. Springer Science & Business Media, 2006.
     Chapter 3.3.2 Conditional Integration
     Implemented conditions:

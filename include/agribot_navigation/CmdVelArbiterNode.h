@@ -1,3 +1,9 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
+#pragma once
+
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <std_srvs/Empty.h>
@@ -44,12 +50,12 @@ class CmdVelArbiterNode
     void startTimeoutTimer();
     void restartTimeoutTimer();
 
-    bool switchToStopSrvCb(std_srvs::Empty::Request &req,
-        std_srvs::Empty::Response &res);
-    bool switchToNavigationSrvCb(std_srvs::Empty::Request &req,
-        std_srvs::Empty::Response &res);
-    bool switchToTeleopSrvCb(std_srvs::Empty::Request &req,
-        std_srvs::Empty::Response &res);
+    bool switchToStopSrvCb(std_srvs::Empty::Request &req,  // NOLINT(runtime/references)
+        std_srvs::Empty::Response &res);  // NOLINT(runtime/references)
+    bool switchToNavigationSrvCb(std_srvs::Empty::Request &req,  // NOLINT(runtime/references)
+        std_srvs::Empty::Response &res);  // NOLINT(runtime/references)
+    bool switchToTeleopSrvCb(std_srvs::Empty::Request &req,  // NOLINT(runtime/references)
+        std_srvs::Empty::Response &res);  // NOLINT(runtime/references)
 
     void inCallback(const geometry_msgs::Twist::ConstPtr& msg);
     void timeoutCallback(const ros::TimerEvent& event);
