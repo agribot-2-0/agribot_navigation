@@ -1,5 +1,8 @@
-#ifndef SIMPLE_LOCAL_PLANNER_ROS_H_
-#define SIMPLE_LOCAL_PLANNER_ROS_H_
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
+#pragma once
 
 #include <ros/ros.h>
 #include <nav_core/base_local_planner.h>
@@ -34,7 +37,7 @@ class AgribotPlannerROS : public nav_core::BaseLocalPlanner{
       costmap_2d::Costmap2DROS* costmapROS);
     bool setPlan(const std::vector<geometry_msgs::PoseStamped>&
                  orig_global_plan);
-    bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);
+    bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);  // NOLINT(runtime/references)
     bool isGoalReached();
 
  private:
@@ -174,11 +177,9 @@ class AgribotPlannerROS : public nav_core::BaseLocalPlanner{
                                      pos robotCenter);
     void vNextGoalVisualization(pos lastWaypoint, pos goal);
     void vGoalRangeVisualization(pos goal, pos range);
-    void vLocalPathVisualization(const std::vector
-                                         <geometry_msgs::PoseStamped>& path);
+    void vLocalPathVisualization(const std::vector <geometry_msgs::PoseStamped>&
+            path);  // NOLINT(runtime/references)
     void vVisualizations(pos lastWaypoint, pos goal, pos nextWaypoint,
                          pos robotCenter, geometry_msgs::Twist velocity);
 };
 }  // namespace agribot_local_planner
-
-#endif

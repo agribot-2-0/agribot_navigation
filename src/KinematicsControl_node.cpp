@@ -1,6 +1,12 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <dynamic_reconfigure/server.h>
 #include <agribot_navigation/KinematicsControl.h>
+#include <agribot_navigation/KinematicsConfig.h>
 #include <agribot_msgs/AgribotCaterpillar.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Float32.h>
@@ -37,10 +43,85 @@ void encoderBackCallback(const std_msgs::Float32 back_cart_msg)
     bDataReceived = true;
 }
 
+void callback(agribot_navigation::KinematicsConfig &config,  // NOLINT(runtime/references)
+        uint32_t level)
+{
+    KinControl.vSetPreciseKp(config.coarse_Kp);
+    KinControl.vSetPreciseKi(config.coarse_Ki);
+    KinControl.vSetPreciseKd(config.coarse_Kd);
+    KinControl.vSetCoarseKp(config.precise_Kp);
+    KinControl.vSetCoarseKi(config.precise_Ki);
+    KinControl.vSetCoarseKd(config.precise_Kd);
+    KinControl.vSetFrontLimit(config.precision_range);
+    KinControl.vSetBackLimit(config.front_limit);
+    KinControl.vSetPrecisionRange(config.back_limit);
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "kinematics_control");
+    dynamic_reconfigure::Server<
+        agribot_navigation::KinematicsConfig> server;
+    dynamic_reconfigure::Server<
+        agribot_navigation::KinematicsConfig>::CallbackType f;
+    f = boost::bind(&callback, _1, _2);
+    server.setCallback(f);
+
     ros::NodeHandle n;
+    ros::NodeHandle pnh("~kinematics_control");
+
+    double CoarseKp;
+    double CoarseKi;
+    double CoarseKd;
+    double PreciseKp;
+    double PreciseKd;
+    double PreciseKi;
+    double PrecisionRange;
+    double FrontLimit;
+    double BackLimit;
+
+    pnh.param("coarse_Kp",
+                        CoarseKp,
+                        0.75);
+    pnh.param("coarse_Ki",
+                        CoarseKi,
+                        0.208333);
+    pnh.param("coarse_Kd",
+                        CoarseKd,
+                        0.689063);
+
+    pnh.param("precise_Kp",
+                        PreciseKp,
+                        0.21428571428);
+    pnh.param("precise_Ki",
+                        PreciseKi,
+                        0.04761897142);
+    pnh.param("precise_Kd",
+                        PreciseKd,
+                        0.75);
+
+    pnh.param("precision_range",
+                        PrecisionRange,
+                        2.0);
+
+    pnh.param("front_limit",
+                        FrontLimit,
+                        10.0);
+    pnh.param("back_limit",
+                        BackLimit,
+                        10.0);
+
+    KinControl.vSetPreciseKp(CoarseKp);
+    KinControl.vSetPreciseKi(CoarseKi);
+    KinControl.vSetPreciseKd(CoarseKd);
+    KinControl.vSetCoarseKp(PreciseKp);
+    KinControl.vSetCoarseKi(PreciseKd);
+    KinControl.vSetCoarseKd(PreciseKi);
+    KinControl.vSetFrontLimit(PrecisionRange);
+    KinControl.vSetBackLimit(FrontLimit);
+    KinControl.vSetPrecisionRange(BackLimit);
+
+    KinControl.vCreatePubs(n);
     ros::Rate loop_rate(100);
     std::string command_sub_topic;
 
