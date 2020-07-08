@@ -333,13 +333,13 @@ namespace agribot_local_planner
         pos c2_center;
         if (angle_difference < -dead_zone * DEG_TO_RAD)
         {
-            double perpendicular = end_orientation - 90 * DEG_TO_RAD;
+            double perpendicular = end_orientation - M_PI /2;
             c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
             c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
         }
         else if (angle_difference > dead_zone * DEG_TO_RAD)
         {
-            double perpendicular = end_orientation + 90 * DEG_TO_RAD;
+            double perpendicular = end_orientation + M_PI /2;
             c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
             c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
         }
@@ -366,7 +366,7 @@ namespace agribot_local_planner
         pos c1_center;
         pos point_on_parallel;
         double dx, dy, a, b, c, discriminant, t1, t2, diameter;
-        diameter = arch_radius *2;
+        diameter = arch_radius * 2.0;
 
         dx = cos(path_angle);
         dy = sin(path_angle);
@@ -449,7 +449,7 @@ namespace agribot_local_planner
         pos tangent_point;
         if (angle_difference < -dead_zone * DEG_TO_RAD)
         {
-            double perpendicular = path_angle - 90 * DEG_TO_RAD;
+            double perpendicular = path_angle - M_PI /2;
             tangent_point.x = c1_center.x +
                 arch_radius * cos(perpendicular);
             tangent_point.y = c1_center.y +
@@ -457,7 +457,7 @@ namespace agribot_local_planner
         }
         else if (angle_difference > dead_zone * DEG_TO_RAD)
         {
-            double perpendicular = path_angle + 90 * DEG_TO_RAD;
+            double perpendicular = path_angle + M_PI /2;
             tangent_point.x = c1_center.x +
                 arch_radius * cos(perpendicular);
             tangent_point.y = c1_center.y +
@@ -529,9 +529,8 @@ namespace agribot_local_planner
         }
 
         // append piece of global plan from start point to tangent point
-        for (int i = 0; i < planLength; i++)
+        for (auto const& currentPose : globalPath)
         {
-            geometry_msgs::PoseStamped currentPose = globalPath[i];
             pos currentPoint;
             currentPoint.x = currentPose.pose.position.x;
             currentPoint.y = currentPose.pose.position.y;
@@ -545,8 +544,7 @@ namespace agribot_local_planner
         }
 
         // appednd arch from circle C1
-        int steps;
-        steps = abs(c1_span * RAD_TO_DEG) / param_arch_step;
+        int steps = abs(c1_span * RAD_TO_DEG) / param_arch_step;
         if (steps > 0)
         {
             for (int i = 0; i <= steps; i++)
