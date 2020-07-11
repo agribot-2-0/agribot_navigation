@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include <agribot_navigation/PID.h>
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -111,21 +115,6 @@ void PID::vSetSPAcceleration(double SubstepStepSize, int Substeps)
 {
     this->_dSubstepStepSize = SubstepStepSize;
     this->_iSubsteps = Substeps;
-}
-
-double PID::dGetControlValue()
-{
-    return this->_dControlValue;
-}
-
-double PID::dGetError()
-{
-    return this->_dError;
-}
-
-double PID::dGetDesiredSetPoint()
-{
-    return this->_dDesiredSetPoint;
 }
 
 bool PID::bDesiredSetPointCrossedNextSetPoint(
@@ -259,7 +248,7 @@ double PID::dErrorIntegration(double Error, double dt)
 bool PID::bAntiWindup(double Error, double ControlValue, double dt)
 {
     /*
-    Condition taken from 
+    Condition taken from
     Visioli, Antonio. Practical PID control. Springer Science & Business Media, 2006.
     Chapter 3.3.2 Conditional Integration
     Implemented conditions:
@@ -349,4 +338,40 @@ std::string PID::cPrintDebugInfo()
     << ";KI=" << this->_dKi
     << ";KD=" << this->_dKd;
     return ss.str();
+}
+
+
+double PID::dGetSetPoint()
+{
+    return this->_dSetPoint;
+}
+
+double PID::dGetControlValue()
+{
+    return this->_dControlValue;
+}
+
+double PID::dGetProcessValue()
+{
+    return this->_dProcessValue;
+}
+
+double PID::dGetError()
+{
+    return this->_dError;
+}
+
+double PID::dGetIntegrationError()
+{
+    return this->_dErrorIntegral;
+}
+
+double PID::dGetDerivativeError()
+{
+    return this->_dDerivative;
+}
+
+double PID::dGetDesiredSetPoint()
+{
+    return this->_dDesiredSetPoint;
 }

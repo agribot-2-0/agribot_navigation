@@ -1,6 +1,13 @@
-# pragma once
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
+#pragma once
+
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_navigation/PID.h>
+#include <ros/ros.h>
+#include <std_msgs/Float64.h>
 
 enum
 {
@@ -38,6 +45,29 @@ struct Carts_Setpoints
 class KinematicsControl: public AgribotComponent
 {
  private:
+    ros::Publisher _rFrontSetPointPub;
+    ros::Publisher _rFrontControlValuePub;
+    ros::Publisher _rFrontProcessValuePub;
+    ros::Publisher _rFrontErrorPub;
+    ros::Publisher _rFrontIntegralPub;
+    ros::Publisher _rFrontDerivativePub;
+    ros::Publisher _rFrontDesSetPointPub;
+
+    ros::Publisher _rBackSetPointPub;
+    ros::Publisher _rBackControlValuePub;
+    ros::Publisher _rBackProcessValuePub;
+    ros::Publisher _rBackErrorPub;
+    ros::Publisher _rBackIntegralPub;
+    ros::Publisher _rBackDerivativePub;
+    ros::Publisher _rBackDesSetPointPub;
+
+    ros::Publisher _rFrontVelPub;
+    ros::Publisher _rBackVelPub;
+    ros::Publisher _rMultipiterPub;
+    ros::Publisher _rSetPointPub;
+    ros::Publisher _rFrontDifPub;
+    ros::Publisher _rBackDifPub;
+
     double _pdInputLinear [3];
     double _pdInputAngular [3];
     double _pdCaterpillarVelocities  [4];
@@ -50,6 +80,15 @@ class KinematicsControl: public AgribotComponent
     double _dLastTime;
     double _dLinearMultiplier;
     double _dAngularMultiplier;
+    double _dCoarseKp;
+    double _dCoarseKi;
+    double _dCoarseKd;
+    double _dPreciseKp;
+    double _dPreciseKd;
+    double _dPreciseKi;
+    double _dPrecisionRange;
+    double _dFrontLimit;
+    double _dBackLimit;
     PID *_pFrontCartPID;
     PID *_pBackCartPID;
     void vSetPIDsParameters();
@@ -82,10 +121,20 @@ class KinematicsControl: public AgribotComponent
     virtual bool update();
     virtual bool stop();
     virtual bool cleanup();
+    void vCreatePubs(ros::NodeHandle n);
     void vSetInputLinear(double x, double y, double z);
     void vSetInputAngular(double x, double y, double z);
     void vSetChassisAngle(double theta);
     void vSetFrontCartAngle(double theta);
     void vSetBackCartAngle(double theta);
     double* pdGetCaterpillarVelocities();
+    void vSetPreciseKp(double Kp);
+    void vSetPreciseKi(double Ki);
+    void vSetPreciseKd(double Kd);
+    void vSetCoarseKp(double Kp);
+    void vSetCoarseKi(double Ki);
+    void vSetCoarseKd(double Kd);
+    void vSetFrontLimit(double limit);
+    void vSetBackLimit(double limit);
+    void vSetPrecisionRange(double range);
 };

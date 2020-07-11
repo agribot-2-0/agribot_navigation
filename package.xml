@@ -61,6 +61,8 @@
   <build_depend>base_local_planner</build_depend>
   <build_depend>costmap_2d</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>agribot_msgs</build_depend>
+  <build_depend>agribot_common</build_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>nav_msgs</build_export_depend>
   <build_export_depend>visualization_msgs</build_export_depend>
@@ -92,6 +94,7 @@
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
+    <nav_core plugin="${prefix}/AP_plugin.xml"/>
     <nav_core plugin="${prefix}/SP_plugin.xml"/>
     <nav_core plugin="${prefix}/bgp_plugin.xml"/>
   </export>

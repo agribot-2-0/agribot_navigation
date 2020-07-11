@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2020 Agribot. All rights reserved.
+*/
+
 #include <agribot_navigation/PID.h>
 #include <gtest/gtest.h>
 #include <cmath>
@@ -14,7 +18,7 @@ TEST(RampTest, ZeroProcessValue)
     limit * DEG_TO_RAD);
     for (int i = 0; i < 10; i++)
     {
-        pid.Update(0.0,dt);
+        pid.Update(0.0, dt);
         EXPECT_DOUBLE_EQ(
             0.0,
             pid.dGetControlValue()*RAD_TO_DEG);
@@ -31,7 +35,7 @@ TEST(RampTest, RisingProcessValue)
     pid.vSetSP(0.0);
     for (double i = 0; i < limit / kp; i+=0.1)
     {
-        pid.Update(i*DEG_TO_RAD,dt);
+        pid.Update(i*DEG_TO_RAD, dt);
         EXPECT_DOUBLE_EQ(
             -kp * i,
             pid.dGetControlValue()*RAD_TO_DEG);
@@ -51,7 +55,7 @@ TEST(RampTest, SetPointRampStop)
     pid.vSetSPAcceleration(substepsize * DEG_TO_RAD, substeps);
     for (int i = 0; i < 1000; i++)
     {
-        pid.Update(0.0,dt);  
+        pid.Update(0.0, dt);
     }
     EXPECT_DOUBLE_EQ(
         substepsize * substeps * kp,
@@ -71,7 +75,7 @@ TEST(RampTest, SetPointRampContinue)
     pid.vSetSPAcceleration(substepsize * DEG_TO_RAD, substeps);
     for (int i = 0; i < 1000; i++)
     {
-        pid.Update(0.0,dt);  
+        pid.Update(0.0, dt);
     }
     EXPECT_DOUBLE_EQ(
         substepsize * substeps * kp,
@@ -80,7 +84,7 @@ TEST(RampTest, SetPointRampContinue)
     double newPV = 0.1;
     for (int i = 0; i < 100; i++)
     {
-        pid.Update(newPV * DEG_TO_RAD,dt);  
+        pid.Update(newPV * DEG_TO_RAD, dt);
     }
     EXPECT_DOUBLE_EQ(
         (2*substepsize * substeps - newPV) * kp,
@@ -102,7 +106,7 @@ TEST(RampTest, SetPointSaturation)
     {
         for (int i = 0; i < 100; i++)
         {
-            pid.Update(newPV * DEG_TO_RAD,dt);  
+            pid.Update(newPV * DEG_TO_RAD, dt);
         }
     }
     EXPECT_DOUBLE_EQ(
@@ -123,7 +127,7 @@ TEST(RampTest, SetPointChangeSign)
     pid.vSetSPAcceleration(substepsize * DEG_TO_RAD, substeps);
     for (int i = 0; i < 1000; i++)
     {
-        pid.Update(0.0,dt);  
+        pid.Update(0.0, dt);
     }
     EXPECT_DOUBLE_EQ(
         substepsize * substeps * kp,
@@ -132,12 +136,11 @@ TEST(RampTest, SetPointChangeSign)
     pid.vSetSP(-10.0 * DEG_TO_RAD);
     for (int i = 0; i < 1000; i++)
     {
-        pid.Update(0.0,dt);  
+        pid.Update(0.0, dt);
     }
     EXPECT_DOUBLE_EQ(
         -substepsize * substeps * kp,
         pid.dGetControlValue() * RAD_TO_DEG);
-
 }
 
 int main(int argc, char **argv){
