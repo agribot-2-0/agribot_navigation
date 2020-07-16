@@ -122,7 +122,7 @@ namespace agribot_local_planner
             }
 
             ROS_DEBUG_STREAM("[AgribotPlanner] Plugin initialized.");
-            gn.setParam("/agribot/simple_local_planer/is_inited", true);
+            gn.setParam("/agribot/agribot_local_planer/is_inited", true);
         }
         else
         {
