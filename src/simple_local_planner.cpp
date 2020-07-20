@@ -32,7 +32,7 @@ namespace simple_local_planner
             ros::NodeHandle pnh("~" + name);
 
             _rOdomSub = gn.subscribe(
-                "/odom", 100, &SimplePlannerROS::vOdomCallback, this);
+                "odom", 100, &SimplePlannerROS::vOdomCallback, this);
             _rPathPub = pnh.advertise<
                 visualization_msgs::Marker>("travelled_path", 10);
             _rPredictedPathPub = pnh.advertise<
@@ -828,7 +828,7 @@ namespace simple_local_planner
 
     void SimplePlannerROS::vPathVisualization(pos robotCenter)
     {
-        _traveledPoints.header.frame_id = "/map";
+        _traveledPoints.header.frame_id = "map";
         _traveledPoints.header.stamp = ros::Time::now();
         _traveledPoints.ns = "travelled_path";
         _traveledPoints.action = visualization_msgs::Marker::ADD;
@@ -850,7 +850,7 @@ namespace simple_local_planner
         geometry_msgs::Twist velocity, pos robotCenter)
     {
         visualization_msgs::Marker futurePoints;
-        futurePoints.header.frame_id = "/map";
+        futurePoints.header.frame_id = "map";
         futurePoints.header.stamp = ros::Time::now();
         futurePoints.ns = "predicted_path";
         futurePoints.action = visualization_msgs::Marker::ADD;
@@ -922,7 +922,7 @@ namespace simple_local_planner
     void SimplePlannerROS::vNextGoalVisualization(pos lastWaypoint, pos goal)
     {
         visualization_msgs::Marker marker;
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "map";
         marker.header.stamp = ros::Time::now();
         marker.ns = "next_goal";
         marker.action = visualization_msgs::Marker::ADD;
@@ -950,7 +950,7 @@ namespace simple_local_planner
     void SimplePlannerROS::vGoalRangeVisualization(pos goal, pos range)
     {
         visualization_msgs::Marker marker;
-        marker.header.frame_id = "/map";
+        marker.header.frame_id = "map";
         marker.header.stamp = ros::Time::now();
         marker.ns = "goal_range";
         marker.action = visualization_msgs::Marker::ADD;
