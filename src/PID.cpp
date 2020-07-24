@@ -358,17 +358,18 @@ double PID::dGetProcessValue()
 
 double PID::dGetError()
 {
-    return this->_dError;
+    return this->dProportionalPart(this->_dError);
 }
 
 double PID::dGetIntegrationError()
 {
-    return this->_dErrorIntegral;
+    return this->dIntegralPart(this->_dErrorIntegral);
 }
 
 double PID::dGetDerivativeError()
 {
-    return this->_dDerivative;
+    return this->dDerivativePart(this->dAverageFilter(
+            this->_dDerivative, this->_dDerPrior, this->_dDerPrevious));
 }
 
 double PID::dGetDesiredSetPoint()
