@@ -510,7 +510,6 @@ void KinematicsControl::vSetCoarseKd(double Kd)
 void KinematicsControl::vSetFrontLimit(double limit)
 {
   this->_dFrontLimit = limit * DEG_TO_RAD;
-  ;
   this->_pFrontCartPID->vSetLowLimit(-this->_dFrontLimit);
   this->_pFrontCartPID->vSetHighLimit(this->_dFrontLimit);
 }
@@ -518,7 +517,6 @@ void KinematicsControl::vSetFrontLimit(double limit)
 void KinematicsControl::vSetBackLimit(double limit)
 {
   this->_dBackLimit = limit * DEG_TO_RAD;
-  ;
   this->_pBackCartPID->vSetLowLimit(-this->_dBackLimit);
   this->_pBackCartPID->vSetHighLimit(this->_dBackLimit);
 }
