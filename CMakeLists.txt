@@ -174,13 +174,9 @@ add_executable(kinematics_control
   src/kinematics_control/KinematicsControl_node.cpp
 )
 
-add_executable(path_publisher
-  src/PathPublisher_node.cpp
-)
-
 add_executable(cmd_vel_arbiter_node
-  src/cmd_vel_arbiter_node.cpp
-  src/CmdVelArbiterNode.cpp
+  src/cmd_vel_arbiter/cmd_vel_arbiter_node.cpp
+  src/cmd_vel_arbiter/CmdVelArbiterNode.cpp
 )
 
 target_link_libraries(kinematics_control
@@ -202,10 +198,6 @@ target_link_libraries(waypoint_global_planner
 )
 
 target_link_libraries(pid
-	${catkin_LIBRARIES}
-)
-
-target_link_libraries(path_publisher
 	${catkin_LIBRARIES}
 )
 
@@ -252,7 +244,6 @@ target_link_libraries(cmd_vel_arbiter_node
 install(TARGETS
   kinematics_control
   cmd_vel_arbiter_node
-  path_publisher
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
