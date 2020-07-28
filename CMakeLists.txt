@@ -99,7 +99,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
-  cfg/Kinematics.cfg
+  cfg/kinematics_control/Kinematics.cfg
 )
 
 ###################################
@@ -153,23 +153,25 @@ link_directories(
 )
 
 add_library(simple_local_planner
-  src/simple_local_planner.cpp
+  src/planners/simple_local_planner.cpp
 )
 
 add_library(agribot_local_planner
-  src/agribot_local_planner.cpp
+  src/planners/agribot_local_planner.cpp
 )
 
 add_library(waypoint_global_planner
-	src/waypoint_global_planner.cpp
+	src/planners/waypoint_global_planner.cpp
 )
 
 add_library(pid
-	src/PID.cpp
+	src/kinematics_control/PID.cpp
 )
 
 add_executable(kinematics_control
-  src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp
+  src/kinematics_control/PID.cpp
+  src/kinematics_control/KinematicsControl.cpp
+  src/kinematics_control/KinematicsControl_node.cpp
 )
 
 add_executable(path_publisher
