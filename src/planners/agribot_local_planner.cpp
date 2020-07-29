@@ -483,6 +483,18 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   }
   // append final pose
   plan.push_back(endPose);
+
+  // add proper orientation to each point
+  for (int i = 0; i < plan.size() - 1; i++)
+  {
+    double angle = std::atan2(plan[i + 1].pose.position.y - plan[i].pose.position.y,
+                              plan[i + 1].pose.position.x - plan[i].pose.position.x);
+    plan[i].pose.orientation.x = 0;
+    plan[i].pose.orientation.y = 0;
+    plan[i].pose.orientation.z = sin(angle / 2.0);
+    plan[i].pose.orientation.w = cos(angle / 2.0);
+  }
+
   return plan;
 }
 
