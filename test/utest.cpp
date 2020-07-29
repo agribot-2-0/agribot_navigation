@@ -2,7 +2,7 @@
 * Copyright (C) 2020 Agribot. All rights reserved.
 */
 
-#include <agribot_navigation/PID.h>
+#include <agribot_navigation/kinematics_control/PID.h>
 #include <gtest/gtest.h>
 #include <cmath>
 #define dt 0.1

@@ -4,7 +4,7 @@
 
 #include <ros/ros.h>
 
-#include "agribot_navigation/CmdVelArbiterNode.h"
+#include "agribot_navigation/cmd_vel_arbiter/CmdVelArbiterNode.h"
 
 int main(int argc, char **argv)
 {

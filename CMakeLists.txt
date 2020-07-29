@@ -99,7 +99,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
-  cfg/Kinematics.cfg
+  cfg/kinematics_control/Kinematics.cfg
 )
 
 ###################################
@@ -153,32 +153,30 @@ link_directories(
 )
 
 add_library(simple_local_planner
-  src/simple_local_planner.cpp
+  src/planners/simple_local_planner.cpp
 )
 
 add_library(agribot_local_planner
-  src/agribot_local_planner.cpp
+  src/planners/agribot_local_planner.cpp
 )
 
 add_library(waypoint_global_planner
-	src/waypoint_global_planner.cpp
+	src/planners/waypoint_global_planner.cpp
 )
 
 add_library(pid
-	src/PID.cpp
+	src/kinematics_control/PID.cpp
 )
 
 add_executable(kinematics_control
-  src/PID.cpp src/KinematicsControl.cpp src/KinematicsControl_node.cpp
-)
-
-add_executable(path_publisher
-  src/PathPublisher_node.cpp
+  src/kinematics_control/PID.cpp
+  src/kinematics_control/KinematicsControl.cpp
+  src/kinematics_control/KinematicsControl_node.cpp
 )
 
 add_executable(cmd_vel_arbiter_node
-  src/cmd_vel_arbiter_node.cpp
-  src/CmdVelArbiterNode.cpp
+  src/cmd_vel_arbiter/cmd_vel_arbiter_node.cpp
+  src/cmd_vel_arbiter/CmdVelArbiterNode.cpp
 )
 
 target_link_libraries(kinematics_control
@@ -200,10 +198,6 @@ target_link_libraries(waypoint_global_planner
 )
 
 target_link_libraries(pid
-	${catkin_LIBRARIES}
-)
-
-target_link_libraries(path_publisher
 	${catkin_LIBRARIES}
 )
 
@@ -250,7 +244,6 @@ target_link_libraries(cmd_vel_arbiter_node
 install(TARGETS
   kinematics_control
   cmd_vel_arbiter_node
-  path_publisher
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )

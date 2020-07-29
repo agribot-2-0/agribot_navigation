@@ -33,7 +33,7 @@ AgribotPlannerROS:
   prediction_points_per_second: 2
   epsilon: 1e-3
   design_dead_zone: 0.0 # degrees
-  design_arch_radius: 2.0 # metres
+  design_arch_radius: 1.4 # metres
   design_arch_step: 10.0 # degrees
 
   arch_approach: false
