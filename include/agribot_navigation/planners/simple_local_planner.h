@@ -50,7 +50,7 @@ private:
   ros::Publisher _rGoalRangePub;
   ros::Publisher _rNextGoalPub;
   // contains the global plan
-  std::vector<geometry_msgs::PoseStamped> _xPlan;
+  std::vector<geometry_msgs::PoseStamped> _xLocalPlan;
   geometry_msgs::Twist _xVelocities;  // contains the velocity
   visualization_msgs::Marker _traveledPoints;
   geometry_msgs::PoseStamped _pRobotCenter;   // present robot center frame
@@ -78,8 +78,12 @@ private:
   double param_dead_zone;
   double param_max_linear_vel;
   double param_min_linear_vel;
-  double param_deviation_weight;
-  double param_parallelness_weight;
+  double param_current_deviation_weight;
+  double param_current_parallelness_weight;
+  double param_deviation_weight_straight;
+  double param_parallelness_weight_straight;
+  double param_deviation_weight_arch;
+  double param_parallelness_weight_arch;
   double param_epsilon;
 
   bool param_arch_approach;
@@ -106,6 +110,7 @@ private:
   geometry_msgs::Twist xFinishedPathBehaviour();
   void vTakeNextGoal(pos currentGoal, pos robotCenter);
   void vCalculateDeviationIntegral(pos LastWaypoint, pos nextWaypoint, pos robotCenter);
+  void vChooseDeviationParallelnessParameters(int waypointNumber);
   double dCloseToZero(double value);
   double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
   double dLimitAngle(double angle);

@@ -51,8 +51,10 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("max_linear_vel", param_max_linear_vel, 0.7);
     pnh.param("min_linear_vel", param_min_linear_vel, 0.1);
 
-    pnh.param("deviation_weight", param_deviation_weight, 0.1);
-    pnh.param("parallelness_weight", param_parallelness_weight, 10.0);
+    pnh.param("deviation_weight_straight", param_deviation_weight_straight, 0.1);
+    pnh.param("parallelness_weight_straight", param_parallelness_weight_straight, 10.0);
+    pnh.param("deviation_weight_arch", param_deviation_weight_arch, 0.1);
+    pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, 10.0);
     pnh.param("epsilon", param_epsilon, 1e-3);
 
     pnh.param("design_dead_zone", param_local_dead_zone,
@@ -144,6 +146,13 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     pos robotCenter = pFrameFromPoseStamped(xTransformPose(_pRobotCenter));
 
     goal = nextWaypoint;
+
+    // Decide whether following straight or arch piece of path
+    ROS_ERROR_STREAM("[AgribotPlanner]\ncurrent\n"
+                     << _xLocalPlan[_iWaypointCount].pose.orientation << "\nLast\n"
+                     << _pLastWaypoint.pose.orientation);
+    pos currentWaypoint = pFrameFromPoseStamped(xTransformPose(_xLocalPlan[_iWaypointCount]));
+    vChooseDeviationParallelnessParameters(currentWaypoint, lastWaypoint);
 
     // Deviation error for statistics
     if (param_statistics)
@@ -486,6 +495,26 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   return plan;
 }
 
+void AgribotPlannerROS::vChooseDeviationParallelnessParameters(pos currentPose, pos lastPose)
+{
+  // check if difference between orientations exceeds dead zone
+  ROS_ERROR_STREAM("[LocalPlanner]\nCurrent yaw\t" << currentPose.az << "\nLast yaw\t" << lastPose.az);
+  if (abs(currentPose.az - lastPose.az) > 0)
+  {
+    // piece of path is an arch
+    param_current_deviation_weight = param_deviation_weight_arch;
+    param_current_parallelness_weight = param_parallelness_weight_arch;
+    ROS_ERROR_STREAM("[LocalPlanner] Piece of path is arch");
+  }
+  else
+  {
+    // piece of path is a straight line
+    param_current_deviation_weight = param_deviation_weight_straight;
+    param_current_parallelness_weight = param_parallelness_weight_straight;
+    ROS_ERROR_STREAM("[LocalPlanner] Piece of path is straight");
+  }
+}
+
 double AgribotPlannerROS::dCloseToZero(double value)
 {
   if (fabs(value) < param_epsilon)
@@ -700,9 +729,9 @@ geometry_msgs::Twist AgribotPlannerROS::xDeviationApproach(pos goal, pos lastWay
 {
   double deviation = dCalculateDeviation(lastWaypoint, goal, robotCenter);
 
-  double factorDeviation = param_deviation_weight * deviation / (1 + deviation);
+  double factorDeviation = param_current_deviation_weight * deviation / (1 + deviation);
   double factorParallelness =
-      param_parallelness_weight * (1 - fabs(cos(dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az)));
+      param_current_parallelness_weight * (1 - fabs(cos(dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az)));
   if (dLimitAngle(dAngleBetweenFrames(goal, robotCenter) - dAngleBetweenFrames(goal, lastWaypoint)) < 0)
   {
     factorDeviation *= -1;

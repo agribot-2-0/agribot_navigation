@@ -50,8 +50,10 @@ void SimplePlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, c
     pnh.param("max_linear_vel", param_max_linear_vel, 0.7);
     pnh.param("min_linear_vel", param_min_linear_vel, 0.1);
 
-    pnh.param("deviation_weight", param_deviation_weight, 0.1);
-    pnh.param("parallelness_weight", param_parallelness_weight, 10.0);
+    pnh.param("deviation_weight_straight", param_deviation_weight_straight, 0.1);
+    pnh.param("parallelness_weight_straight", param_parallelness_weight_straight, 10.0);
+    pnh.param("deviation_weight_arch", param_deviation_weight_arch, 0.1);
+    pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, 10.0);
     pnh.param("epsilon", param_epsilon, 1e-3);
 
     pnh.param("arch_approach", param_arch_approach, false);
@@ -91,8 +93,8 @@ bool SimplePlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& or
   bAbortExecuting = false;
   _iWaypointCount = 1;
   _iMissedWaypointsCount = 0;
-  _xPlan = orig_global_plan;
-  _iPlanLength = _xPlan.size();
+  _xLocalPlan = orig_global_plan;
+  _iPlanLength = _xLocalPlan.size();
   _bGoalReached = false;
   _traveledPoints = visualization_msgs::Marker();
 
@@ -131,6 +133,8 @@ bool SimplePlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     pos robotCenter = pFrameFromPoseStamped(xTransformPose(_pRobotCenter));
 
     goal = pCalculateGoal(nextWaypoint, robotCenter);
+
+    // Decide whether following straight or arch piece of path
 
     // Deviation error for statistics
     if (param_statistics)
@@ -189,6 +193,46 @@ bool SimplePlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   {
     cmd_vel = velocity;
     return true;
+  }
+}
+
+void SimplePlannerROS::vChooseDeviationParallelnessParameters(int waypointNumber)
+{
+  // check if it is not the first waypoint in path
+  if (waypointNumber > 0)
+  {
+    // get yaws from poses
+    geometry_msgs::PoseStamped currentPose = _xLocalPlan[waypointNumber];
+    geometry_msgs::PoseStamped currentPoseTransformed;
+    currentPoseTransformed = xTransformPose(currentPose);
+
+    geometry_msgs::PoseStamped lastPose = _xLocalPlan[waypointNumber - 1];
+    geometry_msgs::PoseStamped lastPoseTransformed;
+    lastPoseTransformed = xTransformPose(lastPose);
+
+    double current_waypoint_orientation = dGetYawFromQuaternion(currentPoseTransformed.pose.orientation);
+    double last_waypoint_orientation = dGetYawFromQuaternion(lastPoseTransformed.pose.orientation);
+    // check if difference between orientations exceeds dead zone
+    if (abs(current_waypoint_orientation - last_waypoint_orientation) > param_dead_zone)
+    {
+      // piece of path is an arch
+      param_current_deviation_weight = param_deviation_weight_arch;
+      param_current_parallelness_weight = param_parallelness_weight_arch;
+      ROS_ERROR_STREAM("[LocalPlanner] Piece of path is arch");
+    }
+    else
+    {
+      // piece of path is a straight line
+      param_current_deviation_weight = param_deviation_weight_straight;
+      param_current_parallelness_weight = param_parallelness_weight_straight;
+      ROS_ERROR_STREAM("[LocalPlanner] Piece of path is straight");
+    }
+  }
+  else
+  {
+    param_current_deviation_weight = param_deviation_weight_straight;
+    param_current_parallelness_weight = param_parallelness_weight_straight;
+    ROS_ERROR_STREAM("[LocalPlanner] First point in path");
   }
 }
 
@@ -278,7 +322,7 @@ void SimplePlannerROS::vTakeNextGoal(pos currentGoal, pos robotCenter)
 
   if (dDistanceBetweenFrames(nextWaypoint, currentGoal) > param_chassis_length)
   {
-    _pLastWaypoint = _xPlan[_iWaypointCount - 1];
+    _pLastWaypoint = _xLocalPlan[_iWaypointCount - 1];
   }
   else
   {
@@ -411,9 +455,9 @@ geometry_msgs::Twist SimplePlannerROS::xDeviationApproach(pos goal, pos lastWayp
 {
   double deviation = dCalculateDeviation(lastWaypoint, goal, robotCenter);
 
-  double factorDeviation = param_deviation_weight * deviation / (1 + deviation);
+  double factorDeviation = param_current_deviation_weight * deviation / (1 + deviation);
   double factorParallelness =
-      param_parallelness_weight * (1 - fabs(cos(dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az)));
+      param_current_parallelness_weight * (1 - fabs(cos(dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az)));
   if (dLimitAngle(dAngleBetweenFrames(goal, robotCenter) - dAngleBetweenFrames(goal, lastWaypoint)) < 0)
   {
     factorDeviation *= -1;
@@ -501,7 +545,7 @@ geometry_msgs::Twist SimplePlannerROS::xStopRobot()
 
 pos SimplePlannerROS::pGetFrame(int count)
 {
-  geometry_msgs::PoseStamped nextPose = _xPlan[count];
+  geometry_msgs::PoseStamped nextPose = _xLocalPlan[count];
   geometry_msgs::PoseStamped nextPoseTransformed;
   nextPoseTransformed = xTransformPose(nextPose);
 

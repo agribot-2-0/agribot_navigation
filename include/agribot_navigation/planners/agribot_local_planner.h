@@ -82,8 +82,12 @@ private:
   double param_dead_zone;
   double param_max_linear_vel;
   double param_min_linear_vel;
-  double param_deviation_weight;
-  double param_parallelness_weight;
+  double param_current_deviation_weight;
+  double param_current_parallelness_weight;
+  double param_deviation_weight_straight;
+  double param_parallelness_weight_straight;
+  double param_deviation_weight_arch;
+  double param_parallelness_weight_arch;
   double param_epsilon;
 
   double param_local_dead_zone;
@@ -121,6 +125,7 @@ private:
   geometry_msgs::Twist xFinishedPathBehaviour();
   void vTakeNextGoal(pos currentGoal, pos robotCenter);
   void vCalculateDeviationIntegral(pos LastWaypoint, pos nextWaypoint, pos robotCenter);
+  void vChooseDeviationParallelnessParameters(pos currentPose, pos lastPose);
   double dCloseToZero(double value);
   double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
   double dLimitAngle(double angle);
