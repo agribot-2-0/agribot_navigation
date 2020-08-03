@@ -67,6 +67,9 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("statistics", param_statistics, true);
     pnh.param("take_front", param_take_front, false);
 
+    _pRobotCenter.header.frame_id = "odom";
+    _pLastWaypoint.header.frame_id = "odom";
+
     _bInitialized = true;
 
     if (param_statistics)
@@ -764,7 +767,11 @@ pos AgribotPlannerROS::pGetWaypoint(int count)
   pos waypoint = pGetFrame(count);
   if (bIsLastWaypointInPath(count + 1))
   {
-    waypoint.az = dAngleBetweenFrames(waypoint, pGetFrame(count - 1));
+    if (count - 1 > 0)
+    {
+      waypoint.az = dAngleBetweenFrames(waypoint, pGetFrame(count - 1));
+    }
+
     if (param_take_front)
     {
       waypoint = pCalculateRobotFrontPosition(waypoint);
@@ -776,6 +783,8 @@ pos AgribotPlannerROS::pGetWaypoint(int count)
 geometry_msgs::PoseStamped AgribotPlannerROS::xTransformPose(geometry_msgs::PoseStamped ps)
 {
   geometry_msgs::PoseStamped poseTransformed;
+  poseTransformed.header.frame_id = "map";
+
   try
   {
     ps.header.stamp = ros::Time::now();
