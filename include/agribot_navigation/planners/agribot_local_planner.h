@@ -125,7 +125,7 @@ private:
   geometry_msgs::Twist xFinishedPathBehaviour();
   void vTakeNextGoal(pos currentGoal, pos robotCenter);
   void vCalculateDeviationIntegral(pos LastWaypoint, pos nextWaypoint, pos robotCenter);
-  void vChooseDeviationParallelnessParameters(pos currentPose, pos lastPose);
+  void vChooseDeviationParallelnessParameters(int waypointNumber);
   double dCloseToZero(double value);
   double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
   double dLimitAngle(double angle);

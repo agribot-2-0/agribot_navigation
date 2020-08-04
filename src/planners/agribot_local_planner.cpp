@@ -148,11 +148,9 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     goal = nextWaypoint;
 
     // Decide whether following straight or arch piece of path
-    ROS_ERROR_STREAM("[AgribotPlanner]\ncurrent\n"
-                     << _xLocalPlan[_iWaypointCount].pose.orientation << "\nLast\n"
-                     << _pLastWaypoint.pose.orientation);
-    pos currentWaypoint = pFrameFromPoseStamped(xTransformPose(_xLocalPlan[_iWaypointCount]));
-    vChooseDeviationParallelnessParameters(currentWaypoint, lastWaypoint);
+    vChooseDeviationParallelnessParameters(_iWaypointCount);
+    ROS_ERROR_STREAM("[SimplePlanner] weights " << param_current_deviation_weight << " "
+                                                << param_current_parallelness_weight);
 
     // Deviation error for statistics
     if (param_statistics)
@@ -507,23 +505,44 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   return plan;
 }
 
-void AgribotPlannerROS::vChooseDeviationParallelnessParameters(pos currentPose, pos lastPose)
+void AgribotPlannerROS::vChooseDeviationParallelnessParameters(int waypointNumber)
 {
-  // check if difference between orientations exceeds dead zone
-  ROS_ERROR_STREAM("[LocalPlanner]\nCurrent yaw\t" << currentPose.az << "\nLast yaw\t" << lastPose.az);
-  if (abs(currentPose.az - lastPose.az) > 0)
+  // check if it is not the first waypoint in path
+  if (waypointNumber > 0)
   {
-    // piece of path is an arch
-    param_current_deviation_weight = param_deviation_weight_arch;
-    param_current_parallelness_weight = param_parallelness_weight_arch;
-    ROS_ERROR_STREAM("[LocalPlanner] Piece of path is arch");
+    // get yaws from poses
+    geometry_msgs::PoseStamped currentPose = _xLocalPlan[waypointNumber];
+    geometry_msgs::PoseStamped currentPoseTransformed;
+    currentPoseTransformed = xTransformPose(currentPose);
+
+    geometry_msgs::PoseStamped lastPose = _xLocalPlan[waypointNumber - 1];
+    geometry_msgs::PoseStamped lastPoseTransformed;
+    lastPoseTransformed = xTransformPose(lastPose);
+
+    double current_waypoint_orientation = dGetYawFromQuaternion(currentPoseTransformed.pose.orientation);
+    double last_waypoint_orientation = dGetYawFromQuaternion(lastPoseTransformed.pose.orientation);
+    ROS_ERROR_STREAM("[SimplePlanner] yaws " << current_waypoint_orientation << " " << last_waypoint_orientation << " "
+                                             << abs(current_waypoint_orientation - last_waypoint_orientation));
+    // check if there is difference between yaws
+    if (abs(current_waypoint_orientation - last_waypoint_orientation) > param_epsilon)
+    {
+      // piece of path is an arch
+      ROS_ERROR_STREAM("[SimplePlanner] ARCH ");
+      param_current_deviation_weight = param_deviation_weight_arch;
+      param_current_parallelness_weight = param_parallelness_weight_arch;
+    }
+    else
+    {
+      // piece of path is a straight line
+      ROS_ERROR_STREAM("[SimplePlanner] STRAIGHT ");
+      param_current_deviation_weight = param_deviation_weight_straight;
+      param_current_parallelness_weight = param_parallelness_weight_straight;
+    }
   }
   else
   {
-    // piece of path is a straight line
     param_current_deviation_weight = param_deviation_weight_straight;
     param_current_parallelness_weight = param_parallelness_weight_straight;
-    ROS_ERROR_STREAM("[LocalPlanner] Piece of path is straight");
   }
 }
 
@@ -1032,25 +1051,20 @@ void AgribotPlannerROS::vGoalRangeVisualization(pos goal, pos range)
   marker.header.stamp = ros::Time::now();
   marker.ns = "goal_range";
   marker.action = visualization_msgs::Marker::ADD;
-  marker.id = 2;
-  marker.type = visualization_msgs::Marker::LINE_STRIP;
-  marker.scale.x = 0.1;
+  marker.id = 0;
+  marker.type = visualization_msgs::Marker::SPHERE;
   marker.color.r = 1.0;
-  marker.color.a = 1.0;
-  marker.pose.orientation.w = 1;
+  marker.color.a = 0.2;
 
   geometry_msgs::Point p;
-  p.x = goal.x - range.x;
-  p.y = goal.y + range.y;
-  p.z = 0;
+  marker.scale.x = 2 * param_goal_distance_tolerance;
+  marker.scale.y = 2 * param_goal_distance_tolerance;
+  marker.scale.z = 0.01;
+  marker.pose.position.x = goal.x;
+  marker.pose.position.y = goal.y;
+  marker.pose.position.z = 0;
+  marker.pose.orientation.w = 1;
 
-  marker.points.push_back(p);
-
-  p.x = goal.x + range.x;
-  p.y = goal.y + range.y;
-  p.z = 0;
-
-  marker.points.push_back(p);
 
   _rGoalRangePub.publish(marker);
 }

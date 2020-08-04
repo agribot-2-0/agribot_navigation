@@ -135,6 +135,7 @@ bool SimplePlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     goal = pCalculateGoal(nextWaypoint, robotCenter);
 
     // Decide whether following straight or arch piece of path
+    vChooseDeviationParallelnessParameters(_iWaypointCount);
 
     // Deviation error for statistics
     if (param_statistics)
@@ -212,27 +213,24 @@ void SimplePlannerROS::vChooseDeviationParallelnessParameters(int waypointNumber
 
     double current_waypoint_orientation = dGetYawFromQuaternion(currentPoseTransformed.pose.orientation);
     double last_waypoint_orientation = dGetYawFromQuaternion(lastPoseTransformed.pose.orientation);
-    // check if difference between orientations exceeds dead zone
-    if (abs(current_waypoint_orientation - last_waypoint_orientation) > param_dead_zone)
+    // check if there is difference between yaws
+    if (abs(current_waypoint_orientation - last_waypoint_orientation) > 0)
     {
       // piece of path is an arch
       param_current_deviation_weight = param_deviation_weight_arch;
       param_current_parallelness_weight = param_parallelness_weight_arch;
-      ROS_ERROR_STREAM("[LocalPlanner] Piece of path is arch");
     }
     else
     {
       // piece of path is a straight line
       param_current_deviation_weight = param_deviation_weight_straight;
       param_current_parallelness_weight = param_parallelness_weight_straight;
-      ROS_ERROR_STREAM("[LocalPlanner] Piece of path is straight");
     }
   }
   else
   {
     param_current_deviation_weight = param_deviation_weight_straight;
     param_current_parallelness_weight = param_parallelness_weight_straight;
-    ROS_ERROR_STREAM("[LocalPlanner] First point in path");
   }
 }
 
