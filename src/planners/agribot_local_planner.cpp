@@ -149,8 +149,6 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 
     // Decide whether following straight or arch piece of path
     vChooseDeviationParallelnessParameters(_iWaypointCount);
-    ROS_ERROR_STREAM("[SimplePlanner] weights " << param_current_deviation_weight << " "
-                                                << param_current_parallelness_weight);
 
     // Deviation error for statistics
     if (param_statistics)
@@ -521,20 +519,16 @@ void AgribotPlannerROS::vChooseDeviationParallelnessParameters(int waypointNumbe
 
     double current_waypoint_orientation = dGetYawFromQuaternion(currentPoseTransformed.pose.orientation);
     double last_waypoint_orientation = dGetYawFromQuaternion(lastPoseTransformed.pose.orientation);
-    ROS_ERROR_STREAM("[SimplePlanner] yaws " << current_waypoint_orientation << " " << last_waypoint_orientation << " "
-                                             << abs(current_waypoint_orientation - last_waypoint_orientation));
     // check if there is difference between yaws
     if (abs(current_waypoint_orientation - last_waypoint_orientation) > param_epsilon)
     {
       // piece of path is an arch
-      ROS_ERROR_STREAM("[SimplePlanner] ARCH ");
       param_current_deviation_weight = param_deviation_weight_arch;
       param_current_parallelness_weight = param_parallelness_weight_arch;
     }
     else
     {
       // piece of path is a straight line
-      ROS_ERROR_STREAM("[SimplePlanner] STRAIGHT ");
       param_current_deviation_weight = param_deviation_weight_straight;
       param_current_parallelness_weight = param_parallelness_weight_straight;
     }
