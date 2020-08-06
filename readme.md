@@ -10,3 +10,7 @@ Positive value determines the length of the side of the next polygon in dm.
 **E.g. publishing "90" means that the next polygon will have a side of length 9.0m. Publishing "-8" will set up an octagon.**
 
 The first side of polygon (or straight segment) has the same orientation as the robot.
+
+# Component diagram
+
+![overview](doc/component_diagram.png)
