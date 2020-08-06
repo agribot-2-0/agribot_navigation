@@ -497,7 +497,7 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
 void AgribotPlannerROS::vChooseDeviationParallelnessParameters(int waypointNumber)
 {
   // check if it is not the first waypoint in path
-  if (waypointNumber > 0)
+  if (waypointNumber > 1)
   {
     // get yaws from poses
     geometry_msgs::PoseStamped currentPose = _xLocalPlan[waypointNumber];
