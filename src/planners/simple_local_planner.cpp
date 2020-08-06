@@ -214,7 +214,7 @@ void SimplePlannerROS::vChooseDeviationParallelnessParameters(int waypointNumber
     double current_waypoint_orientation = dGetYawFromQuaternion(currentPoseTransformed.pose.orientation);
     double last_waypoint_orientation = dGetYawFromQuaternion(lastPoseTransformed.pose.orientation);
     // check if there is difference between yaws
-    if (abs(current_waypoint_orientation - last_waypoint_orientation) > 0)
+    if (abs(current_waypoint_orientation - last_waypoint_orientation) > param_epsilon)
     {
       // piece of path is an arch
       param_current_deviation_weight = param_deviation_weight_arch;
