@@ -474,7 +474,7 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   steps = abs(c2_span * RAD_TO_DEG) / param_arch_step;
   if (steps > 1)
   {
-    for (int i = 1; i <= steps-1; i++)
+    for (int i = 1; i <= steps - 1; i++)
     {
       geometry_msgs::PoseStamped c2_pose;
       pos c2_point;
