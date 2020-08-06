@@ -69,6 +69,9 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("statistics", param_statistics, true);
     pnh.param("take_front", param_take_front, false);
 
+    _pRobotCenter.header.frame_id = "odom";
+    _pLastWaypoint.header.frame_id = "odom";
+
     _bInitialized = true;
 
     if (param_statistics)
@@ -469,9 +472,9 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
 
   // appednd arch from circle C2
   steps = abs(c2_span * RAD_TO_DEG) / param_arch_step;
-  if (steps > 0)
+  if (steps > 1)
   {
-    for (int i = 0; i <= steps; i++)
+    for (int i = 1; i <= steps-1; i++)
     {
       geometry_msgs::PoseStamped c2_pose;
       pos c2_point;
@@ -806,7 +809,11 @@ pos AgribotPlannerROS::pGetWaypoint(int count)
   pos waypoint = pGetFrame(count);
   if (bIsLastWaypointInPath(count + 1))
   {
-    waypoint.az = dAngleBetweenFrames(waypoint, pGetFrame(count - 1));
+    if (count - 1 > 0)
+    {
+      waypoint.az = dAngleBetweenFrames(waypoint, pGetFrame(count - 1));
+    }
+
     if (param_take_front)
     {
       waypoint = pCalculateRobotFrontPosition(waypoint);
@@ -818,6 +825,8 @@ pos AgribotPlannerROS::pGetWaypoint(int count)
 geometry_msgs::PoseStamped AgribotPlannerROS::xTransformPose(geometry_msgs::PoseStamped ps)
 {
   geometry_msgs::PoseStamped poseTransformed;
+  poseTransformed.header.frame_id = "map";
+
   try
   {
     ps.header.stamp = ros::Time::now();
