@@ -488,7 +488,6 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   }
   // append final pose
   plan.push_back(endPose);
-
   return plan;
 }
 
