@@ -13,4 +13,4 @@ The first side of polygon (or straight segment) has the same orientation as the 
 
 # Component diagram
 
-![overview](doc/component_diagram.png)
+![overview](doc/component_diagram.jpg)
