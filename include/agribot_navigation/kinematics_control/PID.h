@@ -70,5 +70,8 @@ public:
   double dGetError();
   double dGetIntegrationError();
   double dGetDerivativeError();
+  double dGetProportionalPart();
+  double dGetIntegralPart();
+  double dGetDerivativePart();
   double dGetDesiredSetPoint();
 };

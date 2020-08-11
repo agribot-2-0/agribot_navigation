@@ -343,6 +343,21 @@ double PID::dGetDerivativeError()
   return this->_dDerivative;
 }
 
+double PID::dGetProportionalPart()
+{
+  return this->dProportionalPart(this->_dError);
+}
+
+double PID::dGetIntegralPart()
+{
+  return this->dIntegralPart(this->_dErrorIntegral);
+}
+
+double PID::dGetDerivativePart()
+{
+  return this->dDerivativePart(this->dAverageFilter(this->_dDerivative, this->_dDerPrior, this->_dDerPrevious));
+}
+
 double PID::dGetDesiredSetPoint()
 {
   return this->_dDesiredSetPoint;
