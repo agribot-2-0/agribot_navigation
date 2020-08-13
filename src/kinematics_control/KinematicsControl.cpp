@@ -377,9 +377,9 @@ void KinematicsControl::vCalculateKinematicsControl()
   message_front_SP.data = _pFrontCartPID->dGetSetPoint() * RAD_TO_DEG;
   message_front_CV.data = _pFrontCartPID->dGetControlValue() * RAD_TO_DEG;
   message_front_PV.data = _pFrontCartPID->dGetProcessValue() * RAD_TO_DEG;
-  message_front_ER.data = _pFrontCartPID->dGetError() * RAD_TO_DEG;
-  message_front_IE.data = _pFrontCartPID->dGetIntegrationError() * RAD_TO_DEG;
-  message_front_DE.data = _pFrontCartPID->dGetDerivativeError() * RAD_TO_DEG;
+  message_front_ER.data = _pFrontCartPID->dGetProportionalPart() * RAD_TO_DEG;
+  message_front_IE.data = _pFrontCartPID->dGetIntegralPart() * RAD_TO_DEG;
+  message_front_DE.data = _pFrontCartPID->dGetDerivativePart() * RAD_TO_DEG;
   message_front_DSP.data = _pFrontCartPID->dGetDesiredSetPoint() * RAD_TO_DEG;
 
   std_msgs::Float64 message_back_SP;
@@ -392,9 +392,9 @@ void KinematicsControl::vCalculateKinematicsControl()
   message_back_SP.data = _pBackCartPID->dGetSetPoint() * RAD_TO_DEG;
   message_back_CV.data = _pBackCartPID->dGetControlValue() * RAD_TO_DEG;
   message_back_PV.data = _pBackCartPID->dGetProcessValue() * RAD_TO_DEG;
-  message_back_ER.data = _pBackCartPID->dGetError() * RAD_TO_DEG;
-  message_back_IE.data = _pBackCartPID->dGetIntegrationError() * RAD_TO_DEG;
-  message_back_DE.data = _pBackCartPID->dGetDerivativeError() * RAD_TO_DEG;
+  message_back_ER.data = _pBackCartPID->dGetProportionalPart() * RAD_TO_DEG;
+  message_back_IE.data = _pBackCartPID->dGetIntegralPart() * RAD_TO_DEG;
+  message_back_DE.data = _pBackCartPID->dGetDerivativePart() * RAD_TO_DEG;
   message_back_DSP.data = _pBackCartPID->dGetDesiredSetPoint() * RAD_TO_DEG;
 
   std_msgs::Float64 message_linear_FV;
