@@ -9,5 +9,6 @@
     </node>
     <node name="cmd_vel_arbiter_node" pkg="agribot_navigation" type="cmd_vel_arbiter_node">
         <param name="starting_state" value="$(arg starting_state)" type="str"/>
+        <param name="timeout" value="1" type="double"/>
     </node>
 </launch>
