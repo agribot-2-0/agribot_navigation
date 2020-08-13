@@ -64,6 +64,12 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("design_arch_step", param_arch_step,
               5.0);  // degrees
 
+    // be sure that path planning arch radius is greater or equal to minimum turning radius
+    if (param_arch_radius < param_min_radius)
+    {
+      param_arch_radius = param_min_radius;
+    }
+
     pnh.param("speed_limit", param_speed_limit, true);
     pnh.param("debug", param_debug, false);
     pnh.param("statistics", param_statistics, true);
@@ -1067,7 +1073,6 @@ void AgribotPlannerROS::vGoalRangeVisualization(pos goal, pos range)
   marker.pose.position.y = goal.y;
   marker.pose.position.z = 0;
   marker.pose.orientation.w = 1;
-
 
   _rGoalRangePub.publish(marker);
 }
