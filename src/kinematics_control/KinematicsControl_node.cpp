@@ -76,18 +76,18 @@ int main(int argc, char** argv)
   double FrontLimit;
   double BackLimit;
 
-  pnh.param("coarse_Kp", CoarseKp, 0.75);
-  pnh.param("coarse_Ki", CoarseKi, 0.208333);
-  pnh.param("coarse_Kd", CoarseKd, 0.689063);
+  pnh.param("coarse_Kp", CoarseKp, 1.2);
+  pnh.param("coarse_Ki", CoarseKi, 0.1);
+  pnh.param("coarse_Kd", CoarseKd, 2.5);
 
-  pnh.param("precise_Kp", PreciseKp, 0.21428571428);
-  pnh.param("precise_Ki", PreciseKi, 0.04761897142);
-  pnh.param("precise_Kd", PreciseKd, 0.75);
+  pnh.param("precise_Kp", PreciseKp, 0.3);
+  pnh.param("precise_Ki", PreciseKi, 0.4);
+  pnh.param("precise_Kd", PreciseKd, 4.0);
 
-  pnh.param("precision_range", PrecisionRange, 2.0);
+  pnh.param("precision_range", PrecisionRange, 7.2);
 
-  pnh.param("front_limit", FrontLimit, 10.0);
-  pnh.param("back_limit", BackLimit, 10.0);
+  pnh.param("front_limit", FrontLimit, 20.7);
+  pnh.param("back_limit", BackLimit, 20.7);
 
   KinControl.vSetPreciseKp(CoarseKp);
   KinControl.vSetPreciseKi(CoarseKi);
