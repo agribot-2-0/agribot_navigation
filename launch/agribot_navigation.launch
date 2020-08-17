@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="cmd_vel_arbiter_starting_state" default="stop" />
+
+
+  <include file="$(find agribot_navigation)/launch/kinematics_control.launch">
+    <arg name="cmd_vel_arbiter_starting_state" value="$(arg cmd_vel_arbiter_starting_state)" />
+  </include>
+
+  <include file="$(find agribot_navigation)/launch/move_base.launch" />
+
+</launch>

@@ -1,57 +1,28 @@
 <launch>
 
-  <arg name="cmd_vel_topic" default="/cmd_vel" />
-  <arg name="odom_topic" default="/odom" />
+  <arg name="cmd_vel_topic" default="/cmd_vel_navigation" />
+  <arg name="odom_topic" default="/agribot/odom/estimated" />
 
-  <node
-    pkg="move_base"
-    type="move_base"
-    name="move_base"
-    respawn="false"
-    output="screen"
-  >
+  <node pkg="move_base" type="move_base" name="move_base" respawn="false" output="screen">
 
-    <rosparam
-      file="$(find agribot_navigation)/param/costmap_common_params.yaml"
-      command="load"
-      ns="global_costmap"
-    />
+    <rosparam file="$(find agribot_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
 
-    <rosparam
-      file="$(find agribot_navigation)/param/costmap_common_params.yaml"
-      command="load"
-      ns="local_costmap"
-    />
+    <rosparam file="$(find agribot_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
 
-    <rosparam
-      file="$(find agribot_navigation)/param/costmap_global_params.yaml"
-      command="load"
-    />
+    <rosparam file="$(find agribot_navigation)/param/costmap_global_params.yaml" command="load" />
 
-    <rosparam
-      file="$(find agribot_navigation)/param/costmap_local_params.yaml"
-      command="load"
-    />
+    <rosparam file="$(find agribot_navigation)/param/costmap_local_params.yaml" command="load" />
 
-    <rosparam
-      file="$(find agribot_navigation)/param/base_global_planner_params.yaml"
-      command="load"
-    />
+    <rosparam file="$(find agribot_navigation)/param/base_global_planner_params.yaml" command="load" />
 
-    <rosparam
-      file="$(find agribot_navigation)/param/base_local_planner_params.yaml"
-      command="load"
-    />
+    <rosparam file="$(find agribot_navigation)/param/base_local_planner_params.yaml" command="load" />
 
-    <rosparam
-      file="$(find agribot_navigation)/param/move_base_params.yaml"
-      command="load"
-    />
+    <rosparam file="$(find agribot_navigation)/param/move_base_params.yaml" command="load" />
 
-    <param name="base_local_planner" value="agribot_navigation/AgribotPlannerROS"/>
+    <param name="base_local_planner" value="agribot_navigation/AgribotPlannerROS" />
     <param name="base_global_planner" value="agribot_navigation/WaypointGlobalPlanner" />
 
-    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
-    <remap from="odom" to="$(arg odom_topic)"/>
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
+    <remap from="odom" to="$(arg odom_topic)" />
   </node>
 </launch>
