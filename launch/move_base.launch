@@ -48,7 +48,7 @@
       command="load"
     />
 
-    <param name="base_local_planner" value="agribot_navigation/AgribotPlannerROS"/>
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
     <param name="base_global_planner" value="agribot_navigation/WaypointGlobalPlanner" />
 
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
