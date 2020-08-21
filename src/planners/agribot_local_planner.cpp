@@ -110,12 +110,7 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _iWaypointCount = 1;
   _iMissedWaypointsCount = 0;
   _xPlan = orig_global_plan;
-  _xLocalPlan = orig_global_plan;
-  _xDisplayPlan.clear();
-  _xDisplayPlan = xDesignLocalPath(orig_global_plan);
-  _xLocalPlan.clear();
-  _xLocalPlan = _xDisplayPlan;
-  _iPlanLength = _xLocalPlan.size();
+  _xLocalPlan = xDesignLocalPath(_pRobotCenter, _xPlan.back());
   _bGoalReached = false;
   _traveledPoints = visualization_msgs::Marker();
 
@@ -139,7 +134,9 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 {
   geometry_msgs::Twist velocity;
   pos goal;
-  vLocalPathVisualization(_xDisplayPlan);
+  // _xLocalPlan = xDesignLocalPath(_pRobotCenter, _xPlan.back());
+
+  vLocalPathVisualization(_xLocalPlan);
 
   if (!_bInitialized)
   {
@@ -147,7 +144,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
                      << "call initialize() before planner");
     return false;
   }
-  if (_iPlanLength != 0)
+  if (_xLocalPlan.size() != 0)
   {
     // Check where robot is
     pos nextWaypoint = pGetWaypoint(_iWaypointCount);
@@ -219,26 +216,13 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   }
 }
 
-std::vector<geometry_msgs::PoseStamped>
-AgribotPlannerROS::xDesignLocalPath(std::vector<geometry_msgs::PoseStamped> globalPath)
+std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xDesignLocalPath(geometry_msgs::PoseStamped startPose,
+                                                                            geometry_msgs::PoseStamped endPose)
 {
-  int planLength = globalPath.size();
-
   std::vector<geometry_msgs::PoseStamped> localPlan;
 
-  geometry_msgs::PoseStamped startPose;
-  startPose = globalPath[0];
-  pos startPoint;
-  startPoint.x = startPose.pose.position.x;
-  startPoint.y = startPose.pose.position.y;
-  startPoint.az = dGetYawFromQuaternion(startPose.pose.orientation);
-
-  geometry_msgs::PoseStamped endPose;
-  endPose = globalPath.back();
-  pos endPoint;
-  endPoint.x = endPose.pose.position.x;
-  endPoint.y = endPose.pose.position.y;
-  endPoint.az = dGetYawFromQuaternion(endPose.pose.orientation);
+  pos startPoint = pFrameFromPoseStamped(startPose);
+  pos endPoint = pFrameFromPoseStamped(endPose);
 
   double path_angle = dAngleBetweenFrames(endPoint, startPoint);
   double end_orientation = endPoint.az;
@@ -252,18 +236,8 @@ AgribotPlannerROS::xDesignLocalPath(std::vector<geometry_msgs::PoseStamped> glob
   pos tangent_point =
       pCalculateTangentPoint(c1_center, path_angle, angle_difference, param_arch_radius, param_local_dead_zone);
 
-  if ((dDistanceBetweenFrames(startPoint, endPoint) < dDistanceBetweenFrames(tangent_point, endPoint)) ||
-      isnan(c2_center.x) || isnan(c1_center.x) || isnan(tangent_point.x))
-  {
-    ROS_WARN_STREAM("[AgribotPlanner]\nDistance of path\t" << dDistanceBetweenFrames(startPoint, endPoint)
-                                                           << "\nDistance needed\t\t"
-                                                           << dDistanceBetweenFrames(tangent_point, endPoint));
-    localPlan = globalPath;
-  }
-  else
-  {
-    localPlan = xAssemblePath(globalPath, tangent_point, c1_center, c2_center);
-  }
+  localPlan = xAssemblePath(startPose, endPose, tangent_point, c1_center, c2_center);
+
   return localPlan;
 }
 
@@ -392,24 +366,15 @@ pos AgribotPlannerROS::pCalculateTangentPoint(pos c1_center, double path_angle, 
   return tangent_point;
 }
 
-std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
-    std::vector<geometry_msgs::PoseStamped> globalPath, pos tangent_point, pos c1_center, pos c2_center)
+std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(geometry_msgs::PoseStamped startPose,
+                                                                         geometry_msgs::PoseStamped endPose,
+                                                                         pos tangent_point, pos c1_center,
+                                                                         pos c2_center)
 {
   std::vector<geometry_msgs::PoseStamped> plan;
 
-  geometry_msgs::PoseStamped startPose;
-  startPose = globalPath[0];
-  pos startPoint;
-  startPoint.x = startPose.pose.position.x;
-  startPoint.y = startPose.pose.position.y;
-  startPoint.az = dGetYawFromQuaternion(startPose.pose.orientation);
-
-  geometry_msgs::PoseStamped endPose;
-  endPose = globalPath.back();
-  pos endPoint;
-  endPoint.x = endPose.pose.position.x;
-  endPoint.y = endPose.pose.position.y;
-  endPoint.az = dGetYawFromQuaternion(endPose.pose.orientation);
+  pos startPoint = pFrameFromPoseStamped(startPose);
+  pos endPoint = pFrameFromPoseStamped(endPose);
 
   double path_angle = dAngleBetweenFrames(endPoint, startPoint);
   double end_orientation = endPoint.az;
@@ -422,8 +387,6 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   double a_p2_p1 = dAngleBetweenFrames(c1_center, c2_center);
   double a_p2_pk = dAngleBetweenFrames(endPoint, c2_center);
   double c2_span = a_p2_pk - a_p2_p1;
-
-  int planLength = globalPath.size();
 
   // if the final orientation relative to path is positive
   // (robot turns left), circle C2 is followed counterclockwise
@@ -443,73 +406,84 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
     }
   }
 
-  // append piece of global plan from start point to tangent point
-  for (auto const& currentPose : globalPath)
+  if ((dDistanceBetweenFrames(startPoint, endPoint) < dDistanceBetweenFrames(tangent_point, endPoint)) ||
+      isnan(c2_center.x) || isnan(c1_center.x) || isnan(tangent_point.x))
   {
-    pos currentPoint;
-    currentPoint.x = currentPose.pose.position.x;
-    currentPoint.y = currentPose.pose.position.y;
-    currentPoint.az = dGetYawFromQuaternion(currentPose.pose.orientation);
-    if (dDistanceBetweenFrames(startPoint, currentPoint) <= dDistanceBetweenFrames(startPoint, tangent_point))
-    {
-      plan.push_back(currentPose);
-    }
+    ROS_WARN_STREAM("[AgribotPlanner]\nDistance of path\t" << dDistanceBetweenFrames(startPoint, endPoint)
+                                                           << "\nDistance needed\t\t"
+                                                           << dDistanceBetweenFrames(tangent_point, endPoint));
+    straightPath(plan, startPoint, endPoint);
+  }
+  else
+  {
+    straightPath(plan, startPoint, tangent_point);
+
+    // appednd arch from circle C1
+    arcPath(plan, tangent_point, c1_center, c1_span);
+
+    // appednd arch from circle C2
+    arcPath(plan, c1_center, c2_center, c2_span);
   }
 
-  // appednd arch from circle C1
-  int steps = abs(c1_span * RAD_TO_DEG) / param_arch_step;
-  if (steps > 0)
-  {
-    for (int i = 0; i <= steps; i++)
-    {
-      geometry_msgs::PoseStamped c1_pose;
-      pos c1_point;
-      double angle = i * c1_span / steps;
-
-      c1_point.x = c1_center.x + param_arch_radius * cos(a_p1_ps + angle);
-      c1_point.y = c1_center.y + param_arch_radius * sin(a_p1_ps + angle);
-
-      c1_pose.header = startPose.header;
-      c1_pose.pose.position.x = c1_point.x;
-      c1_pose.pose.position.y = c1_point.y;
-      plan.push_back(c1_pose);
-    }
-  }
-
-  // appednd arch from circle C2
-  steps = abs(c2_span * RAD_TO_DEG) / param_arch_step;
-  if (steps > 1)
-  {
-    for (int i = 1; i <= steps - 1; i++)
-    {
-      geometry_msgs::PoseStamped c2_pose;
-      pos c2_point;
-      double angle = i * c2_span / steps;
-
-      c2_point.x = c2_center.x + param_arch_radius * cos(a_p2_p1 + angle);
-      c2_point.y = c2_center.y + param_arch_radius * sin(a_p2_p1 + angle);
-
-      c2_pose.header = startPose.header;
-      c2_pose.pose.position.x = c2_point.x;
-      c2_pose.pose.position.y = c2_point.y;
-      plan.push_back(c2_pose);
-    }
-  }
-  // append final pose
+  // // append final pose
   plan.push_back(endPose);
 
   // add proper orientation to each point
-  for (int i = 0; i < plan.size() - 1; i++)
+  for (int i = 0; i < plan.size(); i++)
   {
-    double angle = std::atan2(plan[i + 1].pose.position.y - plan[i].pose.position.y,
-                              plan[i + 1].pose.position.x - plan[i].pose.position.x);
-    plan[i].pose.orientation.x = 0;
-    plan[i].pose.orientation.y = 0;
-    plan[i].pose.orientation.z = sin(angle / 2.0);
-    plan[i].pose.orientation.w = cos(angle / 2.0);
+    plan[i].header.frame_id = startPose.header.frame_id;
+    plan[i].header.seq = i;
+    if (i != plan.size())
+    {
+      double angle = std::atan2(plan[i + 1].pose.position.y - plan[i].pose.position.y,
+                                plan[i + 1].pose.position.x - plan[i].pose.position.x);
+      plan[i].pose.orientation.x = 0;
+      plan[i].pose.orientation.y = 0;
+      plan[i].pose.orientation.z = sin(angle / 2.0);
+      plan[i].pose.orientation.w = cos(angle / 2.0);
+    }
   }
 
   return plan;
+}
+
+void AgribotPlannerROS::straightPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point)
+{
+  double step_size = 180 / (param_arch_step * M_PI * param_arch_radius);
+  int steps = dDistanceBetweenFrames(start_point, end_point) * step_size;
+
+  if (steps > 0)
+  {
+    for (int i = 0; i < steps; i++)
+    {
+      geometry_msgs::PoseStamped pose;
+      pose.pose.position.x = start_point.x + static_cast<double>(i) / steps * (end_point.x - start_point.x);
+      pose.pose.position.y = start_point.y + static_cast<double>(i) / steps * (end_point.y - start_point.y);
+      path.push_back(pose);
+    }
+  }
+}
+
+void AgribotPlannerROS::arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos circle_start, pos circle_center,
+                                double angle_span)
+{
+  double angle_start_center = dAngleBetweenFrames(circle_start, circle_center);
+
+  int steps = abs(angle_span * RAD_TO_DEG) / param_arch_step;
+  double step_size = angle_span / steps;
+
+  if (steps > 0)
+  {
+    for (int i = 0; i < steps; i++)
+    {
+      geometry_msgs::PoseStamped pose;
+      pose.pose.position.x =
+          circle_center.x + param_arch_radius * cos(angle_start_center + static_cast<double>(i) * step_size);
+      pose.pose.position.y =
+          circle_center.y + param_arch_radius * sin(angle_start_center + static_cast<double>(i) * step_size);
+      path.push_back(pose);
+    }
+  }
 }
 
 void AgribotPlannerROS::vChooseDeviationParallelnessParameters(int waypointNumber)
@@ -603,7 +577,7 @@ bool AgribotPlannerROS::bWithinGoalRange(pos robotFront, pos nextWaypoint)
 
 bool AgribotPlannerROS::bIsLastWaypointInPath(int waypointsCount)
 {
-  return (waypointsCount >= (_iPlanLength - 1));
+  return (waypointsCount >= (_xLocalPlan.size() - 1));
 }
 
 bool AgribotPlannerROS::bCenterTraveledBeyondGoal(pos robotCenter, pos lastWaypoint, pos nextWaypoint)

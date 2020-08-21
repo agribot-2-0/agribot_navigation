@@ -4,22 +4,23 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <nav_core/base_local_planner.h>
 #include <base_local_planner/goal_functions.h>
+#include <costmap_2d/costmap_2d_ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <nav_core/base_local_planner.h>
 #include <nav_msgs/Odometry.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <visualization_msgs/Marker.h>
+#include <ros/ros.h>
 #include <tf/tf.h>
-#include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
-#include <costmap_2d/costmap_2d_ros.h>
-#include <vector>
-#include <string>
+#include <tf2_ros/transform_listener.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
+
 #include <cmath>
+#include <string>
+#include <vector>
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)
 
@@ -99,15 +100,21 @@ private:
   bool param_statistics;
   bool param_take_front;
 
-  std::vector<geometry_msgs::PoseStamped> xDesignLocalPath(std::vector<geometry_msgs::PoseStamped> globalPath);
+  std::vector<geometry_msgs::PoseStamped> xDesignLocalPath(geometry_msgs::PoseStamped startPose,
+                                                           geometry_msgs::PoseStamped endPose);
   pos pCalculateC1Center(pos c2_center, pos end_point, double path_angle, double angle_difference, double arch_radius,
                          double dead_zone);
   pos pCalculateC2Center(pos endPoint, double end_orientation, double angle_difference, double arch_radius,
                          double dead_zone);
   pos pCalculateTangentPoint(pos c1_center, double path_angle, double angle_difference, double arch_radius,
                              double dead_zone);
-  std::vector<geometry_msgs::PoseStamped> xAssemblePath(std::vector<geometry_msgs::PoseStamped> globalPath,
-                                                        pos tangent_point, pos c1_center, pos c2_center);
+  std::vector<geometry_msgs::PoseStamped> xAssemblePath(geometry_msgs::PoseStamped startPose,
+                                                        geometry_msgs::PoseStamped endPose, pos tangent_point,
+                                                        pos c1_center, pos c2_center);
+  // NOLINTNEXTLINE(runtime/references)
+  void straightPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point);
+  // NOLINTNEXTLINE(runtime/references)
+  void arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos circle_start, pos circle_center, double angle_span);
 
   void vOdomCallback(const nav_msgs::Odometry odometry_msg);
   pos pCalculateRobotFrontPosition(pos robotCenter);
