@@ -22,6 +22,8 @@
 #include <cmath>
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)
+#define ODOM_FILTER_TIME 0.1
+#define DISTANCE_COEFFICIENT 1.1
 
 namespace agribot_local_planner
 {
@@ -68,8 +70,11 @@ private:
   bool _bInitialized;
   // time measuring for statistics
   double _dStopTime, _dStartTime, _dLastTime, _dActualTime;
-  // distance and deviation measuring for statistics
-  double _dDeviationIntegral, _dTraveledDistance;
+  double _dLastOdomStamp;
+  // deviation measuring for statistics
+  double _dDeviationIntegral;
+  double _dTraveledDistance;
+  double _dLastTraveledDistance;
   bool bAbortExecuting;
   // params
   int param_missed_points_tollerance;

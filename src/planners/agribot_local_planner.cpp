@@ -118,13 +118,15 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _iPlanLength = _xLocalPlan.size();
   _bGoalReached = false;
   _traveledPoints = visualization_msgs::Marker();
+  _dLastOdomStamp = 0;
 
   _pLastWaypoint = _pRobotCenter;
+  _dTraveledDistance = 0;
+  _dLastTraveledDistance = 0;
 
   if (param_statistics)
   {
     _dDeviationIntegral = 0;
-    _dTraveledDistance = 0;
 
     _dStartTime = ros::Time::now().toSec();
     _dLastTime = 0;
@@ -608,10 +610,9 @@ bool AgribotPlannerROS::bIsLastWaypointInPath(int waypointsCount)
 
 bool AgribotPlannerROS::bCenterTraveledBeyondGoal(pos robotCenter, pos lastWaypoint, pos nextWaypoint)
 {
-  pos firstWaypoint = pGetWaypoint(0);
-  double distanceWaypoints = dDistanceBetweenFrames(nextWaypoint, firstWaypoint);
-  double traveledDistance = dDistanceBetweenFrames(firstWaypoint, robotCenter);
-  return (traveledDistance >= distanceWaypoints);
+  double distanceWaypoints = dDistanceBetweenFrames(nextWaypoint, lastWaypoint);
+  double traveledDistance = _dTraveledDistance - _dLastTraveledDistance;
+  return (traveledDistance >= distanceWaypoints * DISTANCE_COEFFICIENT);
 }
 
 bool AgribotPlannerROS::bCenterOutOfGoalRange(pos robotCenter, pos nextWaypoint)
@@ -623,6 +624,7 @@ bool AgribotPlannerROS::bCenterOutOfGoalRange(pos robotCenter, pos nextWaypoint)
 void AgribotPlannerROS::vTakeNextGoal(pos currentGoal, pos robotCenter)
 {
   _iWaypointCount++;
+  _dLastTraveledDistance = _dTraveledDistance;
 
   pos nextWaypoint = pGetFrame(_iWaypointCount);
   if (bIsLastWaypointInPath(_iWaypointCount + 1))
@@ -688,15 +690,18 @@ bool AgribotPlannerROS::isGoalReached()
 
 void AgribotPlannerROS::vOdomCallback(const nav_msgs::Odometry odometry_msg)
 {
-  pos lastRobotPosition = pFrameFromPoseStamped(_pRobotCenter);
-  geometry_msgs::PoseStamped robotPose;
-
-  robotPose.header = odometry_msg.header;
-  robotPose.pose = odometry_msg.pose.pose;
-  _pRobotCenter = xTransformPose(robotPose);
-
-  if (param_statistics)
+  // prevent from too frequent odom reading
+  double odom_time_stamp = odometry_msg.header.stamp.sec + odometry_msg.header.stamp.nsec / 10e9;
+  if (odom_time_stamp - _dLastOdomStamp > ODOM_FILTER_TIME)
   {
+    _dLastOdomStamp = odom_time_stamp;
+    pos lastRobotPosition = pFrameFromPoseStamped(_pRobotCenter);
+    geometry_msgs::PoseStamped robotPose;
+
+    robotPose.header = odometry_msg.header;
+    robotPose.pose = odometry_msg.pose.pose;
+    _pRobotCenter = xTransformPose(robotPose);
+
     _dTraveledDistance += dDistanceBetweenFrames(lastRobotPosition, pFrameFromPoseStamped(_pRobotCenter));
   }
 }
