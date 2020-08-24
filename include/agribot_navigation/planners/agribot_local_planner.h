@@ -69,8 +69,11 @@ private:
   bool _bInitialized;
   // time measuring for statistics
   double _dStopTime, _dStartTime, _dLastTime, _dActualTime;
-  // distance and deviation measuring for statistics
-  double _dDeviationIntegral, _dTraveledDistance;
+  double _dLastOdomStamp;
+  // deviation measuring for statistics
+  double _dDeviationIntegral;
+  double _dTraveledDistance;
+  double _dLastTraveledDistance;
   bool bAbortExecuting;
   // params
   int param_missed_points_tollerance;
@@ -94,6 +97,8 @@ private:
   double param_local_dead_zone;
   double param_arch_radius;
   double param_arch_step;
+  double param_odom_filter_time;
+  double param_missed_distance_coefficient;
 
   bool param_speed_limit;
   bool param_debug;
