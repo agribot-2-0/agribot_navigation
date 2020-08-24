@@ -97,7 +97,7 @@ private:
   double param_arch_radius;
   double param_arch_step;
   double param_odom_filter_time;
-  double missed_distance_coefficient;
+  double param_missed_distance_coefficient;
 
   bool param_speed_limit;
   bool param_debug;
