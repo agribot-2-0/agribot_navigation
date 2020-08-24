@@ -22,8 +22,6 @@
 #include <cmath>
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)
-#define ODOM_FILTER_TIME 0.1
-#define DISTANCE_COEFFICIENT 1.1
 
 namespace agribot_local_planner
 {
@@ -98,6 +96,8 @@ private:
   double param_local_dead_zone;
   double param_arch_radius;
   double param_arch_step;
+  double param_odom_filter_time;
+  double missed_distance_coefficient;
 
   bool param_speed_limit;
   bool param_debug;

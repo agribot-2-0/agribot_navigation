@@ -64,6 +64,9 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("design_arch_step", param_arch_step,
               5.0);  // degrees
 
+    pnh.param("odom_filter_time", param_odom_filter_time, 0.1);
+    pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, 1.1);
+
     // be sure that path planning arch radius is greater or equal to minimum turning radius
     if (param_arch_radius < param_min_radius)
     {
@@ -612,7 +615,7 @@ bool AgribotPlannerROS::bCenterTraveledBeyondGoal(pos robotCenter, pos lastWaypo
 {
   double distanceWaypoints = dDistanceBetweenFrames(nextWaypoint, lastWaypoint);
   double traveledDistance = _dTraveledDistance - _dLastTraveledDistance;
-  return (traveledDistance >= distanceWaypoints * DISTANCE_COEFFICIENT);
+  return (traveledDistance >= distanceWaypoints * param_missed_distance_coefficient);
 }
 
 bool AgribotPlannerROS::bCenterOutOfGoalRange(pos robotCenter, pos nextWaypoint)
@@ -692,7 +695,7 @@ void AgribotPlannerROS::vOdomCallback(const nav_msgs::Odometry odometry_msg)
 {
   // prevent from too frequent odom reading
   double odom_time_stamp = odometry_msg.header.stamp.sec + odometry_msg.header.stamp.nsec / 10e9;
-  if (odom_time_stamp - _dLastOdomStamp > ODOM_FILTER_TIME)
+  if (odom_time_stamp - _dLastOdomStamp > param_odom_filter_time)
   {
     _dLastOdomStamp = odom_time_stamp;
     pos lastRobotPosition = pFrameFromPoseStamped(_pRobotCenter);
