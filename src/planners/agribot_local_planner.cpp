@@ -223,20 +223,41 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xDesignLocalPath(geom
 
   pos startPoint = pFrameFromPoseStamped(startPose);
   pos endPoint = pFrameFromPoseStamped(endPose);
+  pos robotCenter = pFrameFromPoseStamped(xTransformPose(_pRobotCenter));
 
   double path_angle = dAngleBetweenFrames(endPoint, startPoint);
+  double reverse_path_angle = dAngleBetweenFrames(robotCenter, endPoint);
+  // double reverse_path_angle = path_angle;
   double end_orientation = endPoint.az;
-  double angle_difference = dLimitAngle((end_orientation - path_angle));
+  double robot_orientation = robotCenter.az - M_PI;
+  // double robot_orientation = robotCenter.az;
+  double end_angle_difference = dLimitAngle((end_orientation - path_angle));
+  double start_angle_difference = dLimitAngle((robot_orientation - reverse_path_angle));
 
-  pos c2_center =
-      pCalculateC2Center(endPoint, end_orientation, angle_difference, param_arch_radius, param_local_dead_zone);
-  pos c1_center =
-      pCalculateC1Center(c2_center, endPoint, path_angle, angle_difference, param_arch_radius, param_local_dead_zone);
+  pos end_c2_center =
+      pCalculateC2Center(endPoint, end_orientation, end_angle_difference, param_arch_radius, param_local_dead_zone);
+  pos end_c1_center =
+      pCalculateC1Center(end_c2_center, endPoint, path_angle, end_angle_difference, param_arch_radius, param_local_dead_zone);
+  pos end_tangent_point =
+      pCalculateTangentPoint(end_c1_center, path_angle, end_angle_difference, param_arch_radius, param_local_dead_zone);
 
-  pos tangent_point =
-      pCalculateTangentPoint(c1_center, path_angle, angle_difference, param_arch_radius, param_local_dead_zone);
+  pos start_c2_center =
+      pCalculateC2Center(robotCenter, robot_orientation, start_angle_difference, param_arch_radius, param_local_dead_zone);
+  pos start_c1_center =
+      pCalculateC1Center(start_c2_center, robotCenter, reverse_path_angle, start_angle_difference, param_arch_radius, param_local_dead_zone);
+  pos start_tangent_point =
+      pCalculateTangentPoint(start_c1_center, reverse_path_angle, start_angle_difference, param_arch_radius, param_local_dead_zone);
 
-  localPlan = xAssemblePath(startPose, endPose, tangent_point, c1_center, c2_center);
+  ROS_ERROR_STREAM("[AgribotPlanner] start_c1_center x\t"
+                   <<start_c1_center.x << "\ty\t" << start_c1_center.y);
+  ROS_ERROR_STREAM("[AgribotPlanner] start_c2_center x\t"
+                   <<start_c2_center.x << "\ty\t" << start_c2_center.y);
+  vPathVisualization(start_c1_center);
+  vPathVisualization(start_c2_center);
+  // vPathVisualization(start_tangent_point);
+  // vPathVisualization(start_c1_center);
+
+  localPlan = xAssemblePath(startPose, endPose, end_tangent_point, end_c1_center, end_c2_center);
 
   return localPlan;
 }
@@ -927,10 +948,15 @@ void AgribotPlannerROS::vPathVisualization(pos robotCenter)
   _traveledPoints.ns = "travelled_path";
   _traveledPoints.action = visualization_msgs::Marker::ADD;
   _traveledPoints.id = 0;
-  _traveledPoints.type = visualization_msgs::Marker::LINE_STRIP;
-  _traveledPoints.scale.x = 0.1;
-  _traveledPoints.color.b = 1.0;
-  _traveledPoints.color.a = 1.0;
+  _traveledPoints.type = visualization_msgs::Marker::SPHERE_LIST;
+  // _traveledPoints.scale.x = 0.1;
+  _traveledPoints.scale.x = 2*param_arch_radius;
+  _traveledPoints.scale.y = 2*param_arch_radius;
+  _traveledPoints.scale.z = 0.01;
+  _traveledPoints.color.r = 0.1;
+  _traveledPoints.color.g = 0.1;
+  _traveledPoints.color.b = 0.1;
+  _traveledPoints.color.a = 0.5;
   _traveledPoints.pose.orientation.w = 1;
   geometry_msgs::Point p;
   p.x = robotCenter.x;
@@ -938,6 +964,28 @@ void AgribotPlannerROS::vPathVisualization(pos robotCenter)
   p.z = 0.1;
   _traveledPoints.points.push_back(p);
   _rPathPub.publish(_traveledPoints);
+
+  // visualization_msgs::Marker marker;
+  // marker.header.frame_id = "map";
+  // marker.header.stamp = ros::Time::now();
+  // marker.ns = "travelled_path";
+  // marker.action = visualization_msgs::Marker::ADD;
+  // marker.id = 0;
+  // marker.type = visualization_msgs::Marker::SPHERE;
+  // marker.color.r = 0.1;
+  // marker.color.g = 0.1;
+  // marker.color.b = 0.1;
+  // marker.color.a = 0.25;
+
+  // geometry_msgs::Point p;
+  // marker.scale.x = 2*param_arch_radius;
+  // marker.scale.y = 2*param_arch_radius;
+  // marker.scale.z = 0.01;
+  // marker.pose.position.x = robotCenter.x;
+  // marker.pose.position.y = robotCenter.y;
+  // marker.pose.position.z = 0;
+  // marker.pose.orientation.w = 1;
+  // _rPathPub.publish(marker);
 }
 
 void AgribotPlannerROS::vPredictedPathVisualization(geometry_msgs::Twist velocity, pos robotCenter)
