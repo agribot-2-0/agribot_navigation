@@ -30,7 +30,7 @@ AgribotPlannerROS:
   parallelness_weight_straight: 10.0
   deviation_weight_arch: 50.0
   parallelness_weight_arch: 100.3
-  goal_distance_tolerance: 0.25 # RADIUS COEFFICIENT
+  goal_distance_tolerance: 0.5 # RADIUS COEFFICIENT
   goal_range: 0.3 # metres
   missed_points_tollerance: 10000
   prediction_time: 60
@@ -39,6 +39,9 @@ AgribotPlannerROS:
   design_dead_zone: 0.0 # degrees
   design_arch_radius: 2.5 # metres
   design_arch_step: 20.0 # degrees
+
+  odom_filter_time: 0.1 # seconds
+  missed_distance_coefficient: 1.1
 
   arch_approach: false
   speed_limit: true
