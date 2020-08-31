@@ -231,9 +231,9 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xDesignLocalPath(geom
   pos robotCenter = pFrameFromPoseStamped(xTransformPose(_pRobotCenter));
 
   double path_angle = dAngleBetweenFrames(endPoint, startPoint);
-  double reverse_path_angle = dAngleBetweenFrames(robotCenter, endPoint);
+  double reverse_path_angle = dAngleBetweenFrames(startPoint, endPoint);
   double end_orientation = endPoint.az;
-  double reverse_robot_orientation = robotCenter.az - M_PI;
+  double reverse_robot_orientation = startPoint.az - M_PI;
   double end_angle_difference = dLimitAngle((end_orientation - path_angle));
   double start_angle_difference = dLimitAngle((reverse_robot_orientation - reverse_path_angle));
 
@@ -244,14 +244,14 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xDesignLocalPath(geom
   pos end_tangent_point =
       pCalculateTangentPoint(end_c1_center, path_angle, end_angle_difference, param_arch_radius, param_local_dead_zone);
 
-  pos start_c2_center = pCalculateC2Center(robotCenter, reverse_robot_orientation, start_angle_difference,
+  pos start_c2_center = pCalculateC2Center(startPoint, reverse_robot_orientation, start_angle_difference,
                                            param_arch_radius, param_local_dead_zone);
-  pos start_c1_center = pCalculateC1Center(start_c2_center, robotCenter, reverse_path_angle, start_angle_difference,
+  pos start_c1_center = pCalculateC1Center(start_c2_center, startPoint, reverse_path_angle, start_angle_difference,
                                            param_arch_radius, param_local_dead_zone);
   pos start_tangent_point = pCalculateTangentPoint(start_c1_center, reverse_path_angle, start_angle_difference,
                                                    param_arch_radius, param_local_dead_zone);
 
-  localPlan = xAssemblePath(startPose, endPose, robotCenter, start_tangent_point, start_c1_center, start_c2_center,
+  localPlan = xAssemblePath(startPose, endPose, start_tangent_point, start_c1_center, start_c2_center,
                             end_tangent_point, end_c1_center, end_c2_center);
 
   return localPlan;
@@ -382,9 +382,11 @@ pos AgribotPlannerROS::pCalculateTangentPoint(pos c1_center, double path_angle, 
   return tangent_point;
 }
 
-std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
-    geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose, pos robotCenter, pos start_tangent_point,
-    pos start_c1_center, pos start_c2_center, pos end_tangent_point, pos end_c1_center, pos end_c2_center)
+std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(geometry_msgs::PoseStamped startPose,
+                                                                         geometry_msgs::PoseStamped endPose,
+                                                                         pos start_tangent_point, pos start_c1_center,
+                                                                         pos start_c2_center, pos end_tangent_point,
+                                                                         pos end_c1_center, pos end_c2_center)
 {
   std::vector<geometry_msgs::PoseStamped> plan;
 
@@ -392,9 +394,9 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   pos endPoint = pFrameFromPoseStamped(endPose);
 
   double path_angle = dAngleBetweenFrames(endPoint, startPoint);
-  double reverse_path_angle = dAngleBetweenFrames(robotCenter, endPoint);
+  double reverse_path_angle = dAngleBetweenFrames(startPoint, endPoint);
   double end_orientation = endPoint.az;
-  double reverse_robot_orientation = robotCenter.az - M_PI;
+  double reverse_robot_orientation = startPoint.az - M_PI;
   double end_angle_difference = dLimitAngle((end_orientation - path_angle));
   double start_angle_difference = dLimitAngle((reverse_robot_orientation - reverse_path_angle));
 
@@ -429,7 +431,7 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   double a_start_p1_p2 = dAngleBetweenFrames(start_c2_center, start_c1_center);
   double start_c1_span = dLimitAngle(a_start_p1_ps - a_start_p1_p2);
   double a_start_p2_p1 = dAngleBetweenFrames(start_c1_center, start_c2_center);
-  double a_start_p2_pk = dAngleBetweenFrames(robotCenter, start_c2_center);
+  double a_start_p2_pk = dAngleBetweenFrames(startPoint, start_c2_center);
   double start_c2_span = a_start_p2_p1 - a_start_p2_pk;
 
   // if the final orientation relative to path is positive
@@ -450,8 +452,8 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
     }
   }
 
-  if ((dDistanceBetweenFrames(startPoint, endPoint) < dDistanceBetweenFrames(end_tangent_point, endPoint) +
-                                                          dDistanceBetweenFrames(start_tangent_point, robotCenter)) ||
+  if ((dDistanceBetweenFrames(startPoint, endPoint) <
+       dDistanceBetweenFrames(end_tangent_point, endPoint) + dDistanceBetweenFrames(start_tangent_point, startPoint)) ||
       isnan(end_c2_center.x) || isnan(end_c1_center.x) || isnan(end_tangent_point.x))
   {
     ROS_WARN_STREAM("[AgribotPlanner]\nDistance of path\t" << dDistanceBetweenFrames(startPoint, endPoint)
@@ -462,7 +464,7 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(
   else
   {
     // appednd arch from circle end_c2
-    arcPath(plan, robotCenter, start_c2_center, start_c2_span);
+    arcPath(plan, startPoint, start_c2_center, start_c2_span);
 
     // appednd arch from circle end_c1
     arcPath(plan, start_c2_center, start_c1_center, start_c1_span);

@@ -114,10 +114,9 @@ private:
   pos pCalculateTangentPoint(pos c1_center, double path_angle, double angle_difference, double arch_radius,
                              double dead_zone);
   std::vector<geometry_msgs::PoseStamped> xAssemblePath(geometry_msgs::PoseStamped startPose,
-                                                        geometry_msgs::PoseStamped endPose, pos robotCenter,
-                                                        pos start_tangent_point, pos start_c1_center,
-                                                        pos start_c2_center, pos end_tangent_point, pos end_c1_center,
-                                                        pos end_c2_center);
+                                                        geometry_msgs::PoseStamped endPose, pos start_tangent_point,
+                                                        pos start_c1_center, pos start_c2_center, pos end_tangent_point,
+                                                        pos end_c1_center, pos end_c2_center);
   // NOLINTNEXTLINE(runtime/references)
   void straightPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point);
   // NOLINTNEXTLINE(runtime/references)
