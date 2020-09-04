@@ -464,7 +464,8 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(geometr
     ROS_WARN_STREAM("[AgribotPlanner]\nstart\t"
                     << startPoint.x << "\t" << startPoint.y << "\t" << (startPoint.az) << "\t"
                     << "\nend \t" << endPoint.x << "\t" << endPoint.y << "\t" << (endPoint.az) << "\t"
-                    << "\nX changes\t" << countChangesX(startPoint, endPoint) << "\nY changes\t" << countChangesY(startPoint, endPoint));
+                    << "\nX changes\t" << countChangesX(startPoint, endPoint) << "\nY changes\t"
+                    << countChangesY(startPoint, endPoint));
     countChangesX(startPoint, endPoint);
     countChangesY(startPoint, endPoint);
     parametricPath(plan, startPoint, endPoint, coefficents);
