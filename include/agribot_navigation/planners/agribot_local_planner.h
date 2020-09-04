@@ -138,8 +138,8 @@ private:
                       parametric_x_y_2 coefficients);
   polynomial_3 calculatePolynomialCoefficients(pos startPoint, pos endPoint);
   parametric_x_y_2 calculateParametricCoefficients(pos startPoint, pos endPoint);
-  int countChangesX (pos startPoint, pos endPoint);
-  int countChangesY (pos startPoint, pos endPoint);
+  int countChangesX(pos startPoint, pos endPoint);
+  int countChangesY(pos startPoint, pos endPoint);
 
   void vOdomCallback(const nav_msgs::Odometry odometry_msg);
   pos pCalculateRobotFrontPosition(pos robotCenter);
