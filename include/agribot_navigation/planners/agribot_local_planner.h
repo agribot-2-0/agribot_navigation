@@ -132,10 +132,10 @@ private:
   void straightPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point);
   // NOLINTNEXTLINE(runtime/references)
   void arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos circle_start, pos circle_center, double angle_span);
-  void polynomialPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point,
-                      polynomial_3 coefficients);
-  void parametricPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point,
-                      parametric_x_y_2 coefficients);
+  void polynomialPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point,  // NOLINT(runtime/references)
+                      pos end_point, polynomial_3 coefficients);
+  void parametricPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point,  // NOLINT(runtime/references)
+                      pos end_point, parametric_x_y_2 coefficients);
   polynomial_3 calculatePolynomialCoefficients(pos startPoint, pos endPoint);
   parametric_x_y_2 calculateParametricCoefficients(pos startPoint, pos endPoint);
   int countChangesX(pos startPoint, pos endPoint);
