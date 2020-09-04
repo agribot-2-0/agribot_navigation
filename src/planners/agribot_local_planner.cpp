@@ -228,7 +228,6 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xDesignLocalPath(geom
 
   pos startPoint = pFrameFromPoseStamped(startPose);
   pos endPoint = pFrameFromPoseStamped(endPose);
-  pos robotCenter = pFrameFromPoseStamped(xTransformPose(_pRobotCenter));
 
   double path_angle = dAngleBetweenFrames(endPoint, startPoint);
   double reverse_path_angle = dAngleBetweenFrames(startPoint, endPoint);
@@ -452,14 +451,23 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(geometr
     }
   }
 
-  if ((dDistanceBetweenFrames(startPoint, endPoint) <
-       dDistanceBetweenFrames(end_tangent_point, endPoint) + dDistanceBetweenFrames(start_tangent_point, startPoint)) ||
-      isnan(end_c2_center.x) || isnan(end_c1_center.x) || isnan(end_tangent_point.x))
+  // if ((dDistanceBetweenFrames(startPoint, endPoint) <
+  //      dDistanceBetweenFrames(end_tangent_point, endPoint) + dDistanceBetweenFrames(start_tangent_point, startPoint))
+  //      ||
+  //     isnan(end_c2_center.x) || isnan(end_c1_center.x) || isnan(end_tangent_point.x))
+  if (true)
   {
     ROS_WARN_STREAM("[AgribotPlanner]\nDistance of path\t" << dDistanceBetweenFrames(startPoint, endPoint)
                                                            << "\nDistance needed\t\t"
                                                            << dDistanceBetweenFrames(end_tangent_point, endPoint));
-    straightPath(plan, startPoint, endPoint);
+    parametric_x_y_2 coefficents = calculateParametricCoefficients(startPoint, endPoint);
+    ROS_WARN_STREAM("[AgribotPlanner]\nstart\t"
+                    << startPoint.x << "\t" << startPoint.y << "\t" << (startPoint.az) << "\t"
+                    << "\nend \t" << endPoint.x << "\t" << endPoint.y << "\t" << (endPoint.az) << "\t"
+                    << "\nX changes\t" << countChangesX(startPoint, endPoint) << "\nY changes\t" << countChangesY(startPoint, endPoint));
+    countChangesX(startPoint, endPoint);
+    countChangesY(startPoint, endPoint);
+    parametricPath(plan, startPoint, endPoint, coefficents);
   }
   else
   {
@@ -537,6 +545,185 @@ void AgribotPlannerROS::arcPath(std::vector<geometry_msgs::PoseStamped>& path, p
       path.push_back(pose);
     }
   }
+}
+
+void AgribotPlannerROS::polynomialPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point,
+                                       polynomial_3 coefficients)
+{
+  double step_size = 18 / (param_arch_step * M_PI * param_arch_radius);
+  pos point;
+  pos last_point = start_point;
+  double delta_x = 0.0001;
+
+  geometry_msgs::PoseStamped pose;
+  pose.pose.position.x = start_point.x;
+  pose.pose.position.y = start_point.y;
+  path.push_back(pose);
+
+  if (start_point.x < end_point.x)
+  {
+    for (point.x = start_point.x; point.x < end_point.x; point.x += delta_x)
+    {
+      point.y = coefficients.a * pow(point.x, 3) + coefficients.b * pow(point.x, 2) + coefficients.c * pow(point.x, 1) +
+                coefficients.d;
+      if (dDistanceBetweenFrames(last_point, point) >= step_size)
+      {
+        last_point = point;
+        pose.pose.position.x = point.x;
+        pose.pose.position.y = point.y;
+        path.push_back(pose);
+      }
+    }
+  }
+  else
+  {
+    for (point.x = start_point.x; point.x > end_point.x; point.x -= delta_x)
+    {
+      point.y = coefficients.a * pow(point.x, 3) + coefficients.b * pow(point.x, 2) + coefficients.c * pow(point.x, 1) +
+                coefficients.d;
+      if (dDistanceBetweenFrames(last_point, point) >= step_size)
+      {
+        last_point = point;
+        pose.pose.position.x = point.x;
+        pose.pose.position.y = point.y;
+        path.push_back(pose);
+      }
+    }
+  }
+}
+
+void AgribotPlannerROS::parametricPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point,
+                                       parametric_x_y_2 coefficients)
+{
+  double step_size = 18 / (param_arch_step * M_PI * param_arch_radius);
+  pos point;
+  pos last_point = start_point;
+  double t_delta = 0.0001;
+
+  geometry_msgs::PoseStamped pose;
+  pose.pose.position.x = start_point.x;
+  pose.pose.position.y = start_point.y;
+  path.push_back(pose);
+
+  for (double t = 0.0; t <= 1.0; t += t_delta)
+  {
+    point.x = coefficients.ax * pow(t, 2) + coefficients.bx * t + coefficients.cx;
+    point.y = coefficients.ay * pow(t, 2) + coefficients.by * t + coefficients.cy;
+    if (dDistanceBetweenFrames(last_point, point) >= step_size)
+    {
+      last_point = point;
+      pose.pose.position.x = point.x;
+      pose.pose.position.y = point.y;
+      path.push_back(pose);
+    }
+  }
+}
+
+polynomial_3 AgribotPlannerROS::calculatePolynomialCoefficients(pos startPoint, pos endPoint)
+{
+  polynomial_3 coefficients;
+  coefficients.a = -(-2 * endPoint.y + 2 * startPoint.y + (tan(endPoint.az) + tan(startPoint.az)) * endPoint.x +
+                     (-tan(endPoint.az) - tan(startPoint.az)) * startPoint.x) /
+                   (-pow(endPoint.x, 3) + 3 * startPoint.x * pow(endPoint.x, 2) -
+                    3 * pow(startPoint.x, 2) * endPoint.x + pow(startPoint.x, 3));
+  coefficients.b = (-3 * endPoint.x * endPoint.y +
+                    startPoint.x * ((tan(endPoint.az) - tan(startPoint.az)) * endPoint.x - 3 * endPoint.y) +
+                    (3 * endPoint.x + 3 * startPoint.x) * startPoint.y +
+                    (tan(endPoint.az) + 2 * tan(startPoint.az)) * pow(endPoint.x, 2) +
+                    (-2 * tan(endPoint.az) - tan(startPoint.az)) * pow(startPoint.x, 2)) /
+                   (-pow(endPoint.x, 3) + 3 * startPoint.x * pow(endPoint.x, 2) -
+                    3 * pow(startPoint.x, 2) * endPoint.x + pow(startPoint.x, 3));
+  coefficients.c = -(startPoint.x * ((2 * tan(endPoint.az) + tan(startPoint.az)) * pow(endPoint.x, 2) -
+                                     6 * endPoint.x * endPoint.y) +
+                     6 * startPoint.x * endPoint.x * startPoint.y + tan(startPoint.az) * pow(endPoint.x, 3) +
+                     (-tan(endPoint.az) - 2 * tan(startPoint.az)) * pow(startPoint.x, 2) * endPoint.x -
+                     tan(endPoint.az) * pow(startPoint.x, 3)) /
+                   (-pow(endPoint.x, 3) + 3 * startPoint.x * pow(endPoint.x, 2) -
+                    3 * pow(startPoint.x, 2) * endPoint.x + pow(startPoint.x, 3));
+  coefficients.d = (pow(startPoint.x, 2) *
+                        ((tan(endPoint.az) - tan(startPoint.az)) * pow(endPoint.x, 2) - 3 * endPoint.x * endPoint.y) +
+                    pow(startPoint.x, 3) * (endPoint.y - tan(endPoint.az) * endPoint.x) +
+                    (3 * startPoint.x * pow(endPoint.x, 2) - pow(endPoint.x, 3)) * startPoint.y +
+                    tan(startPoint.az) * startPoint.x * pow(endPoint.x, 3)) /
+                   (-pow(endPoint.x, 3) + 3 * startPoint.x * pow(endPoint.x, 2) -
+                    3 * pow(startPoint.x, 2) * endPoint.x + pow(startPoint.x, 3));
+  return coefficients;
+}
+
+parametric_x_y_2 AgribotPlannerROS::calculateParametricCoefficients(pos startPoint, pos endPoint)
+{
+  parametric_x_y_2 coefficients;
+  double startDirection = tan(startPoint.az);
+  double endDirection = tan(endPoint.az);
+  coefficients.ax = -(2 * (endPoint.y - startPoint.y) - (startDirection + endDirection) * (endPoint.x - startPoint.x)) /
+                    (startDirection - endDirection);
+  coefficients.ay = -((startDirection + endDirection) * (endPoint.y - startPoint.y) -
+                      2 * startDirection * endDirection * (endPoint.x - startPoint.x)) /
+                    (startDirection - endDirection);
+  coefficients.bx = (2 * (endPoint.y - startPoint.y) - 2 * endDirection * (endPoint.x - startPoint.x)) /
+                    (startDirection - endDirection);
+  coefficients.by = (2 * startDirection * (endPoint.y - startPoint.y) -
+                     2 * startDirection * endDirection * (endPoint.x - startPoint.x)) /
+                    (startDirection - endDirection);
+  coefficients.cx = startPoint.x;
+  coefficients.cy = startPoint.y;
+  return coefficients;
+}
+
+int AgribotPlannerROS::countChangesX(pos startPoint, pos endPoint)
+{
+  int changes = 0;
+  bool path_growing, start_growing, end_growing;
+  path_growing = start_growing = end_growing = false;
+  if (endPoint.x > startPoint.x)
+    path_growing = true;
+  if (abs(endPoint.az) < M_PI_2)
+    end_growing = true;
+  if (abs(startPoint.az) < M_PI_2)
+    start_growing = true;
+  if (path_growing)
+  {
+    if (!end_growing)
+      changes++;
+    if (!start_growing)
+      changes++;
+  }
+  else
+  {
+    if (end_growing)
+      changes++;
+    if (start_growing)
+      changes++;
+  }
+  return changes;
+}
+
+int AgribotPlannerROS::countChangesY(pos startPoint, pos endPoint)
+{
+  int changes = 0;
+  bool path_growing, start_growing, end_growing;
+  path_growing = start_growing = end_growing = false;
+  if (endPoint.y > startPoint.y)
+    path_growing = true;
+  if (endPoint.az > 0)
+    end_growing = true;
+  if (startPoint.az > 0)
+    start_growing = true;
+  if (path_growing)
+  {
+    if (!end_growing)
+      changes++;
+    if (!start_growing)
+      changes++;
+  }
+  else
+  {
+    if (end_growing)
+      changes++;
+    if (start_growing)
+      changes++;
+  }
+  return changes;
 }
 
 void AgribotPlannerROS::vChooseDeviationParallelnessParameters(int waypointNumber)

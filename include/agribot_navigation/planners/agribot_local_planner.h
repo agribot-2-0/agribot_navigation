@@ -31,6 +31,17 @@ struct pos
   double x, y, az;
 };
 
+struct polynomial_3
+{
+  // y = a*x^3+b*x^2+c*x+d
+  double a, b, c, d;
+};
+
+struct parametric_x_y_2
+{
+  double ax, bx, cx, ay, by, cy;
+};
+
 class AgribotPlannerROS : public nav_core::BaseLocalPlanner
 {
 public:
@@ -121,6 +132,14 @@ private:
   void straightPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point);
   // NOLINTNEXTLINE(runtime/references)
   void arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos circle_start, pos circle_center, double angle_span);
+  void polynomialPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point,
+                      polynomial_3 coefficients);
+  void parametricPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point,
+                      parametric_x_y_2 coefficients);
+  polynomial_3 calculatePolynomialCoefficients(pos startPoint, pos endPoint);
+  parametric_x_y_2 calculateParametricCoefficients(pos startPoint, pos endPoint);
+  int countChangesX (pos startPoint, pos endPoint);
+  int countChangesY (pos startPoint, pos endPoint);
 
   void vOdomCallback(const nav_msgs::Odometry odometry_msg);
   pos pCalculateRobotFrontPosition(pos robotCenter);
