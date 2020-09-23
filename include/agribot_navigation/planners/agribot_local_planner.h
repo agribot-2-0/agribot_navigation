@@ -34,13 +34,15 @@ struct pos
 struct polynomial_3
 {
   // y = a*x^3+b*x^2+c*x+d
-  double a, b, c, d;
+  double p0, p1, p2, p3;
 };
 
-struct parametric_x_y_2
+struct parametric_coeficients
 {
-  double ax, bx, cx, ay, by, cy;
+  polynomial_3 x;
+  polynomial_3 y;
 };
+
 
 class AgribotPlannerROS : public nav_core::BaseLocalPlanner
 {
@@ -132,12 +134,9 @@ private:
   void straightPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point);
   // NOLINTNEXTLINE(runtime/references)
   void arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos circle_start, pos circle_center, double angle_span);
-  void polynomialPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point,  // NOLINT(runtime/references)
-                      pos end_point, polynomial_3 coefficients);
   void parametricPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point,  // NOLINT(runtime/references)
-                      pos end_point, parametric_x_y_2 coefficients);
-  polynomial_3 calculatePolynomialCoefficients(pos startPoint, pos endPoint);
-  parametric_x_y_2 calculateParametricCoefficients(pos startPoint, pos endPoint);
+                      pos end_point, parametric_coeficients coefficients);
+  parametric_coeficients calculateParametricCoefficients(pos startPoint, pos endPoint, double inflection);
   int countChangesX(pos startPoint, pos endPoint);
   int countChangesY(pos startPoint, pos endPoint);
 
