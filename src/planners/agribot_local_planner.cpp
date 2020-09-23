@@ -466,14 +466,10 @@ std::vector<geometry_msgs::PoseStamped> AgribotPlannerROS::xAssemblePath(geometr
                     << "\nend \t" << endPoint.x << "\t" << endPoint.y << "\t" << (endPoint.az) << "\t"
                     << "\nX changes\t" << countChangesX(startPoint, endPoint) << "\nY changes\t"
                     << countChangesY(startPoint, endPoint));
-    ROS_WARN_STREAM("[AgribotPlanner]\na3 " << coefficents.x.p3
-                                 << "\ta2 " << coefficents.x.p2
-                                 << "\ta1 " << coefficents.x.p1
-                                 << "\ta0 " << coefficents.x.p0
-                                 << "\nb3 " << coefficents.y.p3
-                                 << "\tb2 " << coefficents.y.p2
-                                 << "\tb1 " << coefficents.y.p1
-                                 << "\tb0 " << coefficents.y.p0);
+    ROS_WARN_STREAM("[AgribotPlanner]\na3 " << coefficents.x.p3 << "\ta2 " << coefficents.x.p2 << "\ta1 "
+                                            << coefficents.x.p1 << "\ta0 " << coefficents.x.p0 << "\nb3 "
+                                            << coefficents.y.p3 << "\tb2 " << coefficents.y.p2 << "\tb1 "
+                                            << coefficents.y.p1 << "\tb0 " << coefficents.y.p0);
     countChangesX(startPoint, endPoint);
     countChangesY(startPoint, endPoint);
     parametricPath(plan, startPoint, endPoint, coefficents);
@@ -571,8 +567,8 @@ void AgribotPlannerROS::parametricPath(std::vector<geometry_msgs::PoseStamped>& 
 
   for (double t = 0.0; t <= 1.0; t += t_delta)
   {
-    point.x = coefficients.x.p3 * pow(t, 3) + coefficients.x.p2 * pow(t, 3) + coefficients.x.p1 * t + coefficients.x.p0;
-    point.y = coefficients.y.p3 * pow(t, 3) + coefficients.y.p2 * pow(t, 3) + coefficients.y.p1 * t + coefficients.y.p0;
+    point.x = coefficients.x.p3 * pow(t, 3) + coefficients.x.p2 * pow(t, 2) + coefficients.x.p1 * t + coefficients.x.p0;
+    point.y = coefficients.y.p3 * pow(t, 3) + coefficients.y.p2 * pow(t, 2) + coefficients.y.p1 * t + coefficients.y.p0;
     if (dDistanceBetweenFrames(last_point, point) >= step_size)
     {
       last_point = point;
@@ -633,14 +629,23 @@ parametric_coeficients AgribotPlannerROS::calculateParametricCoefficients(pos st
   }
   else if (x_changes == 2 && y_changes == 1)
   {
-    coefficients.x.p3 = ((2 * inflection - 1) * endPoint.y + (1 - 2 * inflection) * startPoint.y -
-                         2 * startPoint.az * inflection * endPoint.x + 2 * startPoint.az * inflection * startPoint.x) /
-                        (startPoint.az * (3 * pow(inflection, 2) - 2 * inflection));
+    coefficients.x.p3 = ((4 * inflection - 2) * endPoint.y + (2 - 4 * inflection) * startPoint.y +
+                         (endPoint.az * (2 - 2 * inflection) - 2 * startPoint.az * inflection) * endPoint.x +
+                         (endPoint.az * (2 * inflection - 2) + 2 * startPoint.az * inflection) * startPoint.x) /
+                        (startPoint.az * (3 * pow(inflection, 2) - 2 * inflection) +
+                         endPoint.az * (-3 * pow(inflection, 2) + 4 * inflection - 1));
     coefficients.x.p2 =
-        -((3 * pow(inflection, 2) - 1) * endPoint.y + (1 - 3 * pow(inflection, 2)) * startPoint.y -
-          3 * startPoint.az * pow(inflection, 2) * endPoint.x + 3 * startPoint.az * pow(inflection, 2) * startPoint.x) /
-        (startPoint.az * (3 * pow(inflection, 2) - 2 * inflection));
-    coefficients.x.p1 = -(startPoint.y - endPoint.y) / startPoint.az;
+        -((6 * pow(inflection, 2) - 2) * endPoint.y + (2 - 6 * pow(inflection, 2)) * startPoint.y +
+          (endPoint.az * (3 - 3 * pow(inflection, 2)) - 3 * startPoint.az * pow(inflection, 2)) * endPoint.x +
+          (endPoint.az * (3 * pow(inflection, 2) - 3) + 3 * startPoint.az * pow(inflection, 2)) * startPoint.x) /
+        (startPoint.az * (3 * pow(inflection, 2) - 2 * inflection) +
+         endPoint.az * (-3 * pow(inflection, 2) + 4 * inflection - 1));
+    coefficients.x.p1 = ((6 * pow(inflection, 2) - 4 * inflection) * endPoint.y +
+                         (4 * inflection - 6 * pow(inflection, 2)) * startPoint.y +
+                         endPoint.az * (6 * inflection - 6 * pow(inflection, 2)) * endPoint.x +
+                         endPoint.az * (6 * pow(inflection, 2) - 6 * inflection) * startPoint.x) /
+                        (startPoint.az * (3 * pow(inflection, 2) - 2 * inflection) +
+                         endPoint.az * (-3 * pow(inflection, 2) + 4 * inflection - 1));
     coefficients.x.p0 = startPoint.x;
     coefficients.y.p3 = 0.0;
     coefficients.y.p2 = -((startPoint.az * (3 * pow(inflection, 2) - 2 * inflection) +
@@ -651,8 +656,14 @@ parametric_coeficients AgribotPlannerROS::calculateParametricCoefficients(pos st
                               startPoint.y +
                           startPoint.az * endPoint.az * (6 * inflection - 6 * pow(inflection, 2)) * endPoint.x +
                           startPoint.az * endPoint.az * (6 * pow(inflection, 2) - 6 * inflection) * startPoint.x) /
-                        (startPoint.az * (6 * pow(inflection, 2) - 4 * inflection));
-    coefficients.y.p1 = endPoint.y - startPoint.y;
+                        (startPoint.az * (3 * pow(inflection, 2) - 2 * inflection) +
+                         endPoint.az * (-3 * pow(inflection, 2) + 4 * inflection - 1));
+    coefficients.y.p1 = (startPoint.az * (6 * pow(inflection, 2) - 4 * inflection) * endPoint.y +
+                         startPoint.az * (4 * inflection - 6 * pow(inflection, 2)) * startPoint.y +
+                         startPoint.az * endPoint.az * (6 * inflection - 6 * pow(inflection, 2)) * endPoint.x +
+                         startPoint.az * endPoint.az * (6 * pow(inflection, 2) - 6 * inflection) * startPoint.x) /
+                        (startPoint.az * (3 * pow(inflection, 2) - 2 * inflection) +
+                         endPoint.az * (-3 * pow(inflection, 2) + 4 * inflection - 1));
     coefficients.y.p0 = startPoint.y;
   }
   else if (x_changes == 2 && y_changes == 0)
@@ -675,26 +686,42 @@ parametric_coeficients AgribotPlannerROS::calculateParametricCoefficients(pos st
   else if (x_changes == 1 && y_changes == 2)
   {
     coefficients.x.p3 = 0.0;
-    coefficients.x.p2 = ((6 * pow(inflection, 2) - 6 * inflection) * endPoint.y +
+    coefficients.x.p2 = -((6 * pow(inflection, 2) - 6 * inflection) * endPoint.y +
+                          (6 * inflection - 6 * pow(inflection, 2)) * startPoint.y +
+                          (startPoint.az * (-3 * pow(inflection, 2) + 4 * inflection - 1) +
+                           endPoint.az * (2 * inflection - 3 * pow(inflection, 2))) *
+                              endPoint.x +
+                          (endPoint.az * (3 * pow(inflection, 2) - 2 * inflection) +
+                           startPoint.az * (3 * pow(inflection, 2) - 4 * inflection + 1)) *
+                              startPoint.x) /
+                        (startPoint.az * (3 * pow(inflection, 2) - 4 * inflection + 1) +
+                         endPoint.az * (2 * inflection - 3 * pow(inflection, 2)));
+    coefficients.x.p1 = ((6 * pow(inflection, 2) - 6 * inflection) * endPoint.y +
                          (6 * inflection - 6 * pow(inflection, 2)) * startPoint.y +
-                         (startPoint.az * (-3 * pow(inflection, 2) + 4 * inflection - 1) +
-                          endPoint.az * (2 * inflection - 3 * pow(inflection, 2))) *
-                             endPoint.x +
-                         (endPoint.az * (3 * pow(inflection, 2) - 2 * inflection) +
-                          startPoint.az * (3 * pow(inflection, 2) - 4 * inflection + 1)) *
-                             startPoint.x) /
-                        (endPoint.az * (6 * pow(inflection, 2) - 4 * inflection));
-    coefficients.x.p1 = endPoint.x - startPoint.x;
+                         endPoint.az * (4 * inflection - 6 * pow(inflection, 2)) * endPoint.x +
+                         endPoint.az * (6 * pow(inflection, 2) - 4 * inflection) * startPoint.x) /
+                        (startPoint.az * (3 * pow(inflection, 2) - 4 * inflection + 1) +
+                         endPoint.az * (2 * inflection - 3 * pow(inflection, 2)));
     coefficients.x.p0 = startPoint.x;
-    coefficients.y.p3 =
-        -(2 * inflection * endPoint.y - 2 * inflection * startPoint.y +
-          startPoint.az * (1 - 2 * inflection) * endPoint.x + startPoint.az * (2 * inflection - 1) * startPoint.x) /
-        (3 * pow(inflection, 2) - 2 * inflection);
-    coefficients.y.p2 = (3 * pow(inflection, 2) * endPoint.y - 3 * pow(inflection, 2) * startPoint.y +
-                         startPoint.az * (1 - 3 * pow(inflection, 2)) * endPoint.x +
-                         startPoint.az * (3 * pow(inflection, 2) - 1) * startPoint.x) /
-                        (3 * pow(inflection, 2) - 2 * inflection);
-    coefficients.y.p1 = startPoint.az * endPoint.x - startPoint.az * startPoint.x;
+    coefficients.y.p3 = ((startPoint.az * (2 * inflection - 2) + 2 * endPoint.az * inflection) * endPoint.y +
+                         (startPoint.az * (2 - 2 * inflection) - 2 * endPoint.az * inflection) * startPoint.y +
+                         startPoint.az * endPoint.az * (2 - 4 * inflection) * endPoint.x +
+                         startPoint.az * endPoint.az * (4 * inflection - 2) * startPoint.x) /
+                        (startPoint.az * (3 * pow(inflection, 2) - 4 * inflection + 1) +
+                         endPoint.az * (2 * inflection - 3 * pow(inflection, 2)));
+    coefficients.y.p2 =
+        -((startPoint.az * (3 * pow(inflection, 2) - 3) + 3 * endPoint.az * pow(inflection, 2)) * endPoint.y +
+          (startPoint.az * (3 - 3 * pow(inflection, 2)) - 3 * endPoint.az * pow(inflection, 2)) * startPoint.y +
+          startPoint.az * endPoint.az * (2 - 6 * pow(inflection, 2)) * endPoint.x +
+          startPoint.az * endPoint.az * (6 * pow(inflection, 2) - 2) * startPoint.x) /
+        (startPoint.az * (3 * pow(inflection, 2) - 4 * inflection + 1) +
+         endPoint.az * (2 * inflection - 3 * pow(inflection, 2)));
+    coefficients.y.p1 = (startPoint.az * (6 * pow(inflection, 2) - 6 * inflection) * endPoint.y +
+                         startPoint.az * (6 * inflection - 6 * pow(inflection, 2)) * startPoint.y +
+                         startPoint.az * endPoint.az * (4 * inflection - 6 * pow(inflection, 2)) * endPoint.x +
+                         startPoint.az * endPoint.az * (6 * pow(inflection, 2) - 4 * inflection) * startPoint.x) /
+                        (startPoint.az * (3 * pow(inflection, 2) - 4 * inflection + 1) +
+                         endPoint.az * (2 * inflection - 3 * pow(inflection, 2)));
     coefficients.y.p0 = startPoint.y;
   }
   else if (x_changes == 0 && y_changes == 2)
