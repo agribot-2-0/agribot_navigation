@@ -10,6 +10,26 @@ PLUGINLIB_EXPORT_CLASS(agribot_local_planner::AgribotPlannerROS, nav_core::BaseL
 
 namespace agribot_local_planner
 {
+LocalPathPlanner::LocalPathPlanner() : initialized(false)
+{
+}
+
+LocalPathPlanner::~LocalPathPlanner()
+{
+}
+
+LocalPathPlanner::LocalPathPlanner(geometry_msgs::PoseStamped start, geometry_msgs::PoseStamped end)
+{
+  initialize(start, end);
+}
+
+void LocalPathPlanner::initialize(geometry_msgs::PoseStamped start, geometry_msgs::PoseStamped end)
+{
+  startPose = start;
+  endPose = end;
+  initialized = true;
+}
+
 AgribotPlannerROS::AgribotPlannerROS() : _xCostmapROS(NULL), _bInitialized(false)
 {
 }

@@ -43,6 +43,20 @@ struct parametric_coeficients
   polynomial_3 y;
 };
 
+class LocalPathPlanner
+{
+public:
+  LocalPathPlanner();
+  LocalPathPlanner(geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose);
+  ~LocalPathPlanner();
+  void initialize(geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose);
+  std::vector<geometry_msgs::PoseStamped> designPath();
+
+private:
+  geometry_msgs::PoseStamped startPose;
+  geometry_msgs::PoseStamped endPose;
+  bool initialized;
+};
 
 class AgribotPlannerROS : public nav_core::BaseLocalPlanner
 {
