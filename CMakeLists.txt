@@ -156,8 +156,22 @@ add_library(simple_local_planner
   src/planners/simple_local_planner.cpp
 )
 
+add_library(path_planner
+	src/planners/local_planners/path_planner.cpp
+)
+
+add_library(circles_planner
+	src/planners/local_planners/circles_planner.cpp
+)
+
+add_library(polynomial_planner
+	src/planners/local_planners/polynomial_planner.cpp
+)
+
 add_library(agribot_local_planner
   src/planners/agribot_local_planner.cpp
+	src/planners/local_planners/path_planner.cpp
+	src/planners/local_planners/circles_planner.cpp
 )
 
 add_library(waypoint_global_planner
@@ -186,6 +200,17 @@ target_link_libraries(kinematics_control
 )
 
 target_link_libraries(simple_local_planner
+	${catkin_LIBRARIES}
+)
+
+target_link_libraries(path_planner
+	${catkin_LIBRARIES}
+)
+target_link_libraries(circles_planner
+	${catkin_LIBRARIES}
+)
+
+target_link_libraries(polynomial_planner
 	${catkin_LIBRARIES}
 )
 

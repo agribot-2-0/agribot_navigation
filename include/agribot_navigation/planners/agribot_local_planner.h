@@ -18,6 +18,11 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
+#include "agribot_navigation/planners/structures.h"
+#include "agribot_navigation/planners/local_planners/path_planner.h"
+#include "agribot_navigation/planners/local_planners/circles_planner.h"
+// #include "agribot_navigation/planners/local_planners/polynomial_planner.h"
+
 #include <cmath>
 #include <string>
 #include <vector>
@@ -26,37 +31,6 @@
 
 namespace agribot_local_planner
 {
-struct pos
-{
-  double x, y, az;
-};
-
-struct polynomial_3
-{
-  // y = a*x^3+b*x^2+c*x+d
-  double p0, p1, p2, p3;
-};
-
-struct parametric_coeficients
-{
-  polynomial_3 x;
-  polynomial_3 y;
-};
-
-class LocalPathPlanner
-{
-public:
-  LocalPathPlanner();
-  LocalPathPlanner(geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose);
-  ~LocalPathPlanner();
-  void initialize(geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose);
-  std::vector<geometry_msgs::PoseStamped> designPath();
-
-private:
-  geometry_msgs::PoseStamped startPose;
-  geometry_msgs::PoseStamped endPose;
-  bool initialized;
-};
 
 class AgribotPlannerROS : public nav_core::BaseLocalPlanner
 {
@@ -132,27 +106,8 @@ private:
   bool param_statistics;
   bool param_take_front;
 
-  std::vector<geometry_msgs::PoseStamped> xDesignLocalPath(geometry_msgs::PoseStamped startPose,
-                                                           geometry_msgs::PoseStamped endPose);
-  pos pCalculateC1Center(pos c2_center, pos end_point, double path_angle, double angle_difference, double arch_radius,
-                         double dead_zone);
-  pos pCalculateC2Center(pos endPoint, double end_orientation, double angle_difference, double arch_radius,
-                         double dead_zone);
-  pos pCalculateTangentPoint(pos c1_center, double path_angle, double angle_difference, double arch_radius,
-                             double dead_zone);
-  std::vector<geometry_msgs::PoseStamped> xAssemblePath(geometry_msgs::PoseStamped startPose,
-                                                        geometry_msgs::PoseStamped endPose, pos start_tangent_point,
-                                                        pos start_c1_center, pos start_c2_center, pos end_tangent_point,
-                                                        pos end_c1_center, pos end_c2_center);
-  // NOLINTNEXTLINE(runtime/references)
-  void straightPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point);
-  // NOLINTNEXTLINE(runtime/references)
-  void arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos circle_start, pos circle_center, double angle_span);
-  void parametricPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point,  // NOLINT(runtime/references)
-                      pos end_point, parametric_coeficients coefficients);
-  parametric_coeficients calculateParametricCoefficients(pos startPoint, pos endPoint, double inflection);
-  int countChangesX(pos startPoint, pos endPoint);
-  int countChangesY(pos startPoint, pos endPoint);
+  bool xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path, geometry_msgs::PoseStamped startPose,
+                        geometry_msgs::PoseStamped endPose, PathPlanner* planner);
 
   void vOdomCallback(const nav_msgs::Odometry odometry_msg);
   pos pCalculateRobotFrontPosition(pos robotCenter);
