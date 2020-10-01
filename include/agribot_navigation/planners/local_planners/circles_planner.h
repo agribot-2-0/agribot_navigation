@@ -1,4 +1,10 @@
+/*
+ * Copyright (C) 2020 Agribot. All rights reserved.
+ */
+
 #pragma once
+
+#include <vector>
 
 #include "agribot_navigation/planners/structures.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
@@ -10,8 +16,8 @@ class CirclesPlanner : public ILocalPlaner
 public:
   CirclesPlanner();
   ~CirclesPlanner();
-  virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped startPose,
-                          const geometry_msgs::PoseStamped endPose);
+  virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                          const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose);
   void setArchRadius(const double param_arch_radius);
   void setDeadZone(const double param_dead_zone);
   void setStepSize(const double param_step_size);
@@ -24,14 +30,14 @@ protected:
   pos pCalculateTangentPoint(const pos c1_center, const double path_angle, const double angle_difference,
                              const double arch_radius, const double dead_zone) const;
   double calculateArchStep(const double radius, const double step_size) const;
-  bool arcPath(std::vector<geometry_msgs::PoseStamped>& path, const pos circle_start, const pos circle_center,
-               const double angle_span) const;
-  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path, const pos start_point, const pos end_point,
-                    const double step_size) const;
-  bool assemblePath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped startPose,
-                    const geometry_msgs::PoseStamped endPose, const pos start_tangent_point, const pos start_c1_center,
-                    const pos start_c2_center, const pos end_tangent_point, const pos end_c1_center,
-                    const pos end_c2_center) const;
+  bool arcPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+               const pos circle_start, const pos circle_center, const double angle_span) const;
+  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                    const pos start_point, const pos end_point, const double step_size) const;
+  bool assemblePath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                    const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose,
+                    const pos start_tangent_point, const pos start_c1_center, const pos start_c2_center,
+                    const pos end_tangent_point, const pos end_c1_center, const pos end_c2_center) const;
   pos end_c2_center;
   pos end_c1_center;
   pos end_tangent_point;

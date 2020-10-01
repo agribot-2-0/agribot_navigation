@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020 Agribot. All rights reserved.
+ */
+
 #include "agribot_navigation/planners/local_planners/polynomial_planner.h"
 
 namespace agribot_local_planner

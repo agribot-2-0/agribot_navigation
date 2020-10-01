@@ -18,14 +18,15 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
+#include <cmath>
+#include <string>
+#include <vector>
+
 #include "agribot_navigation/planners/structures.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
 #include "agribot_navigation/planners/local_planners/circles_planner.h"
 #include "agribot_navigation/planners/local_planners/polynomial_planner.h"
 
-#include <cmath>
-#include <string>
-#include <vector>
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)
 
@@ -105,8 +106,9 @@ private:
   bool param_statistics;
   bool param_take_front;
 
-  bool xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path, geometry_msgs::PoseStamped startPose,
-                        geometry_msgs::PoseStamped endPose, ILocalPlaner* planner);
+  bool xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                        geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose,
+                        ILocalPlaner* planner);
 
   void vOdomCallback(const nav_msgs::Odometry odometry_msg);
   pos pCalculateRobotFrontPosition(pos robotCenter);

@@ -1,4 +1,10 @@
+/*
+ * Copyright (C) 2020 Agribot. All rights reserved.
+ */
+
 #pragma once
+
+#include <vector>
 
 #include "agribot_navigation/planners/structures.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
@@ -10,8 +16,8 @@ class PolynomialPlanner : public ILocalPlaner
 public:
   PolynomialPlanner();
   ~PolynomialPlanner();
-  virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped startPose,
-                          const geometry_msgs::PoseStamped endPose);
+  virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                          const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose);
   void setStepSize(const double param_step_size);
   void setInflectionPoint(const double param_inflection_point);
 

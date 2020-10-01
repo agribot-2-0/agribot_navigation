@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020 Agribot. All rights reserved.
+ */
+
 #pragma once
 #include <geometry_msgs/PoseStamped.h>
 #include <tf/tf.h>
@@ -16,13 +20,13 @@ class ILocalPlaner
 public:
   ILocalPlaner();
   ~ILocalPlaner();
-  virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped startPose,
-                          const geometry_msgs::PoseStamped endPose) = 0;  // NOLINT(runtime/references)
+  virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                          const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose) = 0;
 
 protected:
   mutable std_msgs::Header header;
-  void updateOrientation(std::vector<geometry_msgs::PoseStamped>& path, const int start_index,
-                         const int end_index) const;
+  void updateOrientation(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                         const int start_index, const int end_index) const;
   double dGetYawFromQuaternion(const geometry_msgs::Quaternion quat) const;
   double dLimitAngle(double angle) const;
   double dAngleBetweenFrames(const pos targetFrame, const pos currentFrame) const;

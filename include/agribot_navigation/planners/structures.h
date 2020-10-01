@@ -1,5 +1,8 @@
-#pragma once
+/*
+ * Copyright (C) 2020 Agribot. All rights reserved.
+ */
 
+#pragma once
 
 namespace agribot_local_planner
 {
@@ -19,4 +22,4 @@ struct parametric_coeficients
   polynomial_3 x;
   polynomial_3 y;
 };
-}
+}  // namespace agribot_local_planner
