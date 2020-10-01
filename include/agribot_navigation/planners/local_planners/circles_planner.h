@@ -1,34 +1,37 @@
 #pragma once
 
 #include "agribot_navigation/planners/structures.h"
-#include "agribot_navigation/planners/local_planners/path_planner.h"
+#include "agribot_navigation/planners/local_planners/i_local_planner.h"
 
 namespace agribot_local_planner
 {
-
-class CirclesPlanner : public PathPlanner
+class CirclesPlanner : public ILocalPlaner
 {
 public:
   CirclesPlanner();
   ~CirclesPlanner();
-  bool designPath(std::vector<geometry_msgs::PoseStamped>& path, geometry_msgs::PoseStamped startPose,
-                  geometry_msgs::PoseStamped endPose);
-  void setArchRadius(double param_arch_radius);
-  void setArchStep(double param_arch_step);
-  void setDeadZone(double param_dead_zone);
+  virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped startPose,
+                          const geometry_msgs::PoseStamped endPose);
+  void setArchRadius(const double param_arch_radius);
+  void setDeadZone(const double param_dead_zone);
+  void setStepSize(const double param_step_size);
 
 protected:
-  pos pCalculateC1Center(pos c2_center, pos end_point, double path_angle, double angle_difference, double arch_radius,
-                         double dead_zone);
-  pos pCalculateC2Center(pos endPoint, double end_orientation, double angle_difference, double arch_radius,
-                         double dead_zone);
-  pos pCalculateTangentPoint(pos c1_center, double path_angle, double angle_difference, double arch_radius,
-                             double dead_zone);
-  // NOLINTNEXTLINE(runtime/references)
-  void arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos circle_start, pos circle_center, double angle_span);
-  bool assemblePath(std::vector<geometry_msgs::PoseStamped>& path, geometry_msgs::PoseStamped startPose,
-                    geometry_msgs::PoseStamped endPose, pos start_tangent_point, pos start_c1_center,
-                    pos start_c2_center, pos end_tangent_point, pos end_c1_center, pos end_c2_center);
+  pos pCalculateC1Center(const pos c2_center, const pos endPoint, const double path_angle,
+                         const double angle_difference, const double arch_radius, const double dead_zone) const;
+  pos pCalculateC2Center(const pos endPoint, const double end_orientation, const double angle_difference,
+                         const double arch_radius, const double dead_zone) const;
+  pos pCalculateTangentPoint(const pos c1_center, const double path_angle, const double angle_difference,
+                             const double arch_radius, const double dead_zone) const;
+  double calculateArchStep(const double radius, const double step_size) const;
+  bool arcPath(std::vector<geometry_msgs::PoseStamped>& path, const pos circle_start, const pos circle_center,
+               const double angle_span) const;
+  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path, const pos start_point, const pos end_point,
+                    const double step_size) const;
+  bool assemblePath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped startPose,
+                    const geometry_msgs::PoseStamped endPose, const pos start_tangent_point, const pos start_c1_center,
+                    const pos start_c2_center, const pos end_tangent_point, const pos end_c1_center,
+                    const pos end_c2_center) const;
   pos end_c2_center;
   pos end_c1_center;
   pos end_tangent_point;
@@ -38,5 +41,7 @@ protected:
   double arch_radius;
   double arch_step;
   double dead_zone;
+  double step_size;
+  int path_start_index;
 };
 }  // namespace agribot_local_planner

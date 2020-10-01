@@ -2,24 +2,54 @@
 
 namespace agribot_local_planner
 {
-PolynomialPlanner::PolynomialPlanner() : PathPlanner()
+PolynomialPlanner::PolynomialPlanner() : ILocalPlaner()
 {
+  step_size = 1.0;
+  inflection_point = 0.5;
 }
 
 PolynomialPlanner::~PolynomialPlanner()
 {
 }
 
-void PolynomialPlanner::parametricPath(std::vector<geometry_msgs::PoseStamped>& path, pos start_point, pos end_point,
-                                       parametric_coeficients coefficients)
+bool PolynomialPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
+                                   const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose)
+{
+  pos startPoint = pFrameFromPoseStamped(startPose);
+  pos endPoint = pFrameFromPoseStamped(endPose);
+  header = endPose.header;
+  path_start_index = path.size();
+  parametric_coeficients coefficents = calculateParametricCoefficients(startPoint, endPoint, 0.5);
+  return parametricPath(path, startPoint, endPoint, coefficents);
+}
+
+void PolynomialPlanner::setStepSize(const double param_step_size)
+{
+  step_size = param_step_size;
+}
+
+void PolynomialPlanner::setInflectionPoint(const double param_inflection_point)
+{
+  if (param_inflection_point > 0.0 && param_inflection_point < 1.0)
+  {
+    inflection_point = param_inflection_point;
+  }
+  else
+  {
+    ROS_WARN_STREAM("[PolynomialPlanner] Wrong inflection point. Should be between 0.0 and 1.0");
+  }
+}
+bool PolynomialPlanner::parametricPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                                       const pos start_point, const pos end_point,
+                                       const parametric_coeficients coefficients) const
 {
   pos point;
   pos last_point = start_point;
   double t_delta = 0.0001;
 
   geometry_msgs::PoseStamped pose;
-  // pose.header.frame_id = header.frame_id;
-  // pose.header.seq = path.size() + 1;
+  pose.header.frame_id = header.frame_id;
+  pose.header.seq = path.size() + 1;
   pose.pose.position.x = start_point.x;
   pose.pose.position.y = start_point.y;
   path.push_back(pose);
@@ -36,14 +66,16 @@ void PolynomialPlanner::parametricPath(std::vector<geometry_msgs::PoseStamped>& 
       path.push_back(pose);
     }
   }
+  updateOrientation(path, path_start_index, path.size() - 1);
+  return true;
 }
 
-parametric_coeficients PolynomialPlanner::calculateParametricCoefficients(pos startPoint, pos endPoint,
-                                                                          double inflection)
+parametric_coeficients PolynomialPlanner::calculateParametricCoefficients(const pos startPoint, const pos endPoint,
+                                                                          const double inflection) const
 {
   parametric_coeficients coefficients;
-  x_changes = countChangesX(startPoint, endPoint);
-  y_changes = countChangesY(startPoint, endPoint);
+  int x_changes = countChangesX(startPoint, endPoint);
+  int y_changes = countChangesY(startPoint, endPoint);
   if (x_changes == 2 && y_changes == 2)
   {
     coefficients.x.p3 = ((12 * inflection - 6) * endPoint.y + (6 - 12 * inflection) * startPoint.y +
@@ -220,7 +252,7 @@ parametric_coeficients PolynomialPlanner::calculateParametricCoefficients(pos st
   return coefficients;
 }
 
-int PolynomialPlanner::countChangesX(pos startPoint, pos endPoint)
+int PolynomialPlanner::countChangesX(const pos startPoint, const pos endPoint) const
 {
   int changes = 0;
   bool path_growing, start_growing, end_growing;
@@ -248,7 +280,7 @@ int PolynomialPlanner::countChangesX(pos startPoint, pos endPoint)
   return changes;
 }
 
-int PolynomialPlanner::countChangesY(pos startPoint, pos endPoint)
+int PolynomialPlanner::countChangesY(const pos startPoint, const pos endPoint) const
 {
   int changes = 0;
   bool path_growing, start_growing, end_growing;
@@ -275,4 +307,4 @@ int PolynomialPlanner::countChangesY(pos startPoint, pos endPoint)
   }
   return changes;
 }
-}
+}  // namespace agribot_local_planner

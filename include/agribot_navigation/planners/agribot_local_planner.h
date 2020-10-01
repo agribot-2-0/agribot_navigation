@@ -19,9 +19,9 @@
 #include <visualization_msgs/MarkerArray.h>
 
 #include "agribot_navigation/planners/structures.h"
-#include "agribot_navigation/planners/local_planners/path_planner.h"
+#include "agribot_navigation/planners/local_planners/i_local_planner.h"
 #include "agribot_navigation/planners/local_planners/circles_planner.h"
-// #include "agribot_navigation/planners/local_planners/polynomial_planner.h"
+#include "agribot_navigation/planners/local_planners/polynomial_planner.h"
 
 #include <cmath>
 #include <string>
@@ -31,7 +31,6 @@
 
 namespace agribot_local_planner
 {
-
 class AgribotPlannerROS : public nav_core::BaseLocalPlanner
 {
 public:
@@ -95,9 +94,9 @@ private:
   double param_parallelness_weight_arch;
   double param_epsilon;
 
-  double param_local_dead_zone;
-  double param_arch_radius;
-  double param_arch_step;
+  double param_design_dead_zone;
+  double param_design_arch_radius;
+  double param_design_step_size;
   double param_odom_filter_time;
   double param_missed_distance_coefficient;
 
@@ -107,7 +106,7 @@ private:
   bool param_take_front;
 
   bool xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path, geometry_msgs::PoseStamped startPose,
-                        geometry_msgs::PoseStamped endPose, PathPlanner* planner);
+                        geometry_msgs::PoseStamped endPose, ILocalPlaner* planner);
 
   void vOdomCallback(const nav_msgs::Odometry odometry_msg);
   pos pCalculateRobotFrontPosition(pos robotCenter);

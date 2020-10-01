@@ -38,7 +38,7 @@ AgribotPlannerROS:
   epsilon: 1e-3
   design_dead_zone: 0.0 # degrees
   design_arch_radius: 2.5 # metres
-  design_arch_step: 20.0 # degrees
+  design_step_size: 0.2 # metres
 
   odom_filter_time: 0.1 # seconds
   missed_distance_coefficient: 1.1

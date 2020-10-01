@@ -2,39 +2,25 @@
 
 namespace agribot_local_planner
 {
-CirclesPlanner::CirclesPlanner() : PathPlanner()
+CirclesPlanner::CirclesPlanner() : ILocalPlaner()
 {
   dead_zone = 0.0;
   arch_radius = 2.0;
-  arch_step = 5.0;
+  step_size = 1.0;
+  arch_step = calculateArchStep(arch_radius, step_size);
 }
 
 CirclesPlanner::~CirclesPlanner()
 {
 }
 
-void CirclesPlanner::setArchRadius(double param_arch_radius)
+bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
+                                const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose)
 {
-  arch_radius = param_arch_radius;
-}
-
-void CirclesPlanner::setArchStep(double param_arch_step)
-{
-  arch_step = param_arch_step;
-}
-
-void CirclesPlanner::setDeadZone(double param_dead_zone)
-{
-  dead_zone = param_dead_zone;
-}
-
-bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path, geometry_msgs::PoseStamped startPose,
-                                geometry_msgs::PoseStamped endPose)
-{
-  ROS_INFO_STREAM("[CirclesPlanner] XD");
   pos startPoint = pFrameFromPoseStamped(startPose);
   pos endPoint = pFrameFromPoseStamped(endPose);
   header = endPose.header;
+  path_start_index = path.size();
 
   double path_angle = dAngleBetweenFrames(endPoint, startPoint);
   double reverse_path_angle = dAngleBetweenFrames(startPoint, endPoint);
@@ -60,36 +46,27 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path, g
                       end_tangent_point, end_c1_center, end_c2_center);
 }
 
-pos CirclesPlanner::pCalculateC2Center(pos endPoint, double end_orientation, double angle_difference,
-                                       double arch_radius, double dead_zone)
+void CirclesPlanner::setArchRadius(const double param_arch_radius)
 {
-  // determine center of circle tangent to orientation vector
-  // as a vector of length equals to given radius
-  // perpendicular to the orientation vector
-
-  pos c2_center;
-  if (angle_difference < -dead_zone * DEG_TO_RAD)
-  {
-    double perpendicular = end_orientation - M_PI / 2;
-    c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
-    c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
-  }
-  else if (angle_difference > dead_zone * DEG_TO_RAD)
-  {
-    double perpendicular = end_orientation + M_PI / 2;
-    c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
-    c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
-  }
-  else
-  {
-    c2_center.x = std::numeric_limits<double>::quiet_NaN();
-    c2_center.y = std::numeric_limits<double>::quiet_NaN();
-  }
-  return c2_center;
+  arch_radius = param_arch_radius;
+  arch_step = calculateArchStep(arch_radius, step_size);
+  arch_step = 180 / (M_PI * arch_radius * step_size);
 }
 
-pos CirclesPlanner::pCalculateC1Center(pos c2_center, pos endPoint, double path_angle, double angle_difference,
-                                       double arch_radius, double dead_zone)
+void CirclesPlanner::setDeadZone(const double param_dead_zone)
+{
+  dead_zone = param_dead_zone;
+}
+
+void CirclesPlanner::setStepSize(const double param_step_size)
+{
+  step_size = param_step_size;
+  arch_step = calculateArchStep(arch_radius, step_size);
+}
+
+pos CirclesPlanner::pCalculateC1Center(const pos c2_center, const pos endPoint, const double path_angle,
+                                       const double angle_difference, const double arch_radius,
+                                       const double dead_zone) const
 {
   // determine center of circle tangent to original path
   // as a interception of circle with radius twice as big as given radius
@@ -158,8 +135,36 @@ pos CirclesPlanner::pCalculateC1Center(pos c2_center, pos endPoint, double path_
   return c1_center;
 }
 
-pos CirclesPlanner::pCalculateTangentPoint(pos c1_center, double path_angle, double angle_difference,
-                                           double arch_radius, double dead_zone)
+pos CirclesPlanner::pCalculateC2Center(const pos endPoint, const double end_orientation, const double angle_difference,
+                                       const double arch_radius, const double dead_zone) const
+{
+  // determine center of circle tangent to orientation vector
+  // as a vector of length equals to given radius
+  // perpendicular to the orientation vector
+
+  pos c2_center;
+  if (angle_difference < -dead_zone * DEG_TO_RAD)
+  {
+    double perpendicular = end_orientation - M_PI / 2;
+    c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
+    c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
+  }
+  else if (angle_difference > dead_zone * DEG_TO_RAD)
+  {
+    double perpendicular = end_orientation + M_PI / 2;
+    c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
+    c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
+  }
+  else
+  {
+    c2_center.x = std::numeric_limits<double>::quiet_NaN();
+    c2_center.y = std::numeric_limits<double>::quiet_NaN();
+  }
+  return c2_center;
+}
+
+pos CirclesPlanner::pCalculateTangentPoint(const pos c1_center, const double path_angle, const double angle_difference,
+                                           const double arch_radius, const double dead_zone) const
 {
   // determine the point of the intersection of
   // the circle C2 and the original path
@@ -185,8 +190,13 @@ pos CirclesPlanner::pCalculateTangentPoint(pos c1_center, double path_angle, dou
   return tangent_point;
 }
 
-void CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos circle_start, pos circle_center,
-                             double angle_span)
+double CirclesPlanner::calculateArchStep(const double radius, const double step_size) const
+{
+  return (180 * step_size) / (M_PI * radius);
+}
+
+bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, const pos circle_start,
+                             const pos circle_center, const double angle_span) const
 {
   double angle_start_center = dAngleBetweenFrames(circle_start, circle_center);
 
@@ -206,12 +216,42 @@ void CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, pos 
           circle_center.y + arch_radius * sin(angle_start_center + static_cast<double>(i) * step_size);
       path.push_back(pose);
     }
+    return true;
+  }
+  else
+  {
+    return false;
   }
 }
 
-bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path, geometry_msgs::PoseStamped startPose,
-                                  geometry_msgs::PoseStamped endPose, pos start_tangent_point, pos start_c1_center,
-                                  pos start_c2_center, pos end_tangent_point, pos end_c1_center, pos end_c2_center)
+bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path, const pos start_point,
+                                  const pos end_point, const double step_size) const
+{
+  int steps = dDistanceBetweenFrames(start_point, end_point) / step_size;
+
+  if (steps > 0)
+  {
+    for (int i = 0; i < steps; i++)
+    {
+      geometry_msgs::PoseStamped pose;
+      pose.header.frame_id = header.frame_id;
+      pose.header.seq = path.size() + 1;
+      pose.pose.position.x = start_point.x + static_cast<double>(i) / steps * (end_point.x - start_point.x);
+      pose.pose.position.y = start_point.y + static_cast<double>(i) / steps * (end_point.y - start_point.y);
+      path.push_back(pose);
+    }
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
+                                  const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose,
+                                  const pos start_tangent_point, const pos start_c1_center, const pos start_c2_center,
+                                  const pos end_tangent_point, const pos end_c1_center, const pos end_c2_center) const
 {
   pos startPoint = pFrameFromPoseStamped(startPose);
   pos endPoint = pFrameFromPoseStamped(endPose);
@@ -283,30 +323,38 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   }
   else
   {
-    // appednd arch from circle end_c2
-    arcPath(path, startPoint, start_c2_center, start_c2_span);
-    ROS_INFO_STREAM("[CirclesPlanner] 1 = " << path.size());
-
+    // appednd arch from circle start_c2
+    if (!arcPath(path, startPoint, start_c2_center, start_c2_span))
+    {
+      return false;
+    }
+    // appednd arch from circle start_c1
+    if (!arcPath(path, start_c2_center, start_c1_center, start_c1_span))
+    {
+      return false;
+    }
+    // appednd straight from circle start to circle end
+    if (!straightPath(path, start_tangent_point, end_tangent_point, step_size))
+    {
+      return false;
+    }
     // appednd arch from circle end_c1
-    arcPath(path, start_c2_center, start_c1_center, start_c1_span);
-    ROS_INFO_STREAM("[CirclesPlanner] 2 = " << path.size());
-
-    straightPath(path, start_tangent_point, end_tangent_point, step_size);
-    ROS_INFO_STREAM("[CirclesPlanner] 3 = " << path.size());
-
-    // appednd arch from circle end_c1
-    arcPath(path, end_tangent_point, end_c1_center, end_c1_span);
-    ROS_INFO_STREAM("[CirclesPlanner] 4 = " << path.size());
-
+    if (!arcPath(path, end_tangent_point, end_c1_center, end_c1_span))
+    {
+      return false;
+    }
     // appednd arch from circle end_c2
-    arcPath(path, end_c1_center, end_c2_center, end_c2_span);
-    ROS_INFO_STREAM("[CirclesPlanner] 5 = " << path.size());
+    if (!arcPath(path, end_c1_center, end_c2_center, end_c2_span))
+    {
+      return false;
+    }
 
     // append final pose
     path.push_back(endPose);
-    ROS_INFO_STREAM("[CirclesPlanner] 6 = " << path.size());
+
+    updateOrientation(path, path_start_index, path.size() - 1);
 
     return true;
   }
 }
-}
+}  // namespace agribot_local_planner

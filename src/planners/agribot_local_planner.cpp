@@ -57,20 +57,20 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, 10.0);
     pnh.param("epsilon", param_epsilon, 1e-3);
 
-    pnh.param("design_dead_zone", param_local_dead_zone,
+    pnh.param("design_dead_zone", param_design_dead_zone,
               0.0);  // degrees
-    pnh.param("design_arch_radius", param_arch_radius,
+    pnh.param("design_arch_radius", param_design_arch_radius,
               2.0);  // meters
-    pnh.param("design_arch_step", param_arch_step,
-              5.0);  // degrees
+    pnh.param("design_step_size", param_design_step_size,
+              0.1);  // meters
 
     pnh.param("odom_filter_time", param_odom_filter_time, 0.1);
     pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, 1.1);
 
     // be sure that path planning arch radius is greater or equal to minimum turning radius
-    if (param_arch_radius < param_min_radius)
+    if (param_design_arch_radius < param_min_radius)
     {
-      param_arch_radius = param_min_radius;
+      param_design_arch_radius = param_min_radius;
     }
 
     pnh.param("speed_limit", param_speed_limit, true);
@@ -114,8 +114,16 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _iMissedWaypointsCount = 0;
   _xPlan = orig_global_plan;
   _xLocalPlan.clear();
-  CirclesPlanner planner = CirclesPlanner();
-  if (!xDesignLocalPath(_xLocalPlan, _pRobotCenter, _xPlan.back(), &planner))
+
+  CirclesPlanner circles_planner = CirclesPlanner();
+  circles_planner.setArchRadius(param_design_arch_radius);
+  circles_planner.setDeadZone(param_design_dead_zone);
+  circles_planner.setStepSize(param_design_step_size);
+
+  PolynomialPlanner poly_planner = PolynomialPlanner();
+  poly_planner.setStepSize(param_design_step_size);
+
+  if (!xDesignLocalPath(_xLocalPlan, _pRobotCenter, _xPlan.back(), &poly_planner))
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Local planner unable to create path ");
     return false;
@@ -147,7 +155,7 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
 
 bool AgribotPlannerROS::xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,
                                          geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose,
-                                         PathPlanner* planner)
+                                         ILocalPlaner* planner)
 {
   return planner->designPath(path, startPose, endPose);
 }
