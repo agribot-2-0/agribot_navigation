@@ -8,9 +8,9 @@ namespace agribot_local_planner
 {
 CirclesPlanner::CirclesPlanner() : ILocalPlaner()
 {
-  dead_zone = 0.0;
-  arch_radius = 2.0;
-  step_size = 1.0;
+  dead_zone = DEFAULT_DESIGN_DEAD_ZONE;
+  arch_radius = DEFAULT_DESIGN_ARCH_RADIUS;
+  step_size = DEFAULT_DESIGN_STEP_SIZE;
   arch_step = calculateArchStep(arch_radius, step_size);
 }
 
@@ -196,6 +196,7 @@ pos CirclesPlanner::pCalculateTangentPoint(const pos c1_center, const double pat
 
 double CirclesPlanner::calculateArchStep(const double radius, const double step_size) const
 {
+  // step = 2 * pi * r * angle / 360
   return (180 * step_size) / (M_PI * radius);
 }
 

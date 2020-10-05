@@ -37,35 +37,35 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     _rLocalPathPub = pnh.advertise<nav_msgs::Path>("local_path", 10);
     _xLocalPath.header.frame_id = "map";
 
-    pnh.param("goal_distance_tolerance", param_goal_distance_tolerance, 0.75);
-    pnh.param("goal_range", param_goal_range, 0.66);
-    pnh.param("missed_points_tollerance", param_missed_points_tollerance, 10000);
+    pnh.param("goal_distance_tolerance", param_goal_distance_tolerance, DEFAULT_GOAL_DISTANCE_TOLERANCE);
+    pnh.param("goal_range", param_goal_range, DEFAULT_GOAL_RANGE);
+    pnh.param("missed_points_tollerance", param_missed_points_tollerance, DEFAULT_MISSED_POINTS_TOLLERANCE);
 
-    pnh.param("chassis_length", param_chassis_length, 2.1);
-    pnh.param("min_radius", param_min_radius, 2.0);
+    pnh.param("chassis_length", param_chassis_length, DEFAULT_CHASSIS_LENGTH);
+    pnh.param("min_radius", param_min_radius, DEFAULT_MIN_RADIUS);
 
-    pnh.param("prediction_time", param_prediction_time, 60);
-    pnh.param("prediction_points_per_second", param_prediction_points_per_second, 2);
+    pnh.param("prediction_time", param_prediction_time, DEFAULT_PREDICTION_TIME);
+    pnh.param("prediction_points_per_second", param_prediction_points_per_second, DEFAULT_PREDICTION_POINTS_PER_SECOND);
 
-    pnh.param("dead_zone", param_dead_zone, 3.0);
-    pnh.param("max_linear_vel", param_max_linear_vel, 0.7);
-    pnh.param("min_linear_vel", param_min_linear_vel, 0.1);
+    pnh.param("dead_zone", param_dead_zone, DEFAULT_DEAD_ZONE);
+    pnh.param("max_linear_vel", param_max_linear_vel, DEFAULT_MAX_LINEAR_VEL);
+    pnh.param("min_linear_vel", param_min_linear_vel, DEFAULT_MIN_LINEAR_VEL);
 
-    pnh.param("deviation_weight_straight", param_deviation_weight_straight, 0.1);
-    pnh.param("parallelness_weight_straight", param_parallelness_weight_straight, 10.0);
-    pnh.param("deviation_weight_arch", param_deviation_weight_arch, 0.1);
-    pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, 10.0);
-    pnh.param("epsilon", param_epsilon, 1e-3);
+    pnh.param("deviation_weight_straight", param_deviation_weight_straight, DEFAULT_DEVIATION_WEIGHT_STRAIGHT);
+    pnh.param("parallelness_weight_straight", param_parallelness_weight_straight, DEFAULT_PARALLELNESS_WEIGHT_STRAIGHT);
+    pnh.param("deviation_weight_arch", param_deviation_weight_arch, DEFAULT_DEVIATION_WEIGHT_ARCH);
+    pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, DEFAULT_PARALLELNESS_WEIGHT_ARCH);
+    pnh.param("epsilon", param_epsilon, DEFAULT_EPSILON);
 
     pnh.param("design_dead_zone", param_design_dead_zone,
-              0.0);  // degrees
+              DEFAULT_DESIGN_DEAD_ZONE);  // degrees
     pnh.param("design_arch_radius", param_design_arch_radius,
-              2.0);  // meters
+              DEFAULT_DESIGN_ARCH_RADIUS);  // meters
     pnh.param("design_step_size", param_design_step_size,
-              0.1);  // meters
+              DEFAULT_DESIGN_STEP_SIZE);  // meters
 
-    pnh.param("odom_filter_time", param_odom_filter_time, 0.1);
-    pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, 1.1);
+    pnh.param("odom_filter_time", param_odom_filter_time, DEFAULT_ODOM_FILTER_TIME);
+    pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, DEFAULT_MISSED_DISTANCE_COEFFICIENT);
 
     // be sure that path planning arch radius is greater or equal to minimum turning radius
     if (param_design_arch_radius < param_min_radius)

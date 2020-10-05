@@ -8,6 +8,7 @@
 
 #include "agribot_navigation/planners/structures.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
+#include "agribot_navigation/planners/default_values.h"
 
 namespace agribot_local_planner
 {

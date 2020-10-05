@@ -26,6 +26,7 @@
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
 #include "agribot_navigation/planners/local_planners/circles_planner.h"
 #include "agribot_navigation/planners/local_planners/polynomial_planner.h"
+#include "agribot_navigation/planners/default_values.h"
 
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)

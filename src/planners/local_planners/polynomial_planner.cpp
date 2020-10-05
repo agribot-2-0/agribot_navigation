@@ -8,8 +8,8 @@ namespace agribot_local_planner
 {
 PolynomialPlanner::PolynomialPlanner() : ILocalPlaner()
 {
-  step_size = 1.0;
-  inflection_point = 0.5;
+  step_size = DEFAULT_DESIGN_STEP_SIZE;
+  inflection_point = DEFAULT_INFLECTION_POINT;
 }
 
 PolynomialPlanner::~PolynomialPlanner()
@@ -23,7 +23,7 @@ bool PolynomialPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path
   pos endPoint = pFrameFromPoseStamped(endPose);
   header = endPose.header;
   path_start_index = path.size();
-  parametric_coeficients coefficents = calculateParametricCoefficients(startPoint, endPoint, 0.5);
+  parametric_coeficients coefficents = calculateParametricCoefficients(startPoint, endPoint, DEFAULT_INFLECTION_POINT);
   return parametricPath(path, startPoint, endPoint, coefficents);
 }
 
@@ -34,6 +34,7 @@ void PolynomialPlanner::setStepSize(const double param_step_size)
 
 void PolynomialPlanner::setInflectionPoint(const double param_inflection_point)
 {
+    // inflection point must be between 0 and 1
   if (param_inflection_point > 0.0 && param_inflection_point < 1.0)
   {
     inflection_point = param_inflection_point;
@@ -70,6 +71,9 @@ bool PolynomialPlanner::parametricPath(std::vector<geometry_msgs::PoseStamped>& 
       path.push_back(pose);
     }
   }
+
+  path.push_back(endPose);
+
   updateOrientation(path, path_start_index, path.size() - 1);
   return true;
 }
