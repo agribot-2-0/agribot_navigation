@@ -24,7 +24,16 @@ bool PolynomialPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path
   header = endPose.header;
   path_start_index = path.size();
   parametric_coeficients coefficents = calculateParametricCoefficients(startPoint, endPoint, DEFAULT_INFLECTION_POINT);
-  return parametricPath(path, startPoint, endPoint, coefficents);
+  if (parametricPath(path, startPoint, endPoint, coefficents))
+  {
+    path.push_back(endPose);
+    updateOrientation(path, path_start_index, path.size() - 1);
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 void PolynomialPlanner::setStepSize(const double param_step_size)
@@ -34,7 +43,7 @@ void PolynomialPlanner::setStepSize(const double param_step_size)
 
 void PolynomialPlanner::setInflectionPoint(const double param_inflection_point)
 {
-    // inflection point must be between 0 and 1
+  // inflection point must be between 0 and 1
   if (param_inflection_point > 0.0 && param_inflection_point < 1.0)
   {
     inflection_point = param_inflection_point;
@@ -72,9 +81,6 @@ bool PolynomialPlanner::parametricPath(std::vector<geometry_msgs::PoseStamped>& 
     }
   }
 
-  path.push_back(endPose);
-
-  updateOrientation(path, path_start_index, path.size() - 1);
   return true;
 }
 

@@ -115,10 +115,10 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _xPlan = orig_global_plan;
   _xLocalPlan.clear();
 
-  CirclesPlanner circles_planner = CirclesPlanner();
-  circles_planner.setArchRadius(param_design_arch_radius);
-  circles_planner.setDeadZone(param_design_dead_zone);
-  circles_planner.setStepSize(param_design_step_size);
+  // CirclesPlanner circles_planner = CirclesPlanner();
+  // circles_planner.setArchRadius(param_design_arch_radius);
+  // circles_planner.setDeadZone(param_design_dead_zone);
+  // circles_planner.setStepSize(param_design_step_size);
 
   PolynomialPlanner poly_planner = PolynomialPlanner();
   poly_planner.setStepSize(param_design_step_size);
