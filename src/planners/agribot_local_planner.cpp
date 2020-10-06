@@ -57,12 +57,9 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, DEFAULT_PARALLELNESS_WEIGHT_ARCH);
     pnh.param("epsilon", param_epsilon, DEFAULT_EPSILON);
 
-    pnh.param("design_dead_zone", param_design_dead_zone,
-              DEFAULT_DESIGN_DEAD_ZONE);  // degrees
-    pnh.param("design_arch_radius", param_design_arch_radius,
-              DEFAULT_DESIGN_ARCH_RADIUS);  // meters
-    pnh.param("design_step_size", param_design_step_size,
-              DEFAULT_DESIGN_STEP_SIZE);  // meters
+    pnh.param("design_dead_zone", param_design_dead_zone, DEFAULT_DESIGN_DEAD_ZONE);
+    pnh.param("design_arch_radius", param_design_arch_radius, DEFAULT_DESIGN_ARCH_RADIUS);
+    pnh.param("design_step_size", param_design_step_size, DEFAULT_DESIGN_STEP_SIZE);
 
     pnh.param("odom_filter_time", param_odom_filter_time, DEFAULT_ODOM_FILTER_TIME);
     pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, DEFAULT_MISSED_DISTANCE_COEFFICIENT);

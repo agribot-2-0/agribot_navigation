@@ -28,9 +28,6 @@
 #include "agribot_navigation/planners/local_planners/polynomial_planner.h"
 #include "agribot_navigation/planners/default_values.h"
 
-constexpr double DEG_TO_RAD = (M_PI / 180);
-constexpr double RAD_TO_DEG = (180 / M_PI);
-
 namespace agribot_local_planner
 {
 class AgribotPlannerROS : public nav_core::BaseLocalPlanner
@@ -78,29 +75,29 @@ private:
   double _dLastTraveledDistance;
   bool bAbortExecuting;
   // params
-  int param_missed_points_tollerance;
-  int param_prediction_time;
-  int param_prediction_points_per_second;
-  double param_goal_distance_tolerance;
-  double param_goal_range;
-  double param_chassis_length;
-  double param_min_radius;
-  double param_dead_zone;
-  double param_max_linear_vel;
-  double param_min_linear_vel;
-  double param_current_deviation_weight;
-  double param_current_parallelness_weight;
-  double param_deviation_weight_straight;
-  double param_parallelness_weight_straight;
-  double param_deviation_weight_arch;
-  double param_parallelness_weight_arch;
-  double param_epsilon;
+  int param_missed_points_tollerance;         // n
+  int param_prediction_time;                  // seconds
+  int param_prediction_points_per_second;     // n/second
+  double param_goal_distance_tolerance;       // meters
+  double param_goal_range;                    // factor
+  double param_chassis_length;                // meters
+  double param_min_radius;                    // meters
+  double param_dead_zone;                     // degrees
+  double param_max_linear_vel;                // m/s
+  double param_min_linear_vel;                // m/s
+  double param_current_deviation_weight;      // factor
+  double param_current_parallelness_weight;   // factor
+  double param_deviation_weight_straight;     // factor
+  double param_parallelness_weight_straight;  // factor
+  double param_deviation_weight_arch;         // factor
+  double param_parallelness_weight_arch;      // factor
+  double param_epsilon;                       // unitless
 
-  double param_design_dead_zone;
-  double param_design_arch_radius;
-  double param_design_step_size;
-  double param_odom_filter_time;
-  double param_missed_distance_coefficient;
+  double param_design_dead_zone;             // degrees
+  double param_design_arch_radius;           // meters
+  double param_design_step_size;             // meters
+  double param_odom_filter_time;             // seconds
+  double param_missed_distance_coefficient;  // factor >1
 
   bool param_speed_limit;
   bool param_debug;

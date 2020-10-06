@@ -45,10 +45,10 @@ protected:
   pos start_c2_center;
   pos start_c1_center;
   pos start_tangent_point;
-  double arch_radius;
-  double arch_step;
-  double dead_zone;
-  double step_size;
+  double arch_radius;  // metres
+  double arch_step;    // degrees
+  double dead_zone;    // degrees
+  double step_size;    // meters
   int path_start_index;
 };
 }  // namespace agribot_local_planner

@@ -25,3 +25,6 @@ constexpr double DEFAULT_DESIGN_STEP_SIZE = 0.1;               // meters
 constexpr double DEFAULT_ODOM_FILTER_TIME = 0.1;               // seconds
 constexpr double DEFAULT_MISSED_DISTANCE_COEFFICIENT = 1.1;    // factor
 constexpr double DEFAULT_INFLECTION_POINT = 0.5;               // factor (0,1)
+
+constexpr double DEG_TO_RAD = (M_PI / 180);
+constexpr double RAD_TO_DEG = (180 / M_PI);

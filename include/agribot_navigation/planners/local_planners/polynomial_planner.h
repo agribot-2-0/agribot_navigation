@@ -29,8 +29,8 @@ protected:
                                                          const double inflection) const;
   int countChangesX(const pos startPoint, const pos endPoint) const;
   int countChangesY(const pos startPoint, const pos endPoint) const;
-  double step_size;
-  double inflection_point;
+  double step_size; // meters
+  double inflection_point; // factor (0,1)
   int path_start_index;
 };
 }  // namespace agribot_local_planner

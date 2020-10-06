@@ -54,7 +54,6 @@ void CirclesPlanner::setArchRadius(const double param_arch_radius)
 {
   arch_radius = param_arch_radius;
   arch_step = calculateArchStep(arch_radius, step_size);
-  arch_step = 180 / (M_PI * arch_radius * step_size);
 }
 
 void CirclesPlanner::setDeadZone(const double param_dead_zone)
@@ -68,15 +67,16 @@ void CirclesPlanner::setStepSize(const double param_step_size)
   arch_step = calculateArchStep(arch_radius, step_size);
 }
 
+/**
+ * determine center of circle tangent to original path
+ * as a interception of circle with radius twice as big as given radius
+ * and line parallel to original path
+ * distance from line and path equals given radius
+ */
 pos CirclesPlanner::pCalculateC1Center(const pos c2_center, const pos endPoint, const double path_angle,
                                        const double angle_difference, const double arch_radius,
                                        const double dead_zone) const
 {
-  // determine center of circle tangent to original path
-  // as a interception of circle with radius twice as big as given radius
-  // and line parallel to original path
-  // distance from line and path equals given radius
-
   pos c1_center;
   pos point_on_parallel;
   double dx, dy, a, b, c, discriminant, t1, t2, diameter;
@@ -139,13 +139,14 @@ pos CirclesPlanner::pCalculateC1Center(const pos c2_center, const pos endPoint, 
   return c1_center;
 }
 
+/**
+ * determine center of circle tangent to orientation vector
+ * as a vector of length equals to given radius
+ * perpendicular to the orientation vector
+ */
 pos CirclesPlanner::pCalculateC2Center(const pos endPoint, const double end_orientation, const double angle_difference,
                                        const double arch_radius, const double dead_zone) const
 {
-  // determine center of circle tangent to orientation vector
-  // as a vector of length equals to given radius
-  // perpendicular to the orientation vector
-
   pos c2_center;
   if (angle_difference < -dead_zone * DEG_TO_RAD)
   {
@@ -167,12 +168,13 @@ pos CirclesPlanner::pCalculateC2Center(const pos endPoint, const double end_orie
   return c2_center;
 }
 
+/**
+ * determine the point of the intersection of
+ * the circle C2 and the original path
+ */
 pos CirclesPlanner::pCalculateTangentPoint(const pos c1_center, const double path_angle, const double angle_difference,
                                            const double arch_radius, const double dead_zone) const
 {
-  // determine the point of the intersection of
-  // the circle C2 and the original path
-
   pos tangent_point;
   if (angle_difference < -dead_zone * DEG_TO_RAD)
   {
@@ -196,7 +198,7 @@ pos CirclesPlanner::pCalculateTangentPoint(const pos c1_center, const double pat
 
 double CirclesPlanner::calculateArchStep(const double radius, const double step_size) const
 {
-  // step = 2 * pi * r * angle / 360
+  // calculated from: step = 2 * pi * r * angle / 360
   return (180 * step_size) / (M_PI * radius);
 }
 
@@ -276,9 +278,9 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   double a_end_p2_pk = dAngleBetweenFrames(endPoint, end_c2_center);
   double end_c2_span = a_end_p2_pk - a_end_p2_p1;
 
-  // if the final orientation relative to path is positive
-  // (robot turns left), circle end_c2 is followed counterclockwise
-  // end_c2 is followed clockwise in right turn case
+  /* if the final orientation relative to path is positive
+   (robot turns left), circle end_c2 is followed counterclockwise
+   end_c2 is followed clockwise in right turn case*/
   if (end_angle_difference < 0)
   {
     if (end_c2_span > 0)
@@ -302,9 +304,9 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   double a_start_p2_pk = dAngleBetweenFrames(startPoint, start_c2_center);
   double start_c2_span = a_start_p2_p1 - a_start_p2_pk;
 
-  // if the final orientation relative to path is positive
-  // (robot turns left), circle end_c2 is followed counterclockwise
-  // end_c2 is followed clockwise in right turn case
+  /* if the final orientation relative to path is positive
+   (robot turns left), circle end_c2 is followed counterclockwise
+   end_c2 is followed clockwise in right turn case*/
   if (start_angle_difference > 0)
   {
     if (start_c2_span > 0)

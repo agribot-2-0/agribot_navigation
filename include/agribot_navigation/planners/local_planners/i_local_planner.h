@@ -9,9 +9,7 @@
 #include <vector>
 
 #include "agribot_navigation/planners/structures.h"
-
-constexpr double DEG_TO_RAD = (M_PI / 180);
-constexpr double RAD_TO_DEG = (180 / M_PI);
+#include "agribot_navigation/planners/default_values.h"
 
 namespace agribot_local_planner
 {
