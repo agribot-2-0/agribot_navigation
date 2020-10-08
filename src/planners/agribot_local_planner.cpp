@@ -154,7 +154,7 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
 
 bool AgribotPlannerROS::xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,
                                          geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose,
-                                         ILocalPlaner* planner)
+                                         ILocalPlanner* planner)
 {
   return planner->designPath(path, startPose, endPose);
 }

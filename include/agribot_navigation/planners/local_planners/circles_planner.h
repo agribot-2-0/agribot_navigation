@@ -12,7 +12,7 @@
 
 namespace agribot_local_planner
 {
-class CirclesPlanner : public ILocalPlaner
+class CirclesPlanner : public ILocalPlanner
 {
 public:
   CirclesPlanner();

@@ -6,7 +6,7 @@
 
 namespace agribot_local_planner
 {
-CirclesPlanner::CirclesPlanner() : ILocalPlaner()
+CirclesPlanner::CirclesPlanner() : ILocalPlanner()
 {
   dead_zone = DEFAULT_DESIGN_DEAD_ZONE;
   arch_radius = DEFAULT_DESIGN_ARCH_RADIUS;

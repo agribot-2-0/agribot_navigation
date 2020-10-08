@@ -13,11 +13,9 @@
 
 namespace agribot_local_planner
 {
-class ILocalPlaner
+class ILocalPlanner
 {
 public:
-  ILocalPlaner();
-  ~ILocalPlaner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose) = 0;
 

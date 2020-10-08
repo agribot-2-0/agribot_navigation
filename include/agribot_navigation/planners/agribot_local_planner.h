@@ -106,7 +106,7 @@ private:
 
   bool xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                         geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose,
-                        ILocalPlaner* planner);
+                        ILocalPlanner* planner);
 
   void vOdomCallback(const nav_msgs::Odometry odometry_msg);
   pos pCalculateRobotFrontPosition(pos robotCenter);

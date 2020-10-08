@@ -6,15 +6,8 @@
 
 namespace agribot_local_planner
 {
-ILocalPlaner::ILocalPlaner()
-{
-}
 
-ILocalPlaner::~ILocalPlaner()
-{
-}
-
-double ILocalPlaner::dGetYawFromQuaternion(const geometry_msgs::Quaternion quat) const
+double ILocalPlanner::dGetYawFromQuaternion(const geometry_msgs::Quaternion quat) const
 {
   tf::Quaternion q(quat.x, quat.y, quat.z, quat.w);
   tf::Matrix3x3 m(q);
@@ -23,7 +16,7 @@ double ILocalPlaner::dGetYawFromQuaternion(const geometry_msgs::Quaternion quat)
   return yaw;
 }
 
-double ILocalPlaner::dLimitAngle(double angle) const
+double ILocalPlanner::dLimitAngle(double angle) const
 {
   if (angle > 180 * DEG_TO_RAD)
   {
@@ -36,17 +29,17 @@ double ILocalPlaner::dLimitAngle(double angle) const
   return angle;
 }
 
-double ILocalPlaner::dAngleBetweenFrames(const pos targetFrame, const pos currentFrame) const
+double ILocalPlanner::dAngleBetweenFrames(const pos targetFrame, const pos currentFrame) const
 {
   return std::atan2(targetFrame.y - currentFrame.y, targetFrame.x - currentFrame.x);
 }
 
-double ILocalPlaner::dDistanceBetweenFrames(const pos targetFrame, const pos currentFrame) const
+double ILocalPlanner::dDistanceBetweenFrames(const pos targetFrame, const pos currentFrame) const
 {
   return std::sqrt(std::pow(targetFrame.y - currentFrame.y, 2) + std::pow(targetFrame.x - currentFrame.x, 2));
 }
 
-pos ILocalPlaner::pFrameFromPoseStamped(const geometry_msgs::PoseStamped ps) const
+pos ILocalPlanner::pFrameFromPoseStamped(const geometry_msgs::PoseStamped ps) const
 {
   pos frame;
   frame.x = ps.pose.position.x;
@@ -55,7 +48,7 @@ pos ILocalPlaner::pFrameFromPoseStamped(const geometry_msgs::PoseStamped ps) con
   return frame;
 }
 
-void ILocalPlaner::updateOrientation(std::vector<geometry_msgs::PoseStamped>& path, const int start_index,
+void ILocalPlanner::updateOrientation(std::vector<geometry_msgs::PoseStamped>& path, const int start_index,
                                      const int end_index) const
 {
   // add proper orientation to each point

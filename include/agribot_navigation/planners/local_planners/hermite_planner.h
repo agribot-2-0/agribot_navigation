@@ -12,7 +12,7 @@
 
 namespace agribot_local_planner
 {
-class HermitePlanner : public ILocalPlaner
+class HermitePlanner : public ILocalPlanner
 {
 public:
   HermitePlanner();

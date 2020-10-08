@@ -11,7 +11,7 @@ constexpr double cot(double alfa)
 
 namespace agribot_local_planner
 {
-HermitePlanner::HermitePlanner() : ILocalPlaner()
+HermitePlanner::HermitePlanner() : ILocalPlanner()
 {
   step_size = DEFAULT_DESIGN_STEP_SIZE;
   magnitude_start = DEFAULT_HERMITE_MAGNITUDE;
