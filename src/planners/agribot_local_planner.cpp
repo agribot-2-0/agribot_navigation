@@ -117,10 +117,12 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   // circles_planner.setDeadZone(param_design_dead_zone);
   // circles_planner.setStepSize(param_design_step_size);
 
-  PolynomialPlanner poly_planner = PolynomialPlanner();
-  poly_planner.setStepSize(param_design_step_size);
+  HermitePlanner hermite_planner = HermitePlanner();
+  hermite_planner.setStepSize(param_design_step_size);
+  hermite_planner.setMagnitudeStart(100);
+  hermite_planner.setMagnitudeEnd(100);
 
-  if (!xDesignLocalPath(_xLocalPlan, _pRobotCenter, _xPlan.back(), &poly_planner))
+  if (!xDesignLocalPath(_xLocalPlan, _pRobotCenter, _xPlan.back(), &hermite_planner))
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Local planner unable to create path ");
     return false;

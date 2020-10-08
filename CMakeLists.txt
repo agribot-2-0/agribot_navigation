@@ -164,15 +164,15 @@ add_library(circles_planner
 	src/planners/local_planners/circles_planner.cpp
 )
 
-add_library(polynomial_planner
-	src/planners/local_planners/polynomial_planner.cpp
+add_library(hermite_planner
+	src/planners/local_planners/hermite_planner.cpp
 )
 
 add_library(agribot_local_planner
   src/planners/agribot_local_planner.cpp
 	src/planners/local_planners/i_local_planner.cpp
 	src/planners/local_planners/circles_planner.cpp
-	src/planners/local_planners/polynomial_planner.cpp
+  src/planners/local_planners/hermite_planner.cpp
 )
 
 add_library(waypoint_global_planner
@@ -211,7 +211,7 @@ target_link_libraries(circles_planner
 	${catkin_LIBRARIES}
 )
 
-target_link_libraries(polynomial_planner
+target_link_libraries(hermite_planner
 	${catkin_LIBRARIES}
 )
 
