@@ -8,9 +8,9 @@ namespace agribot_local_planner
 {
 CirclesPlanner::CirclesPlanner() : ILocalPlanner()
 {
-  dead_zone = DEFAULT_DESIGN_DEAD_ZONE;
-  arch_radius = DEFAULT_DESIGN_ARCH_RADIUS;
-  step_size = DEFAULT_DESIGN_STEP_SIZE;
+  dead_zone = default_design_dead_zone;
+  arch_radius = default_design_arch_radius;
+  step_size = default_step_size;
   arch_step = calculateArchStep(arch_radius, step_size);
 }
 
@@ -85,9 +85,9 @@ pos CirclesPlanner::pCalculateC1Center(const pos c2_center, const pos endPoint, 
   dx = cos(path_angle);
   dy = sin(path_angle);
 
-  if (angle_difference < -dead_zone * DEG_TO_RAD)
+  if (angle_difference < -dead_zone * deg_to_rad)
   {
-    double perpendicular = path_angle + 90 * DEG_TO_RAD;
+    double perpendicular = path_angle + 90 * deg_to_rad;
     point_on_parallel.x = endPoint.x + arch_radius * cos(perpendicular);
     point_on_parallel.y = endPoint.y + arch_radius * sin(perpendicular);
     a = dx * dx + dy * dy;
@@ -108,9 +108,9 @@ pos CirclesPlanner::pCalculateC1Center(const pos c2_center, const pos endPoint, 
       c1_center.y = std::numeric_limits<double>::quiet_NaN();
     }
   }
-  else if (angle_difference > dead_zone * DEG_TO_RAD)
+  else if (angle_difference > dead_zone * deg_to_rad)
   {
-    double perpendicular = path_angle - 90 * DEG_TO_RAD;
+    double perpendicular = path_angle - 90 * deg_to_rad;
     point_on_parallel.x = endPoint.x + arch_radius * cos(perpendicular);
     point_on_parallel.y = endPoint.y + arch_radius * sin(perpendicular);
     a = dx * dx + dy * dy;
@@ -148,13 +148,13 @@ pos CirclesPlanner::pCalculateC2Center(const pos endPoint, const double end_orie
                                        const double arch_radius, const double dead_zone) const
 {
   pos c2_center;
-  if (angle_difference < -dead_zone * DEG_TO_RAD)
+  if (angle_difference < -dead_zone * deg_to_rad)
   {
     double perpendicular = end_orientation - M_PI / 2;
     c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
     c2_center.y = endPoint.y + arch_radius * sin(perpendicular);
   }
-  else if (angle_difference > dead_zone * DEG_TO_RAD)
+  else if (angle_difference > dead_zone * deg_to_rad)
   {
     double perpendicular = end_orientation + M_PI / 2;
     c2_center.x = endPoint.x + arch_radius * cos(perpendicular);
@@ -176,13 +176,13 @@ pos CirclesPlanner::pCalculateTangentPoint(const pos c1_center, const double pat
                                            const double arch_radius, const double dead_zone) const
 {
   pos tangent_point;
-  if (angle_difference < -dead_zone * DEG_TO_RAD)
+  if (angle_difference < -dead_zone * deg_to_rad)
   {
     double perpendicular = path_angle - M_PI / 2;
     tangent_point.x = c1_center.x + arch_radius * cos(perpendicular);
     tangent_point.y = c1_center.y + arch_radius * sin(perpendicular);
   }
-  else if (angle_difference > dead_zone * DEG_TO_RAD)
+  else if (angle_difference > dead_zone * deg_to_rad)
   {
     double perpendicular = path_angle + M_PI / 2;
     tangent_point.x = c1_center.x + arch_radius * cos(perpendicular);
@@ -207,7 +207,7 @@ bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, cons
 {
   double angle_start_center = dAngleBetweenFrames(circle_start, circle_center);
 
-  int steps = abs(angle_span * RAD_TO_DEG) / arch_step;
+  int steps = abs(angle_span * rad_to_deg) / arch_step;
   double step_size = angle_span / steps;
 
   if (steps > 0)
@@ -285,14 +285,14 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   {
     if (end_c2_span > 0)
     {
-      end_c2_span = fmod(end_c2_span - 360 * DEG_TO_RAD, 360 * DEG_TO_RAD);
+      end_c2_span = fmod(end_c2_span - 360 * deg_to_rad, 360 * deg_to_rad);
     }
   }
   else
   {
     if (end_c2_span < 0)
     {
-      end_c2_span = fmod(end_c2_span + 360 * DEG_TO_RAD, 360 * DEG_TO_RAD);
+      end_c2_span = fmod(end_c2_span + 360 * deg_to_rad, 360 * deg_to_rad);
     }
   }
 
@@ -311,14 +311,14 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   {
     if (start_c2_span > 0)
     {
-      start_c2_span = fmod(start_c2_span - 360 * DEG_TO_RAD, 360 * DEG_TO_RAD);
+      start_c2_span = fmod(start_c2_span - 360 * deg_to_rad, 360 * deg_to_rad);
     }
   }
   else
   {
     if (start_c2_span < 0)
     {
-      start_c2_span = fmod(start_c2_span + 360 * DEG_TO_RAD, 360 * DEG_TO_RAD);
+      start_c2_span = fmod(start_c2_span + 360 * deg_to_rad, 360 * deg_to_rad);
     }
   }
 

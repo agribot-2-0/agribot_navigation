@@ -4,28 +4,27 @@
 
 #pragma once
 
-constexpr double DEFAULT_GOAL_DISTANCE_TOLERANCE = 0.75;       // meters
-constexpr double DEFAULT_GOAL_RANGE = 0.66;                    // factor
-constexpr int DEFAULT_MISSED_POINTS_TOLLERANCE = 10000;        // n
-constexpr double DEFAULT_CHASSIS_LENGTH = 2.1;                 // meters
-constexpr double DEFAULT_MIN_RADIUS = 2.0;                     // meters
-constexpr int DEFAULT_PREDICTION_TIME = 60;                    // seconds
-constexpr int DEFAULT_PREDICTION_POINTS_PER_SECOND = 2;        // n/second
-constexpr double DEFAULT_DEAD_ZONE = 3.0;                      // degrees
-constexpr double DEFAULT_MAX_LINEAR_VEL = 0.7;                 // m/s
-constexpr double DEFAULT_MIN_LINEAR_VEL = 0.1;                 // m/s
-constexpr double DEFAULT_DEVIATION_WEIGHT_STRAIGHT = 0.1;      // factor
-constexpr double DEFAULT_PARALLELNESS_WEIGHT_STRAIGHT = 10.0;  // factor
-constexpr double DEFAULT_DEVIATION_WEIGHT_ARCH = 0.1;          // factor
-constexpr double DEFAULT_PARALLELNESS_WEIGHT_ARCH = 10.0;      // factor
-constexpr double DEFAULT_EPSILON = 1e-3;                       // unitless
-constexpr double DEFAULT_DESIGN_DEAD_ZONE = 0.0;               // degrees
-constexpr double DEFAULT_DESIGN_ARCH_RADIUS = 2.0;             // meters
-constexpr double DEFAULT_DESIGN_STEP_SIZE = 0.1;               // meters
-constexpr double DEFAULT_ODOM_FILTER_TIME = 0.1;               // seconds
-constexpr double DEFAULT_MISSED_DISTANCE_COEFFICIENT = 1.1;    // factor
-constexpr double DEFAULT_INFLECTION_POINT = 0.5;               // factor (0,1)
-constexpr double DEFAULT_HERMITE_MAGNITUDE = 1.0;                // factor
+constexpr double default_goal_distance_tolerance = 0.75;       // meters
+constexpr double default_goal_range = 0.66;                    // factor
+constexpr int default_missed_points_tollerance = 10000;        // n
+constexpr double default_chassis_length = 2.1;                 // meters
+constexpr double default_min_radius = 2.0;                     // meters
+constexpr int default_prediction_time = 60;                    // seconds
+constexpr int default_prediction_points_per_second = 2;        // n/second
+constexpr double default_dead_zone = 3.0;                      // degrees
+constexpr double default_max_linear_vel = 0.7;                 // m/s
+constexpr double default_min_linear_vel = 0.1;                 // m/s
+constexpr double default_deviation_weight_straight = 0.1;      // factor
+constexpr double default_parallelness_weight_straight = 10.0;  // factor
+constexpr double default_deviation_weight_arch = 0.1;          // factor
+constexpr double default_parallelness_weight_arch = 10.0;      // factor
+constexpr double default_epsilon = 1e-3;                       // unitless
+constexpr double default_design_dead_zone = 0.0;               // degrees
+constexpr double default_design_arch_radius = 2.0;             // meters
+constexpr double default_step_size = 0.1;               // meters
+constexpr double default_odom_filter_time = 0.1;               // seconds
+constexpr double default_missed_distance_coefficient = 1.1;    // factor
+constexpr double default_hermite_magnitude = 1.0;                // factor
 
-constexpr double DEG_TO_RAD = (M_PI / 180);
-constexpr double RAD_TO_DEG = (180 / M_PI);
+constexpr double deg_to_rad = (M_PI / 180);
+constexpr double rad_to_deg = (180 / M_PI);

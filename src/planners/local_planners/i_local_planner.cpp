@@ -18,13 +18,13 @@ double ILocalPlanner::dGetYawFromQuaternion(const geometry_msgs::Quaternion quat
 
 double ILocalPlanner::dLimitAngle(double angle) const
 {
-  if (angle > 180 * DEG_TO_RAD)
+  if (angle > 180 * deg_to_rad)
   {
-    angle -= 360 * DEG_TO_RAD;
+    angle -= 360 * deg_to_rad;
   }
-  if (angle < -180 * DEG_TO_RAD)
+  if (angle < -180 * deg_to_rad)
   {
-    angle += 360 * DEG_TO_RAD;
+    angle += 360 * deg_to_rad;
   }
   return angle;
 }

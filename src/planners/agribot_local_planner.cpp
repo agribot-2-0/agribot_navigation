@@ -37,32 +37,32 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     _rLocalPathPub = pnh.advertise<nav_msgs::Path>("local_path", 10);
     _xLocalPath.header.frame_id = "map";
 
-    pnh.param("goal_distance_tolerance", param_goal_distance_tolerance, DEFAULT_GOAL_DISTANCE_TOLERANCE);
-    pnh.param("goal_range", param_goal_range, DEFAULT_GOAL_RANGE);
-    pnh.param("missed_points_tollerance", param_missed_points_tollerance, DEFAULT_MISSED_POINTS_TOLLERANCE);
+    pnh.param("goal_distance_tolerance", param_goal_distance_tolerance, default_goal_distance_tolerance);
+    pnh.param("goal_range", param_goal_range, default_goal_range);
+    pnh.param("missed_points_tollerance", param_missed_points_tollerance, default_missed_points_tollerance);
 
-    pnh.param("chassis_length", param_chassis_length, DEFAULT_CHASSIS_LENGTH);
-    pnh.param("min_radius", param_min_radius, DEFAULT_MIN_RADIUS);
+    pnh.param("chassis_length", param_chassis_length, default_chassis_length);
+    pnh.param("min_radius", param_min_radius, default_min_radius);
 
-    pnh.param("prediction_time", param_prediction_time, DEFAULT_PREDICTION_TIME);
-    pnh.param("prediction_points_per_second", param_prediction_points_per_second, DEFAULT_PREDICTION_POINTS_PER_SECOND);
+    pnh.param("prediction_time", param_prediction_time, default_prediction_time);
+    pnh.param("prediction_points_per_second", param_prediction_points_per_second, default_prediction_points_per_second);
 
-    pnh.param("dead_zone", param_dead_zone, DEFAULT_DEAD_ZONE);
-    pnh.param("max_linear_vel", param_max_linear_vel, DEFAULT_MAX_LINEAR_VEL);
-    pnh.param("min_linear_vel", param_min_linear_vel, DEFAULT_MIN_LINEAR_VEL);
+    pnh.param("dead_zone", param_dead_zone, default_dead_zone);
+    pnh.param("max_linear_vel", param_max_linear_vel, default_max_linear_vel);
+    pnh.param("min_linear_vel", param_min_linear_vel, default_min_linear_vel);
 
-    pnh.param("deviation_weight_straight", param_deviation_weight_straight, DEFAULT_DEVIATION_WEIGHT_STRAIGHT);
-    pnh.param("parallelness_weight_straight", param_parallelness_weight_straight, DEFAULT_PARALLELNESS_WEIGHT_STRAIGHT);
-    pnh.param("deviation_weight_arch", param_deviation_weight_arch, DEFAULT_DEVIATION_WEIGHT_ARCH);
-    pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, DEFAULT_PARALLELNESS_WEIGHT_ARCH);
-    pnh.param("epsilon", param_epsilon, DEFAULT_EPSILON);
+    pnh.param("deviation_weight_straight", param_deviation_weight_straight, default_deviation_weight_straight);
+    pnh.param("parallelness_weight_straight", param_parallelness_weight_straight, default_parallelness_weight_straight);
+    pnh.param("deviation_weight_arch", param_deviation_weight_arch, default_deviation_weight_arch);
+    pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, default_parallelness_weight_arch);
+    pnh.param("epsilon", param_epsilon, default_epsilon);
 
-    pnh.param("design_dead_zone", param_design_dead_zone, DEFAULT_DESIGN_DEAD_ZONE);
-    pnh.param("design_arch_radius", param_design_arch_radius, DEFAULT_DESIGN_ARCH_RADIUS);
-    pnh.param("design_step_size", param_design_step_size, DEFAULT_DESIGN_STEP_SIZE);
+    pnh.param("design_dead_zone", param_design_dead_zone, default_design_dead_zone);
+    pnh.param("design_arch_radius", param_design_arch_radius, default_design_arch_radius);
+    pnh.param("design_step_size", param_design_step_size, default_step_size);
 
-    pnh.param("odom_filter_time", param_odom_filter_time, DEFAULT_ODOM_FILTER_TIME);
-    pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, DEFAULT_MISSED_DISTANCE_COEFFICIENT);
+    pnh.param("odom_filter_time", param_odom_filter_time, default_odom_filter_time);
+    pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, default_missed_distance_coefficient);
 
     // be sure that path planning arch radius is greater or equal to minimum turning radius
     if (param_design_arch_radius < param_min_radius)
@@ -605,13 +605,13 @@ pos AgribotPlannerROS::pFrameFromPoseStamped(geometry_msgs::PoseStamped ps)
 
 double AgribotPlannerROS::dLimitAngle(double angle)
 {
-  if (angle > 180 * DEG_TO_RAD)
+  if (angle > 180 * deg_to_rad)
   {
-    angle -= 360 * DEG_TO_RAD;
+    angle -= 360 * deg_to_rad;
   }
-  if (angle < -180 * DEG_TO_RAD)
+  if (angle < -180 * deg_to_rad)
   {
-    angle += 360 * DEG_TO_RAD;
+    angle += 360 * deg_to_rad;
   }
   return angle;
 }
@@ -736,8 +736,8 @@ void AgribotPlannerROS::vPredictedPathVisualization(geometry_msgs::Twist velocit
     for (int i = 0; i < param_prediction_points_per_second * param_prediction_time; i++)
     {
       double theta = i * velocity.angular.z / param_prediction_points_per_second;
-      tmp.x = radius * cos(theta - 90 * DEG_TO_RAD) - radius * cos(-90 * DEG_TO_RAD);
-      tmp.y = radius * sin(theta - 90 * DEG_TO_RAD) - radius * sin(-90 * DEG_TO_RAD);
+      tmp.x = radius * cos(theta - 90 * deg_to_rad) - radius * cos(-90 * deg_to_rad);
+      tmp.y = radius * sin(theta - 90 * deg_to_rad) - radius * sin(-90 * deg_to_rad);
 
       p.x = robotCenter.x + tmp.x * cos(robotCenter.az) - tmp.y * sin(robotCenter.az);
       p.y = robotCenter.y + tmp.x * sin(robotCenter.az) + tmp.y * cos(robotCenter.az);

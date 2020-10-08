@@ -13,9 +13,9 @@ namespace agribot_local_planner
 {
 HermitePlanner::HermitePlanner() : ILocalPlanner()
 {
-  step_size = DEFAULT_DESIGN_STEP_SIZE;
-  magnitude_start = DEFAULT_HERMITE_MAGNITUDE;
-  magnitude_end = DEFAULT_HERMITE_MAGNITUDE;
+  step_size = default_step_size;
+  magnitude_start = default_hermite_magnitude;
+  magnitude_end = default_hermite_magnitude;
 }
 
 HermitePlanner::~HermitePlanner()
@@ -76,8 +76,8 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
   pos end_derivative = calculateDerivatives(end_point.az, m_end);
 
   //  debug
-  ROS_ERROR_STREAM("\nstart\t" << start_point.az * RAD_TO_DEG << "\t" << start_derivative.x / start_derivative.y << "\t"
-                               << tan(start_point.az) << "\nend\t" << end_point.az * RAD_TO_DEG << "\t"
+  ROS_ERROR_STREAM("\nstart\t" << start_point.az * rad_to_deg << "\t" << start_derivative.x / start_derivative.y << "\t"
+                               << tan(start_point.az) << "\nend\t" << end_point.az * rad_to_deg << "\t"
                                << end_derivative.x / end_derivative.y << "\t" << tan(end_point.az));
 
   for (double t = 0.0; t <= 1.0; t += t_delta)
