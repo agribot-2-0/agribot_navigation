@@ -6,7 +6,7 @@
 
 constexpr double default_goal_distance_tolerance = 0.75;       // meters
 constexpr double default_goal_range = 0.66;                    // factor
-constexpr int default_missed_points_tolerance = 10000;        // n
+constexpr int default_missed_points_tolerance = 10000;         // n
 constexpr double default_chassis_length = 2.1;                 // meters
 constexpr double default_min_radius = 2.0;                     // meters
 constexpr int default_prediction_time = 60;                    // seconds
@@ -21,10 +21,10 @@ constexpr double default_parallelness_weight_arch = 10.0;      // factor
 constexpr double default_epsilon = 1e-3;                       // unitless
 constexpr double default_design_dead_zone = 0.0;               // degrees
 constexpr double default_design_arch_radius = 2.0;             // meters
-constexpr double default_step_size = 0.1;               // meters
+constexpr double default_step_size = 0.1;                      // meters
 constexpr double default_odom_filter_time = 0.1;               // seconds
 constexpr double default_missed_distance_coefficient = 1.1;    // factor
-constexpr double default_hermite_magnitude = 1.0;                // factor
+constexpr double default_hermite_magnitude = 1.0;              // factor
 
 constexpr double deg_to_rad = (M_PI / 180);
 constexpr double rad_to_deg = (180 / M_PI);

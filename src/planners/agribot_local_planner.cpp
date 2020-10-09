@@ -153,8 +153,8 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
 }
 
 bool AgribotPlannerROS::xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,
-                                         const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose,
-                                         ILocalPlanner* const planner)
+                                         const geometry_msgs::PoseStamped& startPose,
+                                         const geometry_msgs::PoseStamped& endPose, ILocalPlanner* const planner)
 {
   return planner->designPath(path, startPose, endPose);
 }
@@ -314,13 +314,15 @@ bool AgribotPlannerROS::bWaypointHitCondition(const pos& robotCenter, const pos&
   }
 }
 
-bool AgribotPlannerROS::bWaypointMissedCondition(const pos& robotCenter, const pos& lastWaypoint, const pos& nextWaypoint)
+bool AgribotPlannerROS::bWaypointMissedCondition(const pos& robotCenter, const pos& lastWaypoint,
+                                                 const pos& nextWaypoint)
 {
   return bCenterTraveledBeyondGoal(robotCenter, lastWaypoint, nextWaypoint) &&
          bCenterOutOfGoalRange(robotCenter, nextWaypoint);
 }
 
-bool AgribotPlannerROS::bTraveledDistanceBetweenWaypoints(pos robotFront, const pos& lastWaypoint, const pos& nextWaypoint)
+bool AgribotPlannerROS::bTraveledDistanceBetweenWaypoints(pos robotFront, const pos& lastWaypoint,
+                                                          const pos& nextWaypoint)
 {
   double distanceWaypoints = dDistanceBetweenFrames(nextWaypoint, lastWaypoint);
   double traveledDistance = dDistanceBetweenFrames(lastWaypoint, robotFront);
@@ -338,7 +340,8 @@ bool AgribotPlannerROS::bIsLastWaypointInPath(int waypointsCount)
   return (waypointsCount >= (_xLocalPlan.size() - 1));
 }
 
-bool AgribotPlannerROS::bCenterTraveledBeyondGoal(const pos& robotCenter, const pos& lastWaypoint, const pos& nextWaypoint)
+bool AgribotPlannerROS::bCenterTraveledBeyondGoal(const pos& robotCenter, const pos& lastWaypoint,
+                                                  const pos& nextWaypoint)
 {
   double distanceWaypoints = dDistanceBetweenFrames(nextWaypoint, lastWaypoint);
   double traveledDistance = _dTraveledDistance - _dLastTraveledDistance;
@@ -376,7 +379,8 @@ void AgribotPlannerROS::vTakeNextGoal(const pos& currentGoal, const pos& robotCe
   }
 }
 
-void AgribotPlannerROS::vCalculateDeviationIntegral(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter)
+void AgribotPlannerROS::vCalculateDeviationIntegral(const pos& lastWaypoint, const pos& nextWaypoint,
+                                                    const pos& robotCenter)
 {
   double deviation = dCalculateDeviation(lastWaypoint, nextWaypoint, robotCenter);
   if (_dActualTime > 0)
@@ -418,7 +422,7 @@ bool AgribotPlannerROS::isGoalReached()
   return _bGoalReached;
 }
 
-void AgribotPlannerROS::vOdomCallback(const nav_msgs::Odometry odometry_msg)
+void AgribotPlannerROS::vOdomCallback(const nav_msgs::Odometry& odometry_msg)
 {
   // prevent from too frequent odom reading
   double odom_time_stamp = odometry_msg.header.stamp.sec + odometry_msg.header.stamp.nsec / 10e9;
@@ -454,7 +458,8 @@ double AgribotPlannerROS::dGetYawFromQuaternion(const geometry_msgs::Quaternion&
   return yaw;
 }
 
-geometry_msgs::Twist AgribotPlannerROS::xSetVel(const pos& goal, const pos& nextWaypoint, const pos& lastWaypoint, const pos& robotCenter)
+geometry_msgs::Twist AgribotPlannerROS::xSetVel(const pos& goal, const pos& nextWaypoint, const pos& lastWaypoint,
+                                                const pos& robotCenter)
 {
   geometry_msgs::Twist velocity;
   if (param_speed_limit)
@@ -493,8 +498,8 @@ geometry_msgs::Twist AgribotPlannerROS::xLimitVelocities(geometry_msgs::Twist Ve
   return Velcoities;
 }
 
-geometry_msgs::Twist AgribotPlannerROS::xDeviationApproach(const pos& goal, const pos& lastWaypoint, const pos& robotCenter,
-                                                           geometry_msgs::Twist velocity)
+geometry_msgs::Twist AgribotPlannerROS::xDeviationApproach(const pos& goal, const pos& lastWaypoint,
+                                                           const pos& robotCenter, geometry_msgs::Twist velocity)
 {
   double deviation = dCalculateDeviation(lastWaypoint, goal, robotCenter);
 
@@ -514,7 +519,8 @@ geometry_msgs::Twist AgribotPlannerROS::xDeviationApproach(const pos& goal, cons
   return velocity;
 }
 
-geometry_msgs::Twist AgribotPlannerROS::xLinearSpeedLimitedApproach(const pos& goal, const pos& lastWaypoint, const pos& robotCenter)
+geometry_msgs::Twist AgribotPlannerROS::xLinearSpeedLimitedApproach(const pos& goal, const pos& lastWaypoint,
+                                                                    const pos& robotCenter)
 {
   geometry_msgs::Twist velocity;
   double distanceWaypoints = dDistanceBetweenFrames(goal, lastWaypoint);
@@ -820,8 +826,8 @@ void AgribotPlannerROS::vLocalPathVisualization(const std::vector<geometry_msgs:
   _rLocalPathPub.publish(_xLocalPath);
 }
 
-void AgribotPlannerROS::vVisualizations(const pos& lastWaypoint, const pos& goal, const pos& nextWaypoint, const pos& robotCenter,
-                                        const geometry_msgs::Twist& velocity)
+void AgribotPlannerROS::vVisualizations(const pos& lastWaypoint, const pos& goal, const pos& nextWaypoint,
+                                        const pos& robotCenter, const geometry_msgs::Twist& velocity)
 {
   vNextGoalVisualization(lastWaypoint, goal);
   vGoalRangeVisualization(

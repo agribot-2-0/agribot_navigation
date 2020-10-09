@@ -108,7 +108,7 @@ private:
                         const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose,
                         ILocalPlanner* const planner);
 
-  void vOdomCallback(const nav_msgs::Odometry odometry_msg);
+  void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
   pos pCalculateRobotFrontPosition(const pos& robotCenter);
   pos pGetFrame(int count);
   pos pGetWaypoint(int count);
@@ -116,8 +116,10 @@ private:
   pos pCalculateProjection(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter);
   geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps);
   pos pFrameFromPoseStamped(const geometry_msgs::PoseStamped& ps);
-  geometry_msgs::Twist xSetVel(const pos& goal, const pos& nextWaypoint, const pos& lastWaypoint, const pos& robotCenter);
-  geometry_msgs::Twist xDeviationApproach(const pos& goal, const pos& lastWaypoint, const pos& robotCenter, geometry_msgs::Twist velocity);
+  geometry_msgs::Twist xSetVel(const pos& goal, const pos& nextWaypoint, const pos& lastWaypoint,
+                               const pos& robotCenter);
+  geometry_msgs::Twist xDeviationApproach(const pos& goal, const pos& lastWaypoint, const pos& robotCenter,
+                                          geometry_msgs::Twist velocity);
   geometry_msgs::Twist xLinearSpeedLimitedApproach(const pos& goal, const pos& lastWaypoint, const pos& robotCenter);
   geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
   geometry_msgs::Twist xStopRobot();
@@ -146,6 +148,7 @@ private:
   void vNextGoalVisualization(const pos& lastWaypoint, const pos& goal);
   void vGoalRangeVisualization(const pos& goal, const pos& range);
   void vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT(runtime/references)
-  void vVisualizations(const pos& lastWaypoint, const pos& goal, const pos& nextWaypoint, const pos& robotCenter, const geometry_msgs::Twist& velocity);
+  void vVisualizations(const pos& lastWaypoint, const pos& goal, const pos& nextWaypoint, const pos& robotCenter,
+                       const geometry_msgs::Twist& velocity);
 };
 }  // namespace agribot_local_planner

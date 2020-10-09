@@ -29,7 +29,8 @@ HermitePlanner::~HermitePlanner()
 }
 
 bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
-                                const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const
+                                const geometry_msgs::PoseStamped& startPose,
+                                const geometry_msgs::PoseStamped& endPose) const
 {
   pos startPoint = pFrameFromPoseStamped(startPose);
   pos endPoint = pFrameFromPoseStamped(endPose);
