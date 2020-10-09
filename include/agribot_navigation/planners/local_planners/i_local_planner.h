@@ -7,6 +7,7 @@
 #include <tf/tf.h>
 #include <cmath>
 #include <vector>
+#include <string>
 
 #include "agribot_navigation/planners/structures.h"
 #include "agribot_navigation/planners/default_values.h"

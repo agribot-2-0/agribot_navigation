@@ -81,11 +81,6 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
   pos start_derivative = calculateDerivatives(start_point.az, m_start);
   pos end_derivative = calculateDerivatives(end_point.az, m_end);
 
-  //  debug
-  ROS_ERROR_STREAM("\nstart\t" << start_point.az * rad_to_deg << "\t" << start_derivative.x / start_derivative.y << "\t"
-                               << tan(start_point.az) << "\nend\t" << end_point.az * rad_to_deg << "\t"
-                               << end_derivative.x / end_derivative.y << "\t" << tan(end_point.az));
-
   for (double t = 0.0; t <= 1.0; t += t_delta)
   {
     double H1 = 2 * pow(t, 3) - 3 * pow(t, 2) + 1;
@@ -109,15 +104,33 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
 pos HermitePlanner::calculateDerivatives(const double angle, const double magnitude) const
 {
   pos derivative;
-  if (abs(tan(angle)) < abs(cot(angle)))
+  if (angle * rad_to_deg >= -45 && angle * rad_to_deg < 135)
   {
-    derivative.x = magnitude;
-    derivative.y = magnitude * tan(angle);
+    if (abs(tan(angle)) < abs(cot(angle)))
+    {
+      derivative.x = magnitude;
+      derivative.y = magnitude * tan(angle);
+    }
+    else
+    {
+      derivative.x = magnitude * cot(angle);
+      derivative.y = magnitude;
+    }
   }
   else
   {
-    derivative.x = magnitude * cot(angle);
-    derivative.y = magnitude;
+    {
+      if (abs(tan(angle)) < abs(cot(angle)))
+      {
+        derivative.x = -magnitude;
+        derivative.y = -magnitude * tan(angle);
+      }
+      else
+      {
+        derivative.x = -magnitude * cot(angle);
+        derivative.y = -magnitude;
+      }
+    }
   }
   return derivative;
 }

@@ -24,7 +24,7 @@ constexpr double default_design_arch_radius = 2.0;             // meters
 constexpr double default_step_size = 0.1;                      // meters
 constexpr double default_odom_filter_time = 0.1;               // seconds
 constexpr double default_missed_distance_coefficient = 1.1;    // factor
-constexpr double default_hermite_magnitude = 10.0;              // factor
+constexpr double default_hermite_magnitude = 20.0;              // factor
 
 constexpr double deg_to_rad = (M_PI / 180);
 constexpr double rad_to_deg = (180 / M_PI);
