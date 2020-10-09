@@ -16,29 +16,30 @@ class CirclesPlanner : public ILocalPlanner
 {
 public:
   CirclesPlanner();
+  CirclesPlanner(std_msgs::Header h);
   ~CirclesPlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                          const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose);
+                          const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const;
   void setArchRadius(const double param_arch_radius);
   void setDeadZone(const double param_dead_zone);
   void setStepSize(const double param_step_size);
 
 protected:
-  pos pCalculateC1Center(const pos c2_center, const pos endPoint, const double path_angle,
+  pos pCalculateC1Center(const pos& c2_center, const pos& endPoint, const double path_angle,
                          const double angle_difference, const double arch_radius, const double dead_zone) const;
-  pos pCalculateC2Center(const pos endPoint, const double end_orientation, const double angle_difference,
+  pos pCalculateC2Center(const pos& endPoint, const double end_orientation, const double angle_difference,
                          const double arch_radius, const double dead_zone) const;
-  pos pCalculateTangentPoint(const pos c1_center, const double path_angle, const double angle_difference,
+  pos pCalculateTangentPoint(const pos& c1_center, const double path_angle, const double angle_difference,
                              const double arch_radius, const double dead_zone) const;
   double calculateArchStep(const double radius, const double step_size) const;
   bool arcPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-               const pos circle_start, const pos circle_center, const double angle_span) const;
+               const pos& circle_start, const pos& circle_center, const double angle_span) const;
   bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                    const pos start_point, const pos end_point, const double step_size) const;
+                    const pos& start_point, const pos& end_point, const double step_size) const;
   bool assemblePath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                    const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose,
-                    const pos start_tangent_point, const pos start_c1_center, const pos start_c2_center,
-                    const pos end_tangent_point, const pos end_c1_center, const pos end_c2_center) const;
+                    const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose,
+                    const pos& start_tangent_point, const pos& start_c1_center, const pos& start_c2_center,
+                    const pos& end_tangent_point, const pos& end_c1_center, const pos& end_c2_center) const;
   pos end_c2_center;
   pos end_c1_center;
   pos end_tangent_point;
@@ -48,7 +49,6 @@ protected:
   double arch_radius;  // metres
   double arch_step;    // degrees
   double dead_zone;    // degrees
-  double step_size;    // meters
-  int path_start_index;
+  double step_size;    // metres
 };
 }  // namespace agribot_local_planner

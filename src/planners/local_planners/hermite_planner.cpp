@@ -18,18 +18,23 @@ HermitePlanner::HermitePlanner() : ILocalPlanner()
   magnitude_end = default_hermite_magnitude;
 }
 
+HermitePlanner::HermitePlanner(std_msgs::Header h) : ILocalPlanner()
+{
+  HermitePlanner();
+  setHeader(h);
+}
+
 HermitePlanner::~HermitePlanner()
 {
 }
 
 bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
-                                const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose)
+                                const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const
 {
   pos startPoint = pFrameFromPoseStamped(startPose);
   pos endPoint = pFrameFromPoseStamped(endPose);
 
-  header = endPose.header;
-  path_start_index = path.size();
+  int path_start_index = path.size();
 
   if (hermitePath(path, startPoint, endPoint, magnitude_start, magnitude_end))
   {
@@ -59,7 +64,7 @@ void HermitePlanner::setMagnitudeEnd(const double param_magnitude)
 }
 
 bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                                 const pos start_point, const pos end_point, double m_start, double m_end) const
+                                 const pos& start_point, const pos& end_point, double m_start, double m_end) const
 {
   pos point;
   pos last_point = start_point;

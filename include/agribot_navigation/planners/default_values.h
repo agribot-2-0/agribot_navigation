@@ -6,7 +6,7 @@
 
 constexpr double default_goal_distance_tolerance = 0.75;       // meters
 constexpr double default_goal_range = 0.66;                    // factor
-constexpr int default_missed_points_tollerance = 10000;        // n
+constexpr int default_missed_points_tolerance = 10000;        // n
 constexpr double default_chassis_length = 2.1;                 // meters
 constexpr double default_min_radius = 2.0;                     // meters
 constexpr int default_prediction_time = 60;                    // seconds

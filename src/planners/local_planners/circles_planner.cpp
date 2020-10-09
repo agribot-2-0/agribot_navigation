@@ -14,17 +14,23 @@ CirclesPlanner::CirclesPlanner() : ILocalPlanner()
   arch_step = calculateArchStep(arch_radius, step_size);
 }
 
+CirclesPlanner::CirclesPlanner(std_msgs::Header h) : ILocalPlanner()
+{
+  CirclesPlanner();
+  setHeader(h);
+}
+
 CirclesPlanner::~CirclesPlanner()
 {
 }
 
 bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
-                                const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose)
+                                const geometry_msgs::PoseStamped& startPose,
+                                const geometry_msgs::PoseStamped& endPose) const
 {
   pos startPoint = pFrameFromPoseStamped(startPose);
   pos endPoint = pFrameFromPoseStamped(endPose);
-  header = endPose.header;
-  path_start_index = path.size();
+  int path_start_index = path.size();
 
   double path_angle = dAngleBetweenFrames(endPoint, startPoint);
   double reverse_path_angle = dAngleBetweenFrames(startPoint, endPoint);
@@ -46,8 +52,17 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   pos start_tangent_point =
       pCalculateTangentPoint(start_c1_center, reverse_path_angle, start_angle_difference, arch_radius, dead_zone);
 
-  return assemblePath(path, startPose, endPose, start_tangent_point, start_c1_center, start_c2_center,
-                      end_tangent_point, end_c1_center, end_c2_center);
+  if (assemblePath(path, startPose, endPose, start_tangent_point, start_c1_center, start_c2_center, end_tangent_point,
+                   end_c1_center, end_c2_center))
+  {
+    path.push_back(endPose);
+    updateOrientation(path, path_start_index, path.size() - 1);
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 void CirclesPlanner::setArchRadius(const double param_arch_radius)
@@ -73,7 +88,7 @@ void CirclesPlanner::setStepSize(const double param_step_size)
  * and line parallel to original path
  * distance from line and path equals given radius
  */
-pos CirclesPlanner::pCalculateC1Center(const pos c2_center, const pos endPoint, const double path_angle,
+pos CirclesPlanner::pCalculateC1Center(const pos& c2_center, const pos& endPoint, const double path_angle,
                                        const double angle_difference, const double arch_radius,
                                        const double dead_zone) const
 {
@@ -144,7 +159,7 @@ pos CirclesPlanner::pCalculateC1Center(const pos c2_center, const pos endPoint, 
  * as a vector of length equals to given radius
  * perpendicular to the orientation vector
  */
-pos CirclesPlanner::pCalculateC2Center(const pos endPoint, const double end_orientation, const double angle_difference,
+pos CirclesPlanner::pCalculateC2Center(const pos& endPoint, const double end_orientation, const double angle_difference,
                                        const double arch_radius, const double dead_zone) const
 {
   pos c2_center;
@@ -172,7 +187,7 @@ pos CirclesPlanner::pCalculateC2Center(const pos endPoint, const double end_orie
  * determine the point of the intersection of
  * the circle C2 and the original path
  */
-pos CirclesPlanner::pCalculateTangentPoint(const pos c1_center, const double path_angle, const double angle_difference,
+pos CirclesPlanner::pCalculateTangentPoint(const pos& c1_center, const double path_angle, const double angle_difference,
                                            const double arch_radius, const double dead_zone) const
 {
   pos tangent_point;
@@ -202,8 +217,8 @@ double CirclesPlanner::calculateArchStep(const double radius, const double step_
   return (180 * step_size) / (M_PI * radius);
 }
 
-bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, const pos circle_start,
-                             const pos circle_center, const double angle_span) const
+bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, const pos& circle_start,
+                             const pos& circle_center, const double angle_span) const
 {
   double angle_start_center = dAngleBetweenFrames(circle_start, circle_center);
 
@@ -231,8 +246,8 @@ bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, cons
   }
 }
 
-bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path, const pos start_point,
-                                  const pos end_point, const double step_size) const
+bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path, const pos& start_point,
+                                  const pos& end_point, const double step_size) const
 {
   int steps = dDistanceBetweenFrames(start_point, end_point) / step_size;
 
@@ -256,9 +271,10 @@ bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path,
 }
 
 bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
-                                  const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose,
-                                  const pos start_tangent_point, const pos start_c1_center, const pos start_c2_center,
-                                  const pos end_tangent_point, const pos end_c1_center, const pos end_c2_center) const
+                                  const geometry_msgs::PoseStamped& startPose,
+                                  const geometry_msgs::PoseStamped& endPose, const pos& start_tangent_point,
+                                  const pos& start_c1_center, const pos& start_c2_center, const pos& end_tangent_point,
+                                  const pos& end_c1_center, const pos& end_c2_center) const
 {
   pos startPoint = pFrameFromPoseStamped(startPose);
   pos endPoint = pFrameFromPoseStamped(endPose);
@@ -355,11 +371,6 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
     {
       return false;
     }
-
-    // append final pose
-    path.push_back(endPose);
-
-    updateOrientation(path, path_start_index, path.size() - 1);
 
     return true;
   }

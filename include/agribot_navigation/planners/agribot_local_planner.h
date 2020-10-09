@@ -78,10 +78,10 @@ private:
   int param_missed_points_tollerance;         // n
   int param_prediction_time;                  // seconds
   int param_prediction_points_per_second;     // n/second
-  double param_goal_distance_tolerance;       // meters
+  double param_goal_distance_tolerance;       // metres
   double param_goal_range;                    // factor
-  double param_chassis_length;                // meters
-  double param_min_radius;                    // meters
+  double param_chassis_length;                // metres
+  double param_min_radius;                    // metres
   double param_dead_zone;                     // degrees
   double param_max_linear_vel;                // m/s
   double param_min_linear_vel;                // m/s
@@ -94,8 +94,8 @@ private:
   double param_epsilon;                       // unitless
 
   double param_design_dead_zone;             // degrees
-  double param_design_arch_radius;           // meters
-  double param_design_step_size;             // meters
+  double param_design_arch_radius;           // metres
+  double param_design_step_size;             // metres
   double param_odom_filter_time;             // seconds
   double param_missed_distance_coefficient;  // factor >1
 
@@ -105,47 +105,47 @@ private:
   bool param_take_front;
 
   bool xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                        geometry_msgs::PoseStamped startPose, geometry_msgs::PoseStamped endPose,
-                        ILocalPlanner* planner);
+                        const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose,
+                        ILocalPlanner* const planner);
 
   void vOdomCallback(const nav_msgs::Odometry odometry_msg);
-  pos pCalculateRobotFrontPosition(pos robotCenter);
+  pos pCalculateRobotFrontPosition(const pos& robotCenter);
   pos pGetFrame(int count);
   pos pGetWaypoint(int count);
-  pos pCalculateGoalRange(pos nextWaypoint, pos robotCenter, double range);
-  pos pCalculateProjection(pos lastWaypoint, pos nextWaypoint, pos robotCenter);
+  pos pCalculateGoalRange(const pos& nextWaypoint, const pos& robotCenter, double range);
+  pos pCalculateProjection(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter);
   geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps);
-  pos pFrameFromPoseStamped(geometry_msgs::PoseStamped ps);
-  geometry_msgs::Twist xSetVel(pos goal, pos nextWaypoint, pos lastWaypoint, pos robotCenter);
-  geometry_msgs::Twist xDeviationApproach(pos goal, pos lastWaipoint, pos robotCenter, geometry_msgs::Twist velocity);
-  geometry_msgs::Twist xLinearSpeedLimitedApproach(pos goal, pos lastWaypoint, pos robotCenter);
+  pos pFrameFromPoseStamped(const geometry_msgs::PoseStamped& ps);
+  geometry_msgs::Twist xSetVel(const pos& goal, const pos& nextWaypoint, const pos& lastWaypoint, const pos& robotCenter);
+  geometry_msgs::Twist xDeviationApproach(const pos& goal, const pos& lastWaypoint, const pos& robotCenter, geometry_msgs::Twist velocity);
+  geometry_msgs::Twist xLinearSpeedLimitedApproach(const pos& goal, const pos& lastWaypoint, const pos& robotCenter);
   geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist Velcoities);
   geometry_msgs::Twist xStopRobot();
   geometry_msgs::Twist xFinishedPathBehaviour();
-  void vTakeNextGoal(pos currentGoal, pos robotCenter);
-  void vCalculateDeviationIntegral(pos LastWaypoint, pos nextWaypoint, pos robotCenter);
-  void vChooseDeviationParallelnessParameters(int waypointNumber);
+  void vTakeNextGoal(const pos& currentGoal, const pos& robotCenter);
+  void vCalculateDeviationIntegral(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter);
+  void vChooseDeviationParallelnessParametres(int waypointNumber);
   double dCloseToZero(double value);
-  double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
+  double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat);
   double dLimitAngle(double angle);
-  double dAngleBetweenFrames(pos targetFrame, pos currentFrame);
-  double dDistanceBetweenFrames(pos targetFrame, pos currentFrame);
+  double dAngleBetweenFrames(const pos& targetFrame, const pos& currentFrame);
+  double dDistanceBetweenFrames(const pos& targetFrame, const pos& currentFrame);
   double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
-  double dCalculateDeviation(pos lastWaypoint, pos nextWaypoint, pos robotCenter);
+  double dCalculateDeviation(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter);
   bool bMissedTooManyWaypointsCondition(int missedWaypoints);
-  bool bWaypointHitCondition(pos robotCenter, pos lastWaypoint, pos nextWaypoint);
-  bool bWaypointMissedCondition(pos robotCenter, pos lastWaypoint, pos nextWaypoint);
-  bool bTraveledDistanceBetweenWaypoints(pos robotFront, pos lastWaypoint, pos nextWaypoint);
-  bool bWithinGoalRange(pos robotFront, pos nextWaypoint);
+  bool bWaypointHitCondition(const pos& robotCenter, const pos& lastWaypoint, const pos& nextWaypoint);
+  bool bWaypointMissedCondition(const pos& robotCenter, const pos& lastWaypoint, const pos& nextWaypoint);
+  bool bTraveledDistanceBetweenWaypoints(pos robotFront, const pos& lastWaypoint, const pos& nextWaypoint);
+  bool bWithinGoalRange(pos robotFront, const pos& nextWaypoint);
   bool bIsLastWaypointInPath(int waypointsCount);
-  bool bCenterTraveledBeyondGoal(pos robotCenter, pos lastWaypoint, pos nextWaypoint);
-  bool bCenterOutOfGoalRange(pos robotCenter, pos nextWaypoint);
+  bool bCenterTraveledBeyondGoal(const pos& robotCenter, const pos& lastWaypoint, const pos& nextWaypoint);
+  bool bCenterOutOfGoalRange(const pos& robotCenter, const pos& nextWaypoint);
 
-  void vPathVisualization(pos robotCenter);
-  void vPredictedPathVisualization(geometry_msgs::Twist velocity, pos robotCenter);
-  void vNextGoalVisualization(pos lastWaypoint, pos goal);
-  void vGoalRangeVisualization(pos goal, pos range);
+  void vPathVisualization(const pos& robotCenter);
+  void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const pos& robotCenter);
+  void vNextGoalVisualization(const pos& lastWaypoint, const pos& goal);
+  void vGoalRangeVisualization(const pos& goal, const pos& range);
   void vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT(runtime/references)
-  void vVisualizations(pos lastWaypoint, pos goal, pos nextWaypoint, pos robotCenter, geometry_msgs::Twist velocity);
+  void vVisualizations(const pos& lastWaypoint, const pos& goal, const pos& nextWaypoint, const pos& robotCenter, const geometry_msgs::Twist& velocity);
 };
 }  // namespace agribot_local_planner

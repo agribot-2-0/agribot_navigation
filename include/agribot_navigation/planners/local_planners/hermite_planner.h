@@ -16,20 +16,20 @@ class HermitePlanner : public ILocalPlanner
 {
 public:
   HermitePlanner();
+  HermitePlanner(std_msgs::Header h);
   ~HermitePlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                          const geometry_msgs::PoseStamped startPose, const geometry_msgs::PoseStamped endPose);
+                          const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const;
   void setStepSize(const double param_step_size);
   void setMagnitudeStart(const double param_magnitude);
   void setMagnitudeEnd(const double param_magnitude);
 
 protected:
   bool hermitePath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                   const pos start_point, const pos end_point, double m_start, double m_end) const;
+                   const pos& start_point, const pos& end_point, double m_start, double m_end) const;
   pos calculateDerivatives(const double angle, const double magnitude) const;
-  double step_size;        // meters
+  double step_size;        // metres
   double magnitude_start;  // factor
   double magnitude_end;    // factor
-  int path_start_index;
 };
 }  // namespace agribot_local_planner
