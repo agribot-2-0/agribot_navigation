@@ -16,7 +16,7 @@ class CirclesPlanner : public ILocalPlanner
 {
 public:
   CirclesPlanner();
-  CirclesPlanner(std_msgs::Header h);
+  CirclesPlanner(const std::string frame);
   ~CirclesPlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const;

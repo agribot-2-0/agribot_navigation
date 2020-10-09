@@ -6,9 +6,9 @@
 
 namespace agribot_local_planner
 {
-void ILocalPlanner::setHeader(const std_msgs::Header h)
+void ILocalPlanner::setHeader(const std::string frame)
 {
-  header = h;
+  frame_id = frame;
 }
 
 double ILocalPlanner::dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat) const

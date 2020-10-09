@@ -60,6 +60,7 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("design_dead_zone", param_design_dead_zone, default_design_dead_zone);
     pnh.param("design_arch_radius", param_design_arch_radius, default_design_arch_radius);
     pnh.param("design_step_size", param_design_step_size, default_step_size);
+    pnh.param("hermite_magnitude", param_hermite_magnitude, default_hermite_magnitude);
 
     pnh.param("odom_filter_time", param_odom_filter_time, default_odom_filter_time);
     pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, default_missed_distance_coefficient);
@@ -112,15 +113,15 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _xPlan = orig_global_plan;
   _xLocalPlan.clear();
 
-  // CirclesPlanner circles_planner = CirclesPlanner();
+  // CirclesPlanner circles_planner = CirclesPlanner(_pRobotCenter.header.frame_id);
   // circles_planner.setArchRadius(param_design_arch_radius);
   // circles_planner.setDeadZone(param_design_dead_zone);
   // circles_planner.setStepSize(param_design_step_size);
 
-  HermitePlanner hermite_planner = HermitePlanner();
+  HermitePlanner hermite_planner = HermitePlanner(_pRobotCenter.header.frame_id);
   hermite_planner.setStepSize(param_design_step_size);
-  hermite_planner.setMagnitudeStart(100);
-  hermite_planner.setMagnitudeEnd(100);
+  hermite_planner.setMagnitudeStart(param_hermite_magnitude);
+  hermite_planner.setMagnitudeEnd(param_hermite_magnitude);
 
   if (!xDesignLocalPath(_xLocalPlan, _pRobotCenter, _xPlan.back(), &hermite_planner))
   {

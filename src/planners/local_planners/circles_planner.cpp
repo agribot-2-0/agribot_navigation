@@ -14,10 +14,10 @@ CirclesPlanner::CirclesPlanner() : ILocalPlanner()
   arch_step = calculateArchStep(arch_radius, step_size);
 }
 
-CirclesPlanner::CirclesPlanner(std_msgs::Header h) : ILocalPlanner()
+CirclesPlanner::CirclesPlanner(const std::string frame) : ILocalPlanner()
 {
   CirclesPlanner();
-  setHeader(h);
+  setHeader(frame);
 }
 
 CirclesPlanner::~CirclesPlanner()
@@ -230,7 +230,7 @@ bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, cons
     for (int i = 0; i < steps; i++)
     {
       geometry_msgs::PoseStamped pose;
-      pose.header.frame_id = header.frame_id;
+      pose.header.frame_id = frame_id;
       pose.header.seq = path.size() + 1;
       pose.pose.position.x =
           circle_center.x + arch_radius * cos(angle_start_center + static_cast<double>(i) * step_size);
@@ -256,7 +256,7 @@ bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path,
     for (int i = 0; i < steps; i++)
     {
       geometry_msgs::PoseStamped pose;
-      pose.header.frame_id = header.frame_id;
+      pose.header.frame_id = frame_id;
       pose.header.seq = path.size() + 1;
       pose.pose.position.x = start_point.x + static_cast<double>(i) / steps * (end_point.x - start_point.x);
       pose.pose.position.y = start_point.y + static_cast<double>(i) / steps * (end_point.y - start_point.y);

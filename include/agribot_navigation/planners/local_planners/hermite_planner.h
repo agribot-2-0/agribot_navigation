@@ -16,7 +16,7 @@ class HermitePlanner : public ILocalPlanner
 {
 public:
   HermitePlanner();
-  HermitePlanner(std_msgs::Header h);
+  HermitePlanner(const std::string frame);
   ~HermitePlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const;

@@ -96,6 +96,7 @@ private:
   double param_design_dead_zone;             // degrees
   double param_design_arch_radius;           // metres
   double param_design_step_size;             // metres
+  double param_hermite_magnitude;            // factor
   double param_odom_filter_time;             // seconds
   double param_missed_distance_coefficient;  // factor >1
 

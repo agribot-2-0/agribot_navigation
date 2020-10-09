@@ -19,10 +19,10 @@ public:
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& startPose,
                           const geometry_msgs::PoseStamped& endPose) const = 0;
-  void setHeader(const std_msgs::Header h);
+  void setHeader(const std::string frame);
 
 protected:
-  std_msgs::Header header;
+  std::string frame_id;
   void updateOrientation(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                          const int start_index, const int end_index) const;
   double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat) const;

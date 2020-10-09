@@ -21,27 +21,34 @@ SimplePlannerROS:
   take_front: false
 
 AgribotPlannerROS:
-  chassis_length: 2.1
-  max_linear_vel: 0.7
-  min_linear_vel: 0.1
-  min_radius: 2.1
-  dead_zone: 3.0
-  deviation_weight_straight: 0.6
-  parallelness_weight_straight: 10.0
-  deviation_weight_arch: 50.0
-  parallelness_weight_arch: 100.3
-  goal_distance_tolerance: 0.5 # RADIUS COEFFICIENT
-  goal_range: 0.3 # metres
-  missed_points_tollerance: 10000
-  prediction_time: 60
-  prediction_points_per_second: 2
-  epsilon: 1e-3
-  design_dead_zone: 0.0 # degrees
-  design_arch_radius: 2.5 # metres
-  design_step_size: 0.2 # metres
+  epsilon: 1e-3                       # unitless
 
-  odom_filter_time: 0.1 # seconds
-  missed_distance_coefficient: 1.1
+  chassis_length: 2.1                 # metres
+  max_linear_vel: 0.7                 # m/s
+  min_linear_vel: 0.1                 # m/s
+  min_radius: 2.1                     # metres
+  dead_zone: 3.0                      # degrees
+
+  deviation_weight_straight: 0.6      # factor
+  parallelness_weight_straight: 10.0  # factor
+  deviation_weight_arch: 50.0         # factor
+  parallelness_weight_arch: 100.3     # factor
+
+  goal_distance_tolerance: 0.5        # metres
+  goal_range: 0.3                     # factor
+  missed_points_tollerance: 10000     # n
+
+  prediction_time: 60                 # seconds
+  prediction_points_per_second: 2     # n/second
+
+  design_dead_zone: 0.0               # degrees
+  design_arch_radius: 2.5             # metres
+  design_step_size: 0.2               # metres
+
+  hermite_magnitude: 1.0              # factor
+
+  odom_filter_time: 0.1               # seconds
+  missed_distance_coefficient: 1.1    # factor >1
 
   arch_approach: false
   speed_limit: true

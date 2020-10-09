@@ -18,10 +18,10 @@ HermitePlanner::HermitePlanner() : ILocalPlanner()
   magnitude_end = default_hermite_magnitude;
 }
 
-HermitePlanner::HermitePlanner(std_msgs::Header h) : ILocalPlanner()
+HermitePlanner::HermitePlanner(const std::string frame) : ILocalPlanner()
 {
   HermitePlanner();
-  setHeader(h);
+  setHeader(frame);
 }
 
 HermitePlanner::~HermitePlanner()
@@ -72,7 +72,7 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
   double t_delta = 0.0001;
 
   geometry_msgs::PoseStamped pose;
-  pose.header.frame_id = header.frame_id;
+  pose.header.frame_id = frame_id;
   pose.header.seq = path.size() + 1;
   pose.pose.position.x = start_point.x;
   pose.pose.position.y = start_point.y;
