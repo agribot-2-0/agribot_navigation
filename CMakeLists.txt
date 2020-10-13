@@ -164,6 +164,15 @@ add_library(waypoint_global_planner
 	src/planners/waypoint_global_planner.cpp
 )
 
+add_library(pure_pursuit_tracker
+	src/path_trackers/pure_pursuit_tracker.cpp
+)
+
+add_library(stanley_tracker
+	src/path_trackers/stanley_tracker.cpp
+)
+
+
 add_library(pid
 	src/kinematics_control/PID.cpp
 )
@@ -177,6 +186,12 @@ add_executable(kinematics_control
 add_executable(cmd_vel_arbiter_node
   src/cmd_vel_arbiter/cmd_vel_arbiter_node.cpp
   src/cmd_vel_arbiter/CmdVelArbiterNode.cpp
+)
+
+target_link_libraries(
+  pure_pursuit_tracker
+  stanley_tracker
+	${catkin_LIBRARIES}
 )
 
 target_link_libraries(kinematics_control
