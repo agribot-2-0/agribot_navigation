@@ -21,8 +21,9 @@ struct pos
 class IPathTracker
 {
 public:
-  virtual bool computeControl(geometry_msgs::Twist& cmd_vel, pos nextWaypoint,  // NOLINT(runtime/references)
-                              pos lastWaypoint, pos robot_pose) = 0;
+  virtual bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
+                              const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                              const geometry_msgs::PoseStamped& robot_pose) = 0;
 
 protected:
   static constexpr double deg_to_rad = (M_PI / 180);

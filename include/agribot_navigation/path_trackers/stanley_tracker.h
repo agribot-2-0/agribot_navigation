@@ -16,7 +16,8 @@ class StanleyTracker : public IPathTracker
 public:
   StanleyTracker();
   ~StanleyTracker();
-  bool computeControl(geometry_msgs::Twist& cmd_vel, pos nextWaypoint,  // NOLINT(runtime/references)
-                      pos lastWaypoint, pos robot_pose) override;
+  bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
+                      const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                      const geometry_msgs::PoseStamped& robot_pose) override;
 };
 }  // namespace agribot_path_trackers

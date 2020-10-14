@@ -15,15 +15,28 @@ PurePursuitTracker::~PurePursuitTracker()
 }
 
 bool PurePursuitTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
-                                        pos nextWaypoint, pos lastWaypoint, pos robot_pose)
+                                        const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                                        const geometry_msgs::PoseStamped& robot_pose)
 {
   geometry_msgs::Twist cmd_vel_tmp;
   double vf = 0.3;
   double r = 0.16;
   double l = 1.21;
   double k = 10;
-  double alpha = dAngleBetweenFrames(nextWaypoint, robot_pose);
-  double ld = dDistanceBetweenFrames(nextWaypoint, robot_pose);
+  uint rabbit_count = 0;
+
+  pos rabbit_pos = pFrameFromPoseStamped(path_to_track[rabbit_count]);
+  pos robot_center_base_footprint = pFrameFromPoseStamped(robot_pose);
+
+  if (dDistanceBetweenFrames(rabbit_pos, robot_center_base_footprint) < 5.0)
+  {
+    rabbit_count++;
+    if (rabbit_count >= path_to_track.size())
+      rabbit_count = path_to_track.size() - 1;
+  }
+  double alpha = dAngleBetweenFrames(rabbit_pos, robot_center_base_footprint);
+
+  double ld = dDistanceBetweenFrames(rabbit_pos, robot_center_base_footprint);
   double theta = asin(2 * sin(alpha) / k / vf);
 
   if (isnan(theta))

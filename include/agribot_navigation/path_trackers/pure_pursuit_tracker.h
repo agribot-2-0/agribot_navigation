@@ -16,7 +16,8 @@ class PurePursuitTracker : public IPathTracker
 public:
   PurePursuitTracker();
   ~PurePursuitTracker();
-  bool computeControl(geometry_msgs::Twist& cmd_vel, pos nextWaypoint, pos lastWaypoint,  // NOLINT(runtime/references)
-                      pos robot_pose) override;
+  bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
+                      const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                      const geometry_msgs::PoseStamped& robot_pose) override;
 };
 }  // namespace agribot_path_trackers

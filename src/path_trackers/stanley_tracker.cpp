@@ -15,16 +15,22 @@ PurePursuitTracker::~PurePursuitTracker()
 }
 
 bool PurePursuitTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
-                                        pos nextWaypoint, pos lastWaypoint, pos robot_pose)
+                                        const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                                        const geometry_msgs::PoseStamped& robot_pose)
 {
   geometry_msgs::Twist cmd_vel_tmp;
   double vf = 0.5;
   double k = 0.1;
-  pos projection = pCalculateProjection(lastWaypoint, nextWaypoint, robot_pose);
+
+  pos next_waypoint = pFrameFromPoseStamped(path_to_track[-1]);
+  pos last_waypoint = pFrameFromPoseStamped(path_to_track[0]);
+  pos robot_center_base_footprint = pFrameFromPoseStamped(robot_pose);
+
+  pos projection = pCalculateProjection(last_waypoint, next_waypoint, robot_center_base_footprint);
   // projection.az = dAngleBetweenFrames(goal_pose, lastWaypoint);
   // vNextGoalVisualization(projection);
-  double error = dDistanceBetweenFrames(robot_pose, projection);
-  double angle = projection.az - robot_pose.az;
+  double error = dDistanceBetweenFrames(robot_center_base_footprint, projection);
+  double angle = projection.az - robot_center_base_footprint.az;
   double crosstrack_factor = atan2(k * error, vf);
   if (angle < 0)
   {
