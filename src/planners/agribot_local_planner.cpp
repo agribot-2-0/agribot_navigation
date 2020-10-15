@@ -113,17 +113,17 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _xPlan = orig_global_plan;
   _xLocalPlan.clear();
 
-  // CirclesPlanner circles_planner = CirclesPlanner(_pRobotCenter.header.frame_id);
-  // circles_planner.setArchRadius(param_design_arch_radius);
-  // circles_planner.setDeadZone(param_design_dead_zone);
-  // circles_planner.setStepSize(param_design_step_size);
+  CirclesPlanner circles_planner = CirclesPlanner(_pRobotCenter.header.frame_id);
+  circles_planner.setArchRadius(param_design_arch_radius);
+  circles_planner.setDeadZone(param_design_dead_zone);
+  circles_planner.setStepSize(param_design_step_size);
 
-  HermitePlanner hermite_planner = HermitePlanner(_pRobotCenter.header.frame_id);
-  hermite_planner.setStepSize(param_design_step_size);
-  hermite_planner.setMagnitudeStart(param_hermite_magnitude);
-  hermite_planner.setMagnitudeEnd(param_hermite_magnitude);
+  // HermitePlanner hermite_planner = HermitePlanner(_pRobotCenter.header.frame_id);
+  // hermite_planner.setStepSize(param_design_step_size);
+  // hermite_planner.setMagnitudeStart(param_hermite_magnitude);
+  // hermite_planner.setMagnitudeEnd(param_hermite_magnitude);
 
-  if (!xDesignLocalPath(_xLocalPlan, _pRobotCenter, _xPlan.back(), &hermite_planner))
+  if (!xDesignLocalPath(_xLocalPlan, _pRobotCenter, _xPlan.back(), &circles_planner))
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Local planner unable to create path ");
     return false;

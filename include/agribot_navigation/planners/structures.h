@@ -13,11 +13,11 @@ struct pos
 
 struct polynomial_3
 {
-  // y = a*x^3+b*x^2+c*x+d
+  // y = p3*x^3+p2*x^2+p1*x+p0
   double p0, p1, p2, p3;
 };
 
-struct parametric_coeficients
+struct parametric_coefficients
 {
   polynomial_3 x;
   polynomial_3 y;
