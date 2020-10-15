@@ -174,7 +174,7 @@ double CirclesPlanner::calculatePerpendicular(const double angle_difference, con
   {
     direction = 1.0;
   }
-  
+
   if (angle_difference < -dead_zone * deg_to_rad)
   {
     perpendicular = vector_orientation - direction *  90 * deg_to_rad;
