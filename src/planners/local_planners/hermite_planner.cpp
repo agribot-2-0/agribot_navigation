@@ -32,8 +32,8 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
                                 const geometry_msgs::PoseStamped& startPose,
                                 const geometry_msgs::PoseStamped& endPose) const
 {
-  pos startPoint = pFrameFromPoseStamped(startPose);
-  pos endPoint = pFrameFromPoseStamped(endPose);
+  pos startPoint = functions.pFrameFromPoseStamped(startPose);
+  pos endPoint = functions.pFrameFromPoseStamped(endPose);
 
   int path_start_index = path.size();
 
@@ -89,7 +89,7 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
     double H4 = pow(t, 3) - pow(t, 2);
     point.x = H1 * start_point.x + H2 * start_derivative.x + H3 * end_point.x + H4 * end_derivative.x;
     point.y = H1 * start_point.y + H2 * start_derivative.y + H3 * end_point.y + H4 * end_derivative.y;
-    if (dDistanceBetweenFrames(last_point, point) >= step_size)
+    if (functions.dDistanceBetweenFrames(last_point, point) >= step_size)
     {
       last_point = point;
       pose.pose.position.x = point.x;

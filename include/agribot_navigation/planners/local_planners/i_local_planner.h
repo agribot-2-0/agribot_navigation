@@ -18,6 +18,7 @@ namespace agribot_local_planner
 class ILocalPlanner
 {
 public:
+  ILocalPlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& startPose,
                           const geometry_msgs::PoseStamped& endPose) const = 0;
@@ -25,12 +26,8 @@ public:
 
 protected:
   std::string frame_id;
+  CommonFunctions functions;
   void updateOrientation(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                          const int start_index, const int end_index) const;
-  double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat) const;
-  double dLimitAngle(double angle) const;
-  double dAngleBetweenFrames(const pos& targetFrame, const pos& currentFrame) const;
-  double dDistanceBetweenFrames(const pos& targetFrame, const pos& currentFrame) const;
-  pos pFrameFromPoseStamped(const geometry_msgs::PoseStamped& ps) const;
 };
 }  // namespace agribot_local_planner

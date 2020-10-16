@@ -42,6 +42,7 @@ public:
   bool isGoalReached();
 
 private:
+  CommonFunctions functions;
   costmap_2d::Costmap2DROS* _xCostmapROS;
   tf2_ros::Buffer* _xTFBuffer;
   tf2_ros::TransformListener* _xTFListener;
@@ -117,7 +118,6 @@ private:
   pos pCalculateGoalRange(const pos& nextWaypoint, const pos& robotCenter, double range);
   pos pCalculateProjection(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter);
   geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps);
-  pos pFrameFromPoseStamped(const geometry_msgs::PoseStamped& ps);
   geometry_msgs::Twist xSetVel(const pos& goal, const pos& nextWaypoint, const pos& lastWaypoint,
                                const pos& robotCenter);
   geometry_msgs::Twist xDeviationApproach(const pos& goal, const pos& lastWaypoint, const pos& robotCenter,
@@ -130,10 +130,6 @@ private:
   void vCalculateDeviationIntegral(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter);
   void vChooseDeviationParallelnessParametres(int waypointNumber);
   double dCloseToZero(double value);
-  double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat);
-  double dLimitAngle(double angle);
-  double dAngleBetweenFrames(const pos& targetFrame, const pos& currentFrame);
-  double dDistanceBetweenFrames(const pos& targetFrame, const pos& currentFrame);
   double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
   double dCalculateDeviation(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter);
   bool bMissedTooManyWaypointsCondition(int missedWaypoints);

@@ -28,16 +28,16 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
                                 const geometry_msgs::PoseStamped& startPose,
                                 const geometry_msgs::PoseStamped& endPose) const
 {
-  pos startPoint = pFrameFromPoseStamped(startPose);
-  pos endPoint = pFrameFromPoseStamped(endPose);
+  pos startPoint = functions.pFrameFromPoseStamped(startPose);
+  pos endPoint = functions.pFrameFromPoseStamped(endPose);
   int path_start_index = path.size();
 
-  double path_angle = dAngleBetweenFrames(endPoint, startPoint);
-  double reverse_path_angle = dAngleBetweenFrames(startPoint, endPoint);
+  double path_angle = functions.dAngleBetweenFrames(endPoint, startPoint);
+  double reverse_path_angle = functions.dAngleBetweenFrames(startPoint, endPoint);
   double end_orientation = endPoint.az;
   double reverse_robot_orientation = startPoint.az - M_PI;
-  double end_angle_difference = dLimitAngle((end_orientation - path_angle));
-  double start_angle_difference = dLimitAngle((reverse_robot_orientation - reverse_path_angle));
+  double end_angle_difference = functions.dLimitAngle((end_orientation - path_angle));
+  double start_angle_difference = functions.dLimitAngle((reverse_robot_orientation - reverse_path_angle));
 
   pos end_c2_center = pCircleTangentToVector(endPoint, end_orientation, end_angle_difference, arch_radius, dead_zone);
   pos end_c1_center =
@@ -177,7 +177,7 @@ double CirclesPlanner::calculatePerpendicular(const double angle_difference, con
 
   if (angle_difference < -dead_zone * deg_to_rad)
   {
-    perpendicular = vector_orientation - direction *  90 * deg_to_rad;
+    perpendicular = vector_orientation - direction * 90 * deg_to_rad;
   }
   else if (angle_difference > dead_zone * deg_to_rad)
   {
@@ -199,7 +199,7 @@ double CirclesPlanner::calculateArchStep(const double radius, const double step_
 bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, const pos& circle_start,
                              const pos& circle_center, const double angle_span) const
 {
-  double angle_start_center = dAngleBetweenFrames(circle_start, circle_center);
+  double angle_start_center = functions.dAngleBetweenFrames(circle_start, circle_center);
 
   int steps = abs(angle_span * rad_to_deg) / arch_step;
   double step_size = angle_span / steps;
@@ -229,7 +229,7 @@ bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, cons
 bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path, const pos& start_point,
                                   const pos& end_point, const double step_size) const
 {
-  int steps = dDistanceBetweenFrames(start_point, end_point) / step_size;
+  int steps = functions.dDistanceBetweenFrames(start_point, end_point) / step_size;
 
   if (steps > 0)
   {
@@ -257,16 +257,18 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
                                   const pos& end_c2_center) const
 {
   // end_angle_difference = end_orientation - path_angle;
-  double end_angle_difference = dLimitAngle((endPoint.az - dAngleBetweenFrames(endPoint, startPoint)));
+  double end_angle_difference =
+      functions.dLimitAngle((endPoint.az - functions.dAngleBetweenFrames(endPoint, startPoint)));
   // start_angle_difference = reverse_robot_orientation - reverse_path_angle;
-  double start_angle_difference = dLimitAngle(((startPoint.az - M_PI) - dAngleBetweenFrames(startPoint, endPoint)));
+  double start_angle_difference =
+      functions.dLimitAngle(((startPoint.az - M_PI) - functions.dAngleBetweenFrames(startPoint, endPoint)));
 
   // calculate angles and spans for end archs
-  double a_end_p1_ps = dAngleBetweenFrames(end_tangent_point, end_c1_center);
-  double a_end_p1_p2 = dAngleBetweenFrames(end_c2_center, end_c1_center);
-  double end_c1_span = dLimitAngle(a_end_p1_p2 - a_end_p1_ps);
-  double a_end_p2_p1 = dAngleBetweenFrames(end_c1_center, end_c2_center);
-  double a_end_p2_pk = dAngleBetweenFrames(endPoint, end_c2_center);
+  double a_end_p1_ps = functions.dAngleBetweenFrames(end_tangent_point, end_c1_center);
+  double a_end_p1_p2 = functions.dAngleBetweenFrames(end_c2_center, end_c1_center);
+  double end_c1_span = functions.dLimitAngle(a_end_p1_p2 - a_end_p1_ps);
+  double a_end_p2_p1 = functions.dAngleBetweenFrames(end_c1_center, end_c2_center);
+  double a_end_p2_pk = functions.dAngleBetweenFrames(endPoint, end_c2_center);
   double end_c2_span = a_end_p2_pk - a_end_p2_p1;
 
   /* if the final orientation relative to path is positive
@@ -288,11 +290,11 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   }
 
   // calculate angles and spans for start archs
-  double a_start_p1_ps = dAngleBetweenFrames(start_tangent_point, start_c1_center);
-  double a_start_p1_p2 = dAngleBetweenFrames(start_c2_center, start_c1_center);
-  double start_c1_span = dLimitAngle(a_start_p1_ps - a_start_p1_p2);
-  double a_start_p2_p1 = dAngleBetweenFrames(start_c1_center, start_c2_center);
-  double a_start_p2_pk = dAngleBetweenFrames(startPoint, start_c2_center);
+  double a_start_p1_ps = functions.dAngleBetweenFrames(start_tangent_point, start_c1_center);
+  double a_start_p1_p2 = functions.dAngleBetweenFrames(start_c2_center, start_c1_center);
+  double start_c1_span = functions.dLimitAngle(a_start_p1_ps - a_start_p1_p2);
+  double a_start_p2_p1 = functions.dAngleBetweenFrames(start_c1_center, start_c2_center);
+  double a_start_p2_pk = functions.dAngleBetweenFrames(startPoint, start_c2_center);
   double start_c2_span = a_start_p2_p1 - a_start_p2_pk;
 
   /* if the final orientation relative to path is positive
@@ -313,8 +315,9 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
     }
   }
 
-  if ((dDistanceBetweenFrames(startPoint, endPoint) <
-       dDistanceBetweenFrames(end_tangent_point, endPoint) + dDistanceBetweenFrames(start_tangent_point, startPoint)) ||
+  if ((functions.dDistanceBetweenFrames(startPoint, endPoint) <
+       functions.dDistanceBetweenFrames(end_tangent_point, endPoint) +
+           functions.dDistanceBetweenFrames(start_tangent_point, startPoint)) ||
       isnan(end_c2_center.x) || isnan(end_c1_center.x) || isnan(end_tangent_point.x))
   {
     ROS_ERROR_STREAM("[CirclesPlanner] Unable to create proper path");

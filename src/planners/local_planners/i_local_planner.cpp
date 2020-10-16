@@ -6,54 +6,18 @@
 
 namespace agribot_local_planner
 {
+ILocalPlanner::ILocalPlanner()
+{
+  functions = CommonFunctions();
+}
+
 void ILocalPlanner::setHeader(const std::string frame)
 {
   frame_id = frame;
 }
 
-double ILocalPlanner::dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat) const
-{
-  tf::Quaternion q(quat.x, quat.y, quat.z, quat.w);
-  tf::Matrix3x3 m(q);
-  double roll, pitch, yaw;
-  m.getRPY(roll, pitch, yaw);
-  return yaw;
-}
-
-double ILocalPlanner::dLimitAngle(double angle) const
-{
-  if (angle > 180 * deg_to_rad)
-  {
-    angle -= 360 * deg_to_rad;
-  }
-  if (angle < -180 * deg_to_rad)
-  {
-    angle += 360 * deg_to_rad;
-  }
-  return angle;
-}
-
-double ILocalPlanner::dAngleBetweenFrames(const pos& targetFrame, const pos& currentFrame) const
-{
-  return std::atan2(targetFrame.y - currentFrame.y, targetFrame.x - currentFrame.x);
-}
-
-double ILocalPlanner::dDistanceBetweenFrames(const pos& targetFrame, const pos& currentFrame) const
-{
-  return std::sqrt(std::pow(targetFrame.y - currentFrame.y, 2) + std::pow(targetFrame.x - currentFrame.x, 2));
-}
-
-pos ILocalPlanner::pFrameFromPoseStamped(const geometry_msgs::PoseStamped& ps) const
-{
-  pos frame;
-  frame.x = ps.pose.position.x;
-  frame.y = ps.pose.position.y;
-  frame.az = dGetYawFromQuaternion(ps.pose.orientation);
-  return frame;
-}
-
 void ILocalPlanner::updateOrientation(std::vector<geometry_msgs::PoseStamped>& path, const int start_index,
-                                     const int end_index) const
+                                      const int end_index) const
 {
   // add proper orientation to each point
   for (int i = start_index; i < end_index; i++)

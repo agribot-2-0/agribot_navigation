@@ -31,8 +31,8 @@ protected:
                                     const double dead_zone) const;
   pos pCircleTangentToVector(const pos& tangentPoint, const double vector_orientation, const double angle_difference,
                              const double arch_radius, const double dead_zone) const;
-  double calculatePerpendicular(const double angle_difference, const double vector_orientation,
-                                const double dead_zone, bool reverse_direction) const;
+  double calculatePerpendicular(const double angle_difference, const double vector_orientation, const double dead_zone,
+                                bool reverse_direction) const;
   double calculateArchStep(const double radius, const double step_size) const;
   bool arcPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                const pos& circle_start, const pos& circle_center, const double angle_span) const;
