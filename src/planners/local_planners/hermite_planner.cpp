@@ -39,14 +39,13 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
 
   if (hermitePath(path, startPoint, endPoint, magnitude_start, magnitude_end))
   {
-    path.push_back(endPose);
-    updateOrientation(path, path_start_index, path.size() - 1);
-    return true;
-  }
-  else
-  {
+    ROS_ERROR_STREAM("[HermitePlanner] Unable to create proper path");
     return false;
   }
+
+  path.push_back(endPose);
+  updateOrientation(path, path_start_index, path.size() - 1);
+  return true;
 }
 
 void HermitePlanner::setStepSize(const double param_step_size)

@@ -52,18 +52,16 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   pos start_tangent_point =
       pCircleTangentToVector(start_c1_center, reverse_path_angle, start_angle_difference, arch_radius, dead_zone);
 
-  if (assemblePath(path, startPoint, endPoint, start_tangent_point, start_c1_center, start_c2_center, end_tangent_point,
-                   end_c1_center, end_c2_center))
-  {
-    path.push_back(endPose);
-    updateOrientation(path, path_start_index, path.size() - 1);
-    return true;
-  }
-  else
+  if (!assemblePath(path, startPoint, endPoint, start_tangent_point, start_c1_center, start_c2_center,
+                    end_tangent_point, end_c1_center, end_c2_center))
   {
     ROS_ERROR_STREAM("[CirclesPlanner] Failed to create plan");
     return false;
   }
+
+  path.push_back(endPose);
+  updateOrientation(path, path_start_index, path.size() - 1);
+  return true;
 }
 
 void CirclesPlanner::setArchRadius(const double param_arch_radius)
@@ -204,26 +202,22 @@ bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, cons
   int steps = abs(angle_span * rad_to_deg) / arch_step;
   double step_size = angle_span / steps;
 
-  if (steps > 0)
-  {
-    for (int i = 0; i < steps; i++)
-    {
-      geometry_msgs::PoseStamped pose;
-      pose.header.frame_id = frame_id;
-      pose.header.seq = path.size() + 1;
-      pose.pose.position.x =
-          circle_center.x + arch_radius * cos(angle_start_center + static_cast<double>(i) * step_size);
-      pose.pose.position.y =
-          circle_center.y + arch_radius * sin(angle_start_center + static_cast<double>(i) * step_size);
-      path.push_back(pose);
-    }
-    return true;
-  }
-  else
+  if (steps <= 0)
   {
     ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble arc path");
     return false;
   }
+
+  for (int i = 0; i < steps; i++)
+  {
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = frame_id;
+    pose.header.seq = path.size() + 1;
+    pose.pose.position.x = circle_center.x + arch_radius * cos(angle_start_center + static_cast<double>(i) * step_size);
+    pose.pose.position.y = circle_center.y + arch_radius * sin(angle_start_center + static_cast<double>(i) * step_size);
+    path.push_back(pose);
+  }
+  return true;
 }
 
 bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path, const pos& start_point,
@@ -231,24 +225,22 @@ bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path,
 {
   int steps = functions.dDistanceBetweenFrames(start_point, end_point) / step_size;
 
-  if (steps > 0)
-  {
-    for (int i = 0; i < steps; i++)
-    {
-      geometry_msgs::PoseStamped pose;
-      pose.header.frame_id = frame_id;
-      pose.header.seq = path.size() + 1;
-      pose.pose.position.x = start_point.x + static_cast<double>(i) / steps * (end_point.x - start_point.x);
-      pose.pose.position.y = start_point.y + static_cast<double>(i) / steps * (end_point.y - start_point.y);
-      path.push_back(pose);
-    }
-    return true;
-  }
-  else
+  if (steps <= 0)
   {
     ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble straight path");
     return false;
   }
+
+  for (int i = 0; i < steps; i++)
+  {
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = frame_id;
+    pose.header.seq = path.size() + 1;
+    pose.pose.position.x = start_point.x + static_cast<double>(i) / steps * (end_point.x - start_point.x);
+    pose.pose.position.y = start_point.y + static_cast<double>(i) / steps * (end_point.y - start_point.y);
+    path.push_back(pose);
+  }
+  return true;
 }
 
 double CirclesPlanner::calculateSpanC1(const pos& tangent_point, const pos& c1_center, const pos& c2_center,
