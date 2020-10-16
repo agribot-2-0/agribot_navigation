@@ -42,6 +42,10 @@ protected:
                     const pos& startPoint, const pos& endPoint, const pos& start_tangent_point,
                     const pos& start_c1_center, const pos& start_c2_center, const pos& end_tangent_point,
                     const pos& end_c1_center, const pos& end_c2_center) const;
+  double calculateSpanC1(const pos& tangent_point, const pos& c1_center, const pos& c2_center,
+                         const bool reverse_direction) const;
+  double calculateSpanC2(const pos& endPoint, const pos& c1_center, const pos& c2_center, const double angle_difference,
+                         const bool reverse_direction) const;
   pos end_c2_center;
   pos end_c1_center;
   pos end_tangent_point;

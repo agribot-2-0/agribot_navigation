@@ -251,6 +251,51 @@ bool CirclesPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path,
   }
 }
 
+double CirclesPlanner::calculateSpanC1(const pos& tangent_point, const pos& c1_center, const pos& c2_center,
+                                       const bool reverse_direction) const
+{
+  double direction = 1.0;
+  if (reverse_direction)
+  {
+    direction = -1.0;
+  }
+  double a_p1_ps = functions.dAngleBetweenFrames(tangent_point, c1_center);
+  double a_p1_p2 = functions.dAngleBetweenFrames(c2_center, c1_center);
+  return functions.dLimitAngle(direction * (a_p1_p2 - a_p1_ps));
+}
+
+double CirclesPlanner::calculateSpanC2(const pos& endPoint, const pos& c1_center, const pos& c2_center,
+                                       const double angle_difference, const bool reverse_direction) const
+{
+  double direction = 1.0;
+  if (reverse_direction)
+  {
+    direction = -1.0;
+  }
+  double a_p2_p1 = functions.dAngleBetweenFrames(c1_center, c2_center);
+  double a_p2_pk = functions.dAngleBetweenFrames(endPoint, c2_center);
+  double c2_span = direction * (a_p2_pk - a_p2_p1);
+
+  /* if the final orientation relative to path is positive
+   (robot turns left), circle c2 is followed counterclockwise
+   c2 is followed clockwise in right turn case*/
+  if (direction * angle_difference < 0)
+  {
+    if (c2_span > 0)
+    {
+      c2_span = fmod(c2_span - 360 * deg_to_rad, 360 * deg_to_rad);
+    }
+  }
+  else
+  {
+    if (c2_span < 0)
+    {
+      c2_span = fmod(c2_span + 360 * deg_to_rad, 360 * deg_to_rad);
+    }
+  }
+  return c2_span;
+}
+
 bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path, const pos& startPoint,
                                   const pos& endPoint, const pos& start_tangent_point, const pos& start_c1_center,
                                   const pos& start_c2_center, const pos& end_tangent_point, const pos& end_c1_center,
@@ -263,57 +308,13 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   double start_angle_difference =
       functions.dLimitAngle(((startPoint.az - M_PI) - functions.dAngleBetweenFrames(startPoint, endPoint)));
 
-  // calculate angles and spans for end archs
-  double a_end_p1_ps = functions.dAngleBetweenFrames(end_tangent_point, end_c1_center);
-  double a_end_p1_p2 = functions.dAngleBetweenFrames(end_c2_center, end_c1_center);
-  double end_c1_span = functions.dLimitAngle(a_end_p1_p2 - a_end_p1_ps);
-  double a_end_p2_p1 = functions.dAngleBetweenFrames(end_c1_center, end_c2_center);
-  double a_end_p2_pk = functions.dAngleBetweenFrames(endPoint, end_c2_center);
-  double end_c2_span = a_end_p2_pk - a_end_p2_p1;
+  // spans for end archs
+  double end_c1_span = calculateSpanC1(end_tangent_point, end_c1_center, end_c2_center, false);
+  double end_c2_span = calculateSpanC2(endPoint, end_c1_center, end_c2_center, end_angle_difference, false);
 
-  /* if the final orientation relative to path is positive
-   (robot turns left), circle end_c2 is followed counterclockwise
-   end_c2 is followed clockwise in right turn case*/
-  if (end_angle_difference < 0)
-  {
-    if (end_c2_span > 0)
-    {
-      end_c2_span = fmod(end_c2_span - 360 * deg_to_rad, 360 * deg_to_rad);
-    }
-  }
-  else
-  {
-    if (end_c2_span < 0)
-    {
-      end_c2_span = fmod(end_c2_span + 360 * deg_to_rad, 360 * deg_to_rad);
-    }
-  }
-
-  // calculate angles and spans for start archs
-  double a_start_p1_ps = functions.dAngleBetweenFrames(start_tangent_point, start_c1_center);
-  double a_start_p1_p2 = functions.dAngleBetweenFrames(start_c2_center, start_c1_center);
-  double start_c1_span = functions.dLimitAngle(a_start_p1_ps - a_start_p1_p2);
-  double a_start_p2_p1 = functions.dAngleBetweenFrames(start_c1_center, start_c2_center);
-  double a_start_p2_pk = functions.dAngleBetweenFrames(startPoint, start_c2_center);
-  double start_c2_span = a_start_p2_p1 - a_start_p2_pk;
-
-  /* if the final orientation relative to path is positive
-   (robot turns left), circle end_c2 is followed counterclockwise
-   end_c2 is followed clockwise in right turn case*/
-  if (start_angle_difference > 0)
-  {
-    if (start_c2_span > 0)
-    {
-      start_c2_span = fmod(start_c2_span - 360 * deg_to_rad, 360 * deg_to_rad);
-    }
-  }
-  else
-  {
-    if (start_c2_span < 0)
-    {
-      start_c2_span = fmod(start_c2_span + 360 * deg_to_rad, 360 * deg_to_rad);
-    }
-  }
+  // spans for start archs
+  double start_c1_span = calculateSpanC1(start_tangent_point, start_c1_center, start_c2_center, true);
+  double start_c2_span = calculateSpanC2(startPoint, start_c1_center, start_c2_center, start_angle_difference, true);
 
   if ((functions.dDistanceBetweenFrames(startPoint, endPoint) <
        functions.dDistanceBetweenFrames(end_tangent_point, endPoint) +
