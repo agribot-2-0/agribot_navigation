@@ -42,39 +42,38 @@ public:
   bool isGoalReached();
 
 private:
-  costmap_2d::Costmap2DROS* _xCostmapROS;
-  tf2_ros::Buffer* _xTFBuffer;
-  tf2_ros::TransformListener* _xTFListener;
-  ros::Subscriber _rOdomSub;
-  ros::Publisher _rPathPub;
-  ros::Publisher _rPredictedPathPub;
-  ros::Publisher _rGoalRangePub;
-  ros::Publisher _rNextGoalPub;
-  ros::Publisher _rLocalPathPub;
+  costmap_2d::Costmap2DROS* _costmap_ros;
+  tf2_ros::Buffer* _tf_buffer;
+  tf2_ros::TransformListener* _tf_listener;
+  ros::Subscriber _odom_sub;
+  ros::Publisher _path_pub;
+  ros::Publisher _predicted_path_pub;
+  ros::Publisher _goal_range_pub;
+  ros::Publisher _next_goal_pub;
+  ros::Publisher _local_path_pub;
   // contains the global plan
-  std::vector<geometry_msgs::PoseStamped> _xPlan;
-  std::vector<geometry_msgs::PoseStamped> _xLocalPlan;
-  std::vector<geometry_msgs::PoseStamped> _xDisplayPlan;
-  nav_msgs::Path _xLocalPath;
-  geometry_msgs::Twist _xVelocities;  // contains the velocity
-  visualization_msgs::Marker _traveledPoints;
-  geometry_msgs::PoseStamped _pRobotCenter;   // present robot center frame
-  geometry_msgs::PoseStamped _pLastWaypoint;  // last target frame
-  int _iPlanLength;                           // number of frames in the global plan
+  std::vector<geometry_msgs::PoseStamped> _plan;
+  std::vector<geometry_msgs::PoseStamped> _local_plan;
+  std::vector<geometry_msgs::PoseStamped> _display_plan;
+  nav_msgs::Path _local_path;
+  geometry_msgs::Twist _velocities;  // contains the velocity
+  visualization_msgs::Marker _traveled_points;
+  geometry_msgs::PoseStamped _robot_center;   // present robot center frame
+  geometry_msgs::PoseStamped _last_waypoint;  // last target frame
   // keeps track of the number of ommited frames
-  int _iMissedWaypointsCount;
+  int _missed_waypoints_count;
   // keeps track of the number for the next frame in the global plan
-  int _iWaypointCount;
-  bool _bGoalReached;
-  bool _bInitialized;
+  int _waypoint_count;
+  bool _goal_reached;
+  bool _initialized;
   // time measuring for statistics
-  double _dStopTime, _dStartTime, _dLastTime, _dActualTime;
-  double _dLastOdomStamp;
+  double _stop_time, _start_time, _dlast_time, _actual_time;
+  double _last_odom_stamp;
   // deviation measuring for statistics
-  double _dDeviationIntegral;
-  double _dTraveledDistance;
-  double _dLastTraveledDistance;
-  bool bAbortExecuting;
+  double _deviation_integral;
+  double _traveled_distance;
+  double _last_traveled_distance;
+  bool _abort_executing;
   // params
   int param_missed_points_tolerance;         // n
   int param_prediction_time;                  // seconds

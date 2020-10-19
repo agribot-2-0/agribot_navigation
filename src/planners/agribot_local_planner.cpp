@@ -10,7 +10,7 @@ PLUGINLIB_EXPORT_CLASS(agribot_local_planner::AgribotPlannerROS, nav_core::BaseL
 
 namespace agribot_local_planner
 {
-AgribotPlannerROS::AgribotPlannerROS() : _xCostmapROS(NULL), _bInitialized(false)
+AgribotPlannerROS::AgribotPlannerROS() : _costmap_ros(NULL), _initialized(false)
 {
 }
 
@@ -20,22 +20,22 @@ AgribotPlannerROS::~AgribotPlannerROS()
 
 void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, costmap_2d::Costmap2DROS* costmapROS)
 {
-  if (!_bInitialized)
+  if (!_initialized)
   {
-    _xCostmapROS = costmapROS;
-    _xTFBuffer = tfBuffer;
-    _xTFListener = new tf2_ros::TransformListener(*tfBuffer);
+    _costmap_ros = costmapROS;
+    _tf_buffer = tfBuffer;
+    _tf_listener = new tf2_ros::TransformListener(*tfBuffer);
 
     ros::NodeHandle gn;
     ros::NodeHandle pnh("~" + name);
 
-    _rOdomSub = gn.subscribe("odom", 100, &AgribotPlannerROS::vOdomCallback, this);
-    _rPathPub = pnh.advertise<visualization_msgs::Marker>("travelled_path", 10);
-    _rPredictedPathPub = pnh.advertise<visualization_msgs::Marker>("predicted_path", 10);
-    _rGoalRangePub = pnh.advertise<visualization_msgs::Marker>("goal_range", 10);
-    _rNextGoalPub = pnh.advertise<visualization_msgs::Marker>("next_goal", 10);
-    _rLocalPathPub = pnh.advertise<nav_msgs::Path>("local_path", 10);
-    _xLocalPath.header.frame_id = "map";
+    _odom_sub = gn.subscribe("odom", 100, &AgribotPlannerROS::vOdomCallback, this);
+    _path_pub = pnh.advertise<visualization_msgs::Marker>("travelled_path", 10);
+    _predicted_path_pub = pnh.advertise<visualization_msgs::Marker>("predicted_path", 10);
+    _goal_range_pub = pnh.advertise<visualization_msgs::Marker>("goal_range", 10);
+    _next_goal_pub = pnh.advertise<visualization_msgs::Marker>("next_goal", 10);
+    _local_path_pub = pnh.advertise<nav_msgs::Path>("local_path", 10);
+    _local_path.header.frame_id = "map";
 
     pnh.param("goal_distance_tolerance", param_goal_distance_tolerance, default_goal_distance_tolerance);
     pnh.param("goal_range", param_goal_range, default_goal_range);
@@ -78,17 +78,17 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("statistics", param_statistics, true);
     pnh.param("take_front", param_take_front, false);
 
-    _pRobotCenter.header.frame_id = "odom";
-    _pLastWaypoint.header.frame_id = "odom";
+    _robot_center.header.frame_id = "odom";
+    _last_waypoint.header.frame_id = "odom";
 
-    _bInitialized = true;
+    _initialized = true;
 
     if (param_statistics)
     {
-      _dStopTime = 0;
-      _dStartTime = 0;
-      _dLastTime = 0;
-      _dActualTime = 0;
+      _stop_time = 0;
+      _start_time = 0;
+      _dlast_time = 0;
+      _actual_time = 0;
     }
 
     ROS_DEBUG_STREAM("[AgribotPlanner] Plugin initialized.");
@@ -103,53 +103,53 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
 
 bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan)
 {
-  if (!_bInitialized)
+  if (!_initialized)
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, "
                      << "call initialize() before planner");
     return false;
   }
-  bAbortExecuting = false;
-  _iWaypointCount = 1;
-  _iMissedWaypointsCount = 0;
-  _xPlan = orig_global_plan;
-  _xLocalPlan.clear();
+  _abort_executing = false;
+  _waypoint_count = 1;
+  _missed_waypoints_count = 0;
+  _plan = orig_global_plan;
+  _local_plan.clear();
 
-  CirclesPlanner circles_planner = CirclesPlanner(_pRobotCenter.header.frame_id);
+  CirclesPlanner circles_planner = CirclesPlanner(_robot_center.header.frame_id);
   circles_planner.setArcRadius(param_design_arc_radius);
   circles_planner.setDeadZone(param_design_dead_zone);
   circles_planner.setStepSize(param_design_step_size);
 
-  HermitePlanner hermite_planner = HermitePlanner(_pRobotCenter.header.frame_id);
+  HermitePlanner hermite_planner = HermitePlanner(_robot_center.header.frame_id);
   hermite_planner.setStepSize(param_design_step_size);
   hermite_planner.setMagnitudeStart(param_hermite_magnitude);
   hermite_planner.setMagnitudeEnd(param_hermite_magnitude);
 
-  if (!xDesignLocalPath(_xLocalPlan, _pRobotCenter, _xPlan.back(), &circles_planner))
+  if (!xDesignLocalPath(_local_plan, _robot_center, _plan.back(), &circles_planner))
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Local planner unable to create path ");
     return false;
   }
   else
   {
-    ROS_INFO_STREAM("[AgribotPlanner] Local planner created, path length = " << _xLocalPlan.size());
+    ROS_INFO_STREAM("[AgribotPlanner] Local planner created, path length = " << _local_plan.size());
   }
 
-  _bGoalReached = false;
-  _traveledPoints = visualization_msgs::Marker();
-  _dLastOdomStamp = 0;
+  _goal_reached = false;
+  _traveled_points = visualization_msgs::Marker();
+  _last_odom_stamp = 0;
 
-  _pLastWaypoint = _pRobotCenter;
-  _dTraveledDistance = 0;
-  _dLastTraveledDistance = 0;
+  _last_waypoint = _robot_center;
+  _traveled_distance = 0;
+  _last_traveled_distance = 0;
 
   if (param_statistics)
   {
-    _dDeviationIntegral = 0;
+    _deviation_integral = 0;
 
-    _dStartTime = ros::Time::now().toSec();
-    _dLastTime = 0;
-    _dActualTime = 0;
+    _start_time = ros::Time::now().toSec();
+    _dlast_time = 0;
+    _actual_time = 0;
   }
 
   return true;
@@ -167,25 +167,25 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   geometry_msgs::Twist velocity;
   pos goal;
 
-  vLocalPathVisualization(_xLocalPlan);
+  vLocalPathVisualization(_local_plan);
 
-  if (!_bInitialized)
+  if (!_initialized)
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, "
                      << "call initialize() before planner");
     return false;
   }
-  if (_xLocalPlan.size() != 0)
+  if (_local_plan.size() != 0)
   {
     // Check where robot is
-    pos nextWaypoint = pGetWaypoint(_iWaypointCount);
-    pos lastWaypoint = CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(_pLastWaypoint));
-    pos robotCenter = CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(_pRobotCenter));
+    pos nextWaypoint = pGetWaypoint(_waypoint_count);
+    pos lastWaypoint = CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(_last_waypoint));
+    pos robotCenter = CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(_robot_center));
 
     goal = nextWaypoint;
 
     // Decide whether following straight or arc piece of path
-    vChooseDeviationParallelnessParametres(_iWaypointCount);
+    vChooseDeviationParallelnessParametres(_waypoint_count);
 
     // Deviation error for statistics
     if (param_statistics)
@@ -197,19 +197,19 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     if (bWaypointMissedCondition(robotCenter, lastWaypoint, nextWaypoint))
     {
       ROS_ERROR_STREAM("[AgribotPlanner] OUT OF PATH!");
-      _iMissedWaypointsCount++;
+      _missed_waypoints_count++;
     }
 
     // Next goal condition
-    if (!bIsLastWaypointInPath(_iWaypointCount) && (bWaypointHitCondition(robotCenter, lastWaypoint, nextWaypoint) ||
+    if (!bIsLastWaypointInPath(_waypoint_count) && (bWaypointHitCondition(robotCenter, lastWaypoint, nextWaypoint) ||
                                                     bWaypointMissedCondition(robotCenter, lastWaypoint, nextWaypoint)))
     {
       if (param_statistics)
       {
-        ROS_INFO_STREAM("[AgribotPlanner] NEXT GOAL - Traveled " << _dTraveledDistance);
+        ROS_INFO_STREAM("[AgribotPlanner] NEXT GOAL - Traveled " << _traveled_distance);
       }
       vTakeNextGoal(goal, robotCenter);
-      nextWaypoint = pGetWaypoint(_iWaypointCount);
+      nextWaypoint = pGetWaypoint(_waypoint_count);
     }
 
     // Calculate velocities
@@ -223,9 +223,9 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     velocity.angular.z = dCloseToZero(velocity.angular.z);
 
     // Stop condition
-    if (bMissedTooManyWaypointsCondition(_iMissedWaypointsCount) ||
-        (bIsLastWaypointInPath(_iWaypointCount) && bWaypointHitCondition(robotCenter, lastWaypoint, nextWaypoint)) ||
-        (bIsLastWaypointInPath(_iWaypointCount) && bWaypointMissedCondition(robotCenter, lastWaypoint, nextWaypoint)))
+    if (bMissedTooManyWaypointsCondition(_missed_waypoints_count) ||
+        (bIsLastWaypointInPath(_waypoint_count) && bWaypointHitCondition(robotCenter, lastWaypoint, nextWaypoint)) ||
+        (bIsLastWaypointInPath(_waypoint_count) && bWaypointMissedCondition(robotCenter, lastWaypoint, nextWaypoint)))
     {
       velocity = xFinishedPathBehaviour();
     }
@@ -233,7 +233,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     // Visualization
     vVisualizations(lastWaypoint, goal, nextWaypoint, robotCenter, velocity);
   }
-  if (bAbortExecuting)
+  if (_abort_executing)
   {
     cmd_vel.linear.x = 0;
     cmd_vel.angular.z = 0;
@@ -250,14 +250,14 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 void AgribotPlannerROS::vChooseDeviationParallelnessParametres(int waypointNumber)
 {
   // check if it is not the first waypoint in path
-  if (waypointNumber > 1 && waypointNumber < _xLocalPlan.size() - 1)
+  if (waypointNumber > 1 && waypointNumber < _local_plan.size() - 1)
   {
     // get yaws from poses
-    geometry_msgs::PoseStamped currentPose = _xLocalPlan[waypointNumber];
+    geometry_msgs::PoseStamped currentPose = _local_plan[waypointNumber];
     geometry_msgs::PoseStamped currentPoseTransformed;
     currentPoseTransformed = xTransformPose(currentPose);
 
-    geometry_msgs::PoseStamped lastPose = _xLocalPlan[waypointNumber - 1];
+    geometry_msgs::PoseStamped lastPose = _local_plan[waypointNumber - 1];
     geometry_msgs::PoseStamped lastPoseTransformed;
     lastPoseTransformed = xTransformPose(lastPose);
 
@@ -341,14 +341,14 @@ bool AgribotPlannerROS::bWithinGoalRange(pos robotFront, const pos& nextWaypoint
 
 bool AgribotPlannerROS::bIsLastWaypointInPath(int waypointsCount)
 {
-  return (waypointsCount >= (_xLocalPlan.size() - 1));
+  return (waypointsCount >= (_local_plan.size() - 1));
 }
 
 bool AgribotPlannerROS::bCenterTraveledBeyondGoal(const pos& robotCenter, const pos& lastWaypoint,
                                                   const pos& nextWaypoint)
 {
   double distanceWaypoints = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, lastWaypoint);
-  double traveledDistance = _dTraveledDistance - _dLastTraveledDistance;
+  double traveledDistance = _traveled_distance - _last_traveled_distance;
   return (traveledDistance >= distanceWaypoints * param_missed_distance_coefficient);
 }
 
@@ -360,13 +360,13 @@ bool AgribotPlannerROS::bCenterOutOfGoalRange(const pos& robotCenter, const pos&
 
 void AgribotPlannerROS::vTakeNextGoal(const pos& currentGoal, const pos& robotCenter)
 {
-  _iWaypointCount++;
-  _dLastTraveledDistance = _dTraveledDistance;
+  _waypoint_count++;
+  _last_traveled_distance = _traveled_distance;
 
-  pos nextWaypoint = pGetFrame(_iWaypointCount);
-  if (bIsLastWaypointInPath(_iWaypointCount + 1))
+  pos nextWaypoint = pGetFrame(_waypoint_count);
+  if (bIsLastWaypointInPath(_waypoint_count + 1))
   {
-    nextWaypoint.az = CommonFunctions::dAngleBetweenCoordinates(nextWaypoint, pGetFrame(_iWaypointCount - 1));
+    nextWaypoint.az = CommonFunctions::dAngleBetweenCoordinates(nextWaypoint, pGetFrame(_waypoint_count - 1));
     if (param_take_front)
     {
       nextWaypoint = pCalculateRobotFrontPosition(nextWaypoint);
@@ -375,11 +375,11 @@ void AgribotPlannerROS::vTakeNextGoal(const pos& currentGoal, const pos& robotCe
 
   if (CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, currentGoal) > param_chassis_length)
   {
-    _pLastWaypoint = _xLocalPlan[_iWaypointCount - 1];
+    _last_waypoint = _local_plan[_waypoint_count - 1];
   }
   else
   {
-    _pLastWaypoint = _pRobotCenter;
+    _last_waypoint = _robot_center;
   }
 }
 
@@ -387,61 +387,61 @@ void AgribotPlannerROS::vCalculateDeviationIntegral(const pos& lastWaypoint, con
                                                     const pos& robotCenter)
 {
   double deviation = dCalculateDeviation(lastWaypoint, nextWaypoint, robotCenter);
-  if (_dActualTime > 0)
+  if (_actual_time > 0)
   {
     if (!isnan(deviation))
     {
-      _dLastTime = _dActualTime;
-      _dActualTime = ros::Time::now().toSec();
-      _dDeviationIntegral += fabs(deviation) * (_dActualTime - _dLastTime);
+      _dlast_time = _actual_time;
+      _actual_time = ros::Time::now().toSec();
+      _deviation_integral += fabs(deviation) * (_actual_time - _dlast_time);
     }
   }
   else
   {
-    _dActualTime = ros::Time::now().toSec();
+    _actual_time = ros::Time::now().toSec();
   }
 }
 
 geometry_msgs::Twist AgribotPlannerROS::xFinishedPathBehaviour()
 {
-  _bGoalReached = true;
-  _xLocalPlan.clear();
+  _goal_reached = true;
+  _local_plan.clear();
   if (param_statistics)
   {
-    _dStopTime = ros::Time::now().toSec();
-    ROS_INFO("[AgribotPlanner] T = %f;l¸= %f;Er = %f;n = %d;x = %d", _dStopTime - _dStartTime, _dTraveledDistance,
-             _dDeviationIntegral, _iWaypointCount, _iMissedWaypointsCount);
+    _stop_time = ros::Time::now().toSec();
+    ROS_INFO("[AgribotPlanner] T = %f;l¸= %f;Er = %f;n = %d;x = %d", _stop_time - _start_time, _traveled_distance,
+             _deviation_integral, _waypoint_count, _missed_waypoints_count);
   }
   return xStopRobot();
 }
 
 bool AgribotPlannerROS::isGoalReached()
 {
-  if (!_bInitialized)
+  if (!_initialized)
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, "
                      << "call initialize() before planner");
     return false;
   }
-  return _bGoalReached;
+  return _goal_reached;
 }
 
 void AgribotPlannerROS::vOdomCallback(const nav_msgs::Odometry& odometry_msg)
 {
   // prevent from too frequent odom reading
   double odom_time_stamp = odometry_msg.header.stamp.sec + odometry_msg.header.stamp.nsec / 10e9;
-  if (odom_time_stamp - _dLastOdomStamp > param_odom_filter_time)
+  if (odom_time_stamp - _last_odom_stamp > param_odom_filter_time)
   {
-    _dLastOdomStamp = odom_time_stamp;
-    pos lastRobotPosition = CommonFunctions::pCoordinatesFromPoseStamped(_pRobotCenter);
+    _last_odom_stamp = odom_time_stamp;
+    pos lastRobotPosition = CommonFunctions::pCoordinatesFromPoseStamped(_robot_center);
     geometry_msgs::PoseStamped robotPose;
 
     robotPose.header = odometry_msg.header;
     robotPose.pose = odometry_msg.pose.pose;
-    _pRobotCenter = xTransformPose(robotPose);
+    _robot_center = xTransformPose(robotPose);
 
-    _dTraveledDistance += CommonFunctions::dDistanceBetweenCoordinates(
-        lastRobotPosition, CommonFunctions::pCoordinatesFromPoseStamped(_pRobotCenter));
+    _traveled_distance += CommonFunctions::dDistanceBetweenCoordinates(
+        lastRobotPosition, CommonFunctions::pCoordinatesFromPoseStamped(_robot_center));
   }
 }
 
@@ -554,7 +554,7 @@ geometry_msgs::Twist AgribotPlannerROS::xStopRobot()
 
 pos AgribotPlannerROS::pGetFrame(int count)
 {
-  geometry_msgs::PoseStamped nextPose = _xLocalPlan[count];
+  geometry_msgs::PoseStamped nextPose = _local_plan[count];
   geometry_msgs::PoseStamped nextPoseTransformed;
   nextPoseTransformed = xTransformPose(nextPose);
 
@@ -587,12 +587,12 @@ geometry_msgs::PoseStamped AgribotPlannerROS::xTransformPose(geometry_msgs::Pose
   try
   {
     ps.header.stamp = ros::Time::now();
-    _xTFBuffer->transform(ps, poseTransformed, "map", ros::Duration(0.2));
+    _tf_buffer->transform(ps, poseTransformed, "map", ros::Duration(0.2));
   }
   catch (tf2::ExtrapolationException e)
   {
     ROS_ERROR_STREAM("[LocalPlanner] ExtrapolationException occur");
-    bAbortExecuting = true;
+    _abort_executing = true;
   }
   return poseTransformed;
 }
@@ -636,7 +636,7 @@ pos AgribotPlannerROS::pCalculateGoalRange(const pos& nextWaypoint, const pos& r
   double angleRobotNextWaypoint =
       CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(nextWaypoint, robotCenter));
 
-  if (!bIsLastWaypointInPath(_iWaypointCount))
+  if (!bIsLastWaypointInPath(_waypoint_count))
   {
     // Perpendicular to robot-next_frame line
     deltaX = sin(angleRobotNextWaypoint);
@@ -656,22 +656,22 @@ pos AgribotPlannerROS::pCalculateGoalRange(const pos& nextWaypoint, const pos& r
 
 void AgribotPlannerROS::vPathVisualization(const pos& robotCenter)
 {
-  _traveledPoints.header.frame_id = "map";
-  _traveledPoints.header.stamp = ros::Time::now();
-  _traveledPoints.ns = "travelled_path";
-  _traveledPoints.action = visualization_msgs::Marker::ADD;
-  _traveledPoints.id = 0;
-  _traveledPoints.type = visualization_msgs::Marker::LINE_STRIP;
-  _traveledPoints.scale.x = 0.1;
-  _traveledPoints.color.b = 1.0;
-  _traveledPoints.color.a = 1.0;
-  _traveledPoints.pose.orientation.w = 1;
+  _traveled_points.header.frame_id = "map";
+  _traveled_points.header.stamp = ros::Time::now();
+  _traveled_points.ns = "travelled_path";
+  _traveled_points.action = visualization_msgs::Marker::ADD;
+  _traveled_points.id = 0;
+  _traveled_points.type = visualization_msgs::Marker::LINE_STRIP;
+  _traveled_points.scale.x = 0.1;
+  _traveled_points.color.b = 1.0;
+  _traveled_points.color.a = 1.0;
+  _traveled_points.pose.orientation.w = 1;
   geometry_msgs::Point p;
   p.x = robotCenter.x;
   p.y = robotCenter.y;
   p.z = 0.1;
-  _traveledPoints.points.push_back(p);
-  _rPathPub.publish(_traveledPoints);
+  _traveled_points.points.push_back(p);
+  _path_pub.publish(_traveled_points);
 }
 
 void AgribotPlannerROS::vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const pos& robotCenter)
@@ -730,7 +730,7 @@ void AgribotPlannerROS::vPredictedPathVisualization(const geometry_msgs::Twist& 
       futurePoints.points.push_back(p);
     }
   }
-  _rPredictedPathPub.publish(futurePoints);
+  _predicted_path_pub.publish(futurePoints);
 }
 
 void AgribotPlannerROS::vNextGoalVisualization(const pos& lastWaypoint, const pos& goal)
@@ -758,7 +758,7 @@ void AgribotPlannerROS::vNextGoalVisualization(const pos& lastWaypoint, const po
   p.z = 0;
   marker.points.push_back(p);
 
-  _rNextGoalPub.publish(marker);
+  _next_goal_pub.publish(marker);
 }
 
 void AgribotPlannerROS::vGoalRangeVisualization(const pos& goal, const pos& range)
@@ -782,15 +782,15 @@ void AgribotPlannerROS::vGoalRangeVisualization(const pos& goal, const pos& rang
   marker.pose.position.z = 0;
   marker.pose.orientation.w = 1;
 
-  _rGoalRangePub.publish(marker);
+  _goal_range_pub.publish(marker);
 }
 
 void AgribotPlannerROS::vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path)
 {
-  _xLocalPath.header.stamp = ros::Time::now();
-  _xLocalPath.poses.clear();
-  _xLocalPath.poses = path;
-  _rLocalPathPub.publish(_xLocalPath);
+  _local_path.header.stamp = ros::Time::now();
+  _local_path.poses.clear();
+  _local_path.poses = path;
+  _local_path_pub.publish(_local_path);
 }
 
 void AgribotPlannerROS::vVisualizations(const pos& lastWaypoint, const pos& goal, const pos& nextWaypoint,
