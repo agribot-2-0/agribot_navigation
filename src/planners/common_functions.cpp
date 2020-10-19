@@ -4,17 +4,9 @@
 
 #include "agribot_navigation/planners/common_functions.h"
 
-namespace agribot_local_planner
+namespace CommonFunctions
 {
-CommonFunctions::CommonFunctions()
-{
-}
-
-CommonFunctions::~CommonFunctions()
-{
-}
-
-double CommonFunctions::dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat) const
+double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat)
 {
   tf::Quaternion q(quat.x, quat.y, quat.z, quat.w);
   tf::Matrix3x3 m(q);
@@ -26,40 +18,42 @@ double CommonFunctions::dGetYawFromQuaternion(const geometry_msgs::Quaternion& q
 /**
  * Limit angles to range <-180, 180> degrees
  */
-double CommonFunctions::dLimitAngle(double angle) const
+double dLimitAngle(double angle)
 {
-  if (angle > 180 * deg_to_rad)
+  if (angle > toRadians(180))
   {
-    angle -= 360 * deg_to_rad;
+    angle -= toRadians(360);
   }
-  if (angle < -180 * deg_to_rad)
+  if (angle < toRadians(-180))
   {
-    angle += 360 * deg_to_rad;
+    angle += toRadians(360);
   }
   return angle;
 }
 
-double CommonFunctions::dAngleBetweenFrames(const pos& targetFrame, const pos& currentFrame) const
+double dAngleBetweenCoordinates(const agribot_local_planner::pos& targetFrame,
+                                const agribot_local_planner::pos& currentFrame)
 {
   return std::atan2(targetFrame.y - currentFrame.y, targetFrame.x - currentFrame.x);
 }
 
-double CommonFunctions::dDistanceBetweenFrames(const pos& targetFrame, const pos& currentFrame) const
+double dDistanceBetweenCoordinates(const agribot_local_planner::pos& targetFrame,
+                                   const agribot_local_planner::pos& currentFrame)
 {
   return std::sqrt(std::pow(targetFrame.y - currentFrame.y, 2) + std::pow(targetFrame.x - currentFrame.x, 2));
 }
 
-pos CommonFunctions::pFrameFromPoseStamped(const geometry_msgs::PoseStamped& ps) const
+agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::PoseStamped& ps)
 {
-  pos frame;
-  frame.x = ps.pose.position.x;
-  frame.y = ps.pose.position.y;
-  frame.az = dGetYawFromQuaternion(ps.pose.orientation);
-  return frame;
+  agribot_local_planner::pos coordinates;
+  coordinates.x = ps.pose.position.x;
+  coordinates.y = ps.pose.position.y;
+  coordinates.az = dGetYawFromQuaternion(ps.pose.orientation);
+  return coordinates;
 }
 
-void CommonFunctions::updateOrientation(std::vector<geometry_msgs::PoseStamped>& path, const int start_index,
-                                      const int end_index) const
+void updateOrientationInPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                             const int start_index, const int end_index)
 {
   // add proper orientation to each point
   for (int i = start_index; i < end_index; i++)
@@ -72,4 +66,4 @@ void CommonFunctions::updateOrientation(std::vector<geometry_msgs::PoseStamped>&
     path[i].pose.orientation.w = cos(angle / 2.0);
   }
 }
-}  // namespace agribot_local_planner
+}  // namespace CommonFunctions

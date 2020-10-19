@@ -42,7 +42,6 @@ public:
   bool isGoalReached();
 
 private:
-  CommonFunctions functions;
   costmap_2d::Costmap2DROS* _xCostmapROS;
   tf2_ros::Buffer* _xTFBuffer;
   tf2_ros::TransformListener* _xTFListener;
@@ -77,7 +76,7 @@ private:
   double _dLastTraveledDistance;
   bool bAbortExecuting;
   // params
-  int param_missed_points_tollerance;         // n
+  int param_missed_points_tolerance;         // n
   int param_prediction_time;                  // seconds
   int param_prediction_points_per_second;     // n/second
   double param_goal_distance_tolerance;       // metres
@@ -91,12 +90,12 @@ private:
   double param_current_parallelness_weight;   // factor
   double param_deviation_weight_straight;     // factor
   double param_parallelness_weight_straight;  // factor
-  double param_deviation_weight_arch;         // factor
-  double param_parallelness_weight_arch;      // factor
+  double param_deviation_weight_arc;          // factor
+  double param_parallelness_weight_arc;       // factor
   double param_epsilon;                       // unitless
 
   double param_design_dead_zone;             // degrees
-  double param_design_arch_radius;           // metres
+  double param_design_arc_radius;            // metres
   double param_design_step_size;             // metres
   double param_hermite_magnitude;            // factor
   double param_odom_filter_time;             // seconds

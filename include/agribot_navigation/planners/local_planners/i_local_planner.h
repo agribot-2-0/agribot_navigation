@@ -21,7 +21,7 @@ public:
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& startPose,
                           const geometry_msgs::PoseStamped& endPose) const = 0;
-  void setHeader(const std::string frame);
+  void setFrameId(const std::string& frame);
 
 protected:
   std::string frame_id;

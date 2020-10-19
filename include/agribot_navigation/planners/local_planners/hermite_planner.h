@@ -17,7 +17,7 @@ class HermitePlanner : public ILocalPlanner
 {
 public:
   HermitePlanner();
-  explicit HermitePlanner(const std::string frame);
+  explicit HermitePlanner(const std::string& frame);
   ~HermitePlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const;
@@ -32,6 +32,5 @@ protected:
   double step_size;        // metres
   double magnitude_start;  // factor
   double magnitude_end;    // factor
-  CommonFunctions functions;
 };
 }  // namespace agribot_local_planner

@@ -17,23 +17,23 @@ class CirclesPlanner : public ILocalPlanner
 {
 public:
   CirclesPlanner();
-  explicit CirclesPlanner(const std::string frame);
+  explicit CirclesPlanner(const std::string& frame);
   ~CirclesPlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const;
-  void setArchRadius(const double param_arch_radius);
+  void setArcRadius(const double param_arc_radius);
   void setDeadZone(const double param_dead_zone);
   void setStepSize(const double param_step_size);
 
 protected:
   pos pCircleTangentToPathAndCircle(const pos& c2_center, const pos& endPoint, const double path_angle,
-                                    const double angle_difference, const double arch_radius,
+                                    const double angle_difference, const double arc_radius,
                                     const double dead_zone) const;
   pos pCircleTangentToVector(const pos& tangentPoint, const double vector_orientation, const double angle_difference,
-                             const double arch_radius, const double dead_zone) const;
+                             const double arc_radius, const double dead_zone) const;
   double calculatePerpendicular(const double angle_difference, const double vector_orientation, const double dead_zone,
                                 bool reverse_direction) const;
-  double calculateArchStep(const double radius, const double step_size) const;
+  double calculateArcStep(const double radius, const double step_size) const;
   bool arcPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                const pos& circle_start, const pos& circle_center, const double angle_span) const;
   bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
@@ -52,10 +52,9 @@ protected:
   pos start_c2_center;
   pos start_c1_center;
   pos start_tangent_point;
-  double arch_radius;  // metres
-  double arch_step;    // degrees
-  double dead_zone;    // degrees
-  double step_size;    // metres
-  CommonFunctions functions;
+  double arc_radius;  // metres
+  double arc_step;    // degrees
+  double dead_zone;   // degrees
+  double step_size;   // metres
 };
 }  // namespace agribot_local_planner

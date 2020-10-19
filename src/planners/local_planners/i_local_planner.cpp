@@ -6,7 +6,7 @@
 
 namespace agribot_local_planner
 {
-void ILocalPlanner::setHeader(const std::string frame)
+void ILocalPlanner::setFrameId(const std::string& frame)
 {
   frame_id = frame;
 }

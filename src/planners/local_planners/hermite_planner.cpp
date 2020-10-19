@@ -13,16 +13,15 @@ namespace agribot_local_planner
 {
 HermitePlanner::HermitePlanner() : ILocalPlanner()
 {
-  functions = CommonFunctions();
   step_size = default_step_size;
   magnitude_start = default_hermite_magnitude;
   magnitude_end = default_hermite_magnitude;
 }
 
-HermitePlanner::HermitePlanner(const std::string frame) : ILocalPlanner()
+HermitePlanner::HermitePlanner(const std::string& frame) : ILocalPlanner()
 {
   HermitePlanner();
-  setHeader(frame);
+  setFrameId(frame);
 }
 
 HermitePlanner::~HermitePlanner()
@@ -33,8 +32,8 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
                                 const geometry_msgs::PoseStamped& startPose,
                                 const geometry_msgs::PoseStamped& endPose) const
 {
-  pos startPoint = functions.pFrameFromPoseStamped(startPose);
-  pos endPoint = functions.pFrameFromPoseStamped(endPose);
+  pos startPoint = CommonFunctions::pCoordinatesFromPoseStamped(startPose);
+  pos endPoint = CommonFunctions::pCoordinatesFromPoseStamped(endPose);
 
   int path_start_index = path.size();
 
@@ -45,7 +44,7 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   }
 
   path.push_back(endPose);
-  functions.updateOrientation(path, path_start_index, path.size() - 1);
+  CommonFunctions::updateOrientationInPath(path, path_start_index, path.size() - 1);
   return true;
 }
 
@@ -89,7 +88,7 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
     double H4 = pow(t, 3) - pow(t, 2);
     point.x = H1 * start_point.x + H2 * start_derivative.x + H3 * end_point.x + H4 * end_derivative.x;
     point.y = H1 * start_point.y + H2 * start_derivative.y + H3 * end_point.y + H4 * end_derivative.y;
-    if (functions.dDistanceBetweenFrames(last_point, point) >= step_size)
+    if (CommonFunctions::dDistanceBetweenCoordinates(last_point, point) >= step_size)
     {
       last_point = point;
       pose.pose.position.x = point.x;
@@ -104,7 +103,7 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
 pos HermitePlanner::calculateDerivatives(const double angle, const double magnitude) const
 {
   pos derivative;
-  if (angle * rad_to_deg >= -45 && angle * rad_to_deg < 135)
+  if (CommonFunctions::toDegrees(angle)>= -45 && CommonFunctions::toDegrees(angle) < 135)
   {
     if (abs(tan(angle)) < abs(cot(angle)))
     {

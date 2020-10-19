@@ -12,7 +12,6 @@ namespace agribot_local_planner
 {
 AgribotPlannerROS::AgribotPlannerROS() : _xCostmapROS(NULL), _bInitialized(false)
 {
-  functions = CommonFunctions();
 }
 
 AgribotPlannerROS::~AgribotPlannerROS()
@@ -40,7 +39,7 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
 
     pnh.param("goal_distance_tolerance", param_goal_distance_tolerance, default_goal_distance_tolerance);
     pnh.param("goal_range", param_goal_range, default_goal_range);
-    pnh.param("missed_points_tollerance", param_missed_points_tollerance, default_missed_points_tolerance);
+    pnh.param("missed_points_tolerance", param_missed_points_tolerance, default_missed_points_tolerance);
 
     pnh.param("chassis_length", param_chassis_length, default_chassis_length);
     pnh.param("min_radius", param_min_radius, default_min_radius);
@@ -54,22 +53,24 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
 
     pnh.param("deviation_weight_straight", param_deviation_weight_straight, default_deviation_weight_straight);
     pnh.param("parallelness_weight_straight", param_parallelness_weight_straight, default_parallelness_weight_straight);
-    pnh.param("deviation_weight_arch", param_deviation_weight_arch, default_deviation_weight_arch);
-    pnh.param("parallelness_weight_arch", param_parallelness_weight_arch, default_parallelness_weight_arch);
+    pnh.param("deviation_weight_arc", param_deviation_weight_arc, default_deviation_weight_arc);
+    pnh.param("parallelness_weight_arc", param_parallelness_weight_arc, default_parallelness_weight_arc);
     pnh.param("epsilon", param_epsilon, default_epsilon);
 
     pnh.param("design_dead_zone", param_design_dead_zone, default_design_dead_zone);
-    pnh.param("design_arch_radius", param_design_arch_radius, default_design_arch_radius);
+    pnh.param("design_arc_radius", param_design_arc_radius, default_design_arc_radius);
     pnh.param("design_step_size", param_design_step_size, default_step_size);
     pnh.param("hermite_magnitude", param_hermite_magnitude, default_hermite_magnitude);
 
     pnh.param("odom_filter_time", param_odom_filter_time, default_odom_filter_time);
     pnh.param("missed_distance_coefficient", param_missed_distance_coefficient, default_missed_distance_coefficient);
 
-    // be sure that path planning arch radius is greater or equal to minimum turning radius
-    if (param_design_arch_radius < param_min_radius)
+    // be sure that path planning arc radius is greater or equal to minimum turning radius
+    if (param_design_arc_radius < param_min_radius)
     {
-      param_design_arch_radius = param_min_radius;
+      ROS_WARN_STREAM("[AgribotLocalPlanner] param design_arc_radius to small. Taking param_min_radius = "
+                      << param_min_radius << " instead");
+      param_design_arc_radius = param_min_radius;
     }
 
     pnh.param("speed_limit", param_speed_limit, true);
@@ -115,7 +116,7 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _xLocalPlan.clear();
 
   CirclesPlanner circles_planner = CirclesPlanner(_pRobotCenter.header.frame_id);
-  circles_planner.setArchRadius(param_design_arch_radius);
+  circles_planner.setArcRadius(param_design_arc_radius);
   circles_planner.setDeadZone(param_design_dead_zone);
   circles_planner.setStepSize(param_design_step_size);
 
@@ -178,12 +179,12 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   {
     // Check where robot is
     pos nextWaypoint = pGetWaypoint(_iWaypointCount);
-    pos lastWaypoint = functions.pFrameFromPoseStamped(xTransformPose(_pLastWaypoint));
-    pos robotCenter = functions.pFrameFromPoseStamped(xTransformPose(_pRobotCenter));
+    pos lastWaypoint = CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(_pLastWaypoint));
+    pos robotCenter = CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(_pRobotCenter));
 
     goal = nextWaypoint;
 
-    // Decide whether following straight or arch piece of path
+    // Decide whether following straight or arc piece of path
     vChooseDeviationParallelnessParametres(_iWaypointCount);
 
     // Deviation error for statistics
@@ -260,14 +261,15 @@ void AgribotPlannerROS::vChooseDeviationParallelnessParametres(int waypointNumbe
     geometry_msgs::PoseStamped lastPoseTransformed;
     lastPoseTransformed = xTransformPose(lastPose);
 
-    double current_waypoint_orientation = functions.dGetYawFromQuaternion(currentPoseTransformed.pose.orientation);
-    double last_waypoint_orientation = functions.dGetYawFromQuaternion(lastPoseTransformed.pose.orientation);
+    double current_waypoint_orientation =
+        CommonFunctions::dGetYawFromQuaternion(currentPoseTransformed.pose.orientation);
+    double last_waypoint_orientation = CommonFunctions::dGetYawFromQuaternion(lastPoseTransformed.pose.orientation);
     // check if there is difference between yaws
     if (abs(current_waypoint_orientation - last_waypoint_orientation) > param_epsilon)
     {
-      // piece of path is an arch
-      param_current_deviation_weight = param_deviation_weight_arch;
-      param_current_parallelness_weight = param_parallelness_weight_arch;
+      // piece of path is an arc
+      param_current_deviation_weight = param_deviation_weight_arc;
+      param_current_parallelness_weight = param_parallelness_weight_arc;
     }
     else
     {
@@ -297,7 +299,7 @@ double AgribotPlannerROS::dCloseToZero(double value)
 
 bool AgribotPlannerROS::bMissedTooManyWaypointsCondition(int missedWaypoints)
 {
-  return missedWaypoints > param_missed_points_tollerance;
+  return missedWaypoints > param_missed_points_tolerance;
 }
 
 bool AgribotPlannerROS::bWaypointHitCondition(const pos& robotCenter, const pos& lastWaypoint, const pos& nextWaypoint)
@@ -326,14 +328,14 @@ bool AgribotPlannerROS::bWaypointMissedCondition(const pos& robotCenter, const p
 bool AgribotPlannerROS::bTraveledDistanceBetweenWaypoints(pos robotFront, const pos& lastWaypoint,
                                                           const pos& nextWaypoint)
 {
-  double distanceWaypoints = functions.dDistanceBetweenFrames(nextWaypoint, lastWaypoint);
-  double traveledDistance = functions.dDistanceBetweenFrames(lastWaypoint, robotFront);
+  double distanceWaypoints = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, lastWaypoint);
+  double traveledDistance = CommonFunctions::dDistanceBetweenCoordinates(lastWaypoint, robotFront);
   return (traveledDistance >= distanceWaypoints - param_goal_distance_tolerance);
 }
 
 bool AgribotPlannerROS::bWithinGoalRange(pos robotFront, const pos& nextWaypoint)
 {
-  double distanceToGoal = functions.dDistanceBetweenFrames(nextWaypoint, robotFront);
+  double distanceToGoal = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, robotFront);
   return (distanceToGoal <= param_goal_distance_tolerance);
 }
 
@@ -345,14 +347,14 @@ bool AgribotPlannerROS::bIsLastWaypointInPath(int waypointsCount)
 bool AgribotPlannerROS::bCenterTraveledBeyondGoal(const pos& robotCenter, const pos& lastWaypoint,
                                                   const pos& nextWaypoint)
 {
-  double distanceWaypoints = functions.dDistanceBetweenFrames(nextWaypoint, lastWaypoint);
+  double distanceWaypoints = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, lastWaypoint);
   double traveledDistance = _dTraveledDistance - _dLastTraveledDistance;
   return (traveledDistance >= distanceWaypoints * param_missed_distance_coefficient);
 }
 
 bool AgribotPlannerROS::bCenterOutOfGoalRange(const pos& robotCenter, const pos& nextWaypoint)
 {
-  double distanceToGoal = functions.dDistanceBetweenFrames(nextWaypoint, robotCenter);
+  double distanceToGoal = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, robotCenter);
   return (distanceToGoal > param_goal_distance_tolerance);
 }
 
@@ -364,14 +366,14 @@ void AgribotPlannerROS::vTakeNextGoal(const pos& currentGoal, const pos& robotCe
   pos nextWaypoint = pGetFrame(_iWaypointCount);
   if (bIsLastWaypointInPath(_iWaypointCount + 1))
   {
-    nextWaypoint.az = functions.dAngleBetweenFrames(nextWaypoint, pGetFrame(_iWaypointCount - 1));
+    nextWaypoint.az = CommonFunctions::dAngleBetweenCoordinates(nextWaypoint, pGetFrame(_iWaypointCount - 1));
     if (param_take_front)
     {
       nextWaypoint = pCalculateRobotFrontPosition(nextWaypoint);
     }
   }
 
-  if (functions.dDistanceBetweenFrames(nextWaypoint, currentGoal) > param_chassis_length)
+  if (CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, currentGoal) > param_chassis_length)
   {
     _pLastWaypoint = _xLocalPlan[_iWaypointCount - 1];
   }
@@ -431,15 +433,15 @@ void AgribotPlannerROS::vOdomCallback(const nav_msgs::Odometry& odometry_msg)
   if (odom_time_stamp - _dLastOdomStamp > param_odom_filter_time)
   {
     _dLastOdomStamp = odom_time_stamp;
-    pos lastRobotPosition = functions.pFrameFromPoseStamped(_pRobotCenter);
+    pos lastRobotPosition = CommonFunctions::pCoordinatesFromPoseStamped(_pRobotCenter);
     geometry_msgs::PoseStamped robotPose;
 
     robotPose.header = odometry_msg.header;
     robotPose.pose = odometry_msg.pose.pose;
     _pRobotCenter = xTransformPose(robotPose);
 
-    _dTraveledDistance +=
-        functions.dDistanceBetweenFrames(lastRobotPosition, functions.pFrameFromPoseStamped(_pRobotCenter));
+    _dTraveledDistance += CommonFunctions::dDistanceBetweenCoordinates(
+        lastRobotPosition, CommonFunctions::pCoordinatesFromPoseStamped(_pRobotCenter));
   }
 }
 
@@ -498,14 +500,15 @@ geometry_msgs::Twist AgribotPlannerROS::xDeviationApproach(const pos& goal, cons
   double deviation = dCalculateDeviation(lastWaypoint, goal, robotCenter);
 
   double factorDeviation = param_current_deviation_weight * deviation / (1 + deviation);
-  double factorParallelness = param_current_parallelness_weight *
-                              (1 - fabs(cos(functions.dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az)));
-  if (functions.dLimitAngle(functions.dAngleBetweenFrames(goal, robotCenter) -
-                            functions.dAngleBetweenFrames(goal, lastWaypoint)) < 0)
+  double factorParallelness =
+      param_current_parallelness_weight *
+      (1 - fabs(cos(CommonFunctions::dAngleBetweenCoordinates(goal, lastWaypoint) - robotCenter.az)));
+  if (CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(goal, robotCenter) -
+                                   CommonFunctions::dAngleBetweenCoordinates(goal, lastWaypoint)) < 0)
   {
     factorDeviation *= -1;
   }
-  if (functions.dLimitAngle(functions.dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az) < 0)
+  if (CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(goal, lastWaypoint) - robotCenter.az) < 0)
   {
     factorParallelness *= -1;
   }
@@ -518,11 +521,11 @@ geometry_msgs::Twist AgribotPlannerROS::xLinearSpeedLimitedApproach(const pos& g
                                                                     const pos& robotCenter)
 {
   geometry_msgs::Twist velocity;
-  double distanceWaypoints = functions.dDistanceBetweenFrames(goal, lastWaypoint);
-  double distanceToNext = functions.dDistanceBetweenFrames(goal, robotCenter);
+  double distanceWaypoints = CommonFunctions::dDistanceBetweenCoordinates(goal, lastWaypoint);
+  double distanceToNext = CommonFunctions::dDistanceBetweenCoordinates(goal, robotCenter);
   double waypointsDistanceFactor = distanceWaypoints / (1 + distanceWaypoints);
   double deviation = dCalculateDeviation(lastWaypoint, goal, robotCenter);
-  double parallelnessFactor = fabs(cos(functions.dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az));
+  double parallelnessFactor = fabs(cos(CommonFunctions::dAngleBetweenCoordinates(goal, lastWaypoint) - robotCenter.az));
   double deviationFactor = 1 / (1 + deviation);
   double distanceFactor = 1 - fabs((distanceWaypoints - distanceToNext) / distanceWaypoints);
   double multiplier = (1 - deviationFactor) * (1 - distanceFactor);
@@ -555,7 +558,7 @@ pos AgribotPlannerROS::pGetFrame(int count)
   geometry_msgs::PoseStamped nextPoseTransformed;
   nextPoseTransformed = xTransformPose(nextPose);
 
-  return functions.pFrameFromPoseStamped(nextPoseTransformed);
+  return CommonFunctions::pCoordinatesFromPoseStamped(nextPoseTransformed);
 }
 
 pos AgribotPlannerROS::pGetWaypoint(int count)
@@ -565,7 +568,7 @@ pos AgribotPlannerROS::pGetWaypoint(int count)
   {
     if (count - 1 > 0)
     {
-      waypoint.az = functions.dAngleBetweenFrames(waypoint, pGetFrame(count - 1));
+      waypoint.az = CommonFunctions::dAngleBetweenCoordinates(waypoint, pGetFrame(count - 1));
     }
 
     if (param_take_front)
@@ -596,10 +599,10 @@ geometry_msgs::PoseStamped AgribotPlannerROS::xTransformPose(geometry_msgs::Pose
 
 double AgribotPlannerROS::dCalculateDeviation(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter)
 {
-  if (functions.dDistanceBetweenFrames(lastWaypoint, nextWaypoint) > 0)
+  if (CommonFunctions::dDistanceBetweenCoordinates(lastWaypoint, nextWaypoint) > 0)
   {
     pos projection = pCalculateProjection(lastWaypoint, nextWaypoint, robotCenter);
-    return functions.dDistanceBetweenFrames(robotCenter, projection);
+    return CommonFunctions::dDistanceBetweenCoordinates(robotCenter, projection);
   }
   else
   {
@@ -610,9 +613,9 @@ double AgribotPlannerROS::dCalculateDeviation(const pos& lastWaypoint, const pos
 pos AgribotPlannerROS::pCalculateProjection(const pos& lastWaypoint, const pos& nextWaypoint, const pos& robotCenter)
 {
   pos projection;
-  double a = functions.dDistanceBetweenFrames(nextWaypoint, lastWaypoint);
-  double b = functions.dDistanceBetweenFrames(lastWaypoint, robotCenter);
-  double c = functions.dDistanceBetweenFrames(nextWaypoint, robotCenter);
+  double a = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, lastWaypoint);
+  double b = CommonFunctions::dDistanceBetweenCoordinates(lastWaypoint, robotCenter);
+  double c = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, robotCenter);
   double dx = nextWaypoint.x - lastWaypoint.x;
   double dy = nextWaypoint.y - lastWaypoint.y;
   // taken from cosine law
@@ -622,7 +625,7 @@ pos AgribotPlannerROS::pCalculateProjection(const pos& lastWaypoint, const pos& 
   double ratio = (a * a + b * b - c * c) / (2 * a * a);
   projection.x = lastWaypoint.x + ratio * dx;
   projection.y = lastWaypoint.y + ratio * dy;
-  projection.az = functions.dAngleBetweenFrames(nextWaypoint, lastWaypoint);
+  projection.az = CommonFunctions::dAngleBetweenCoordinates(nextWaypoint, lastWaypoint);
   return projection;
 }
 
@@ -630,7 +633,8 @@ pos AgribotPlannerROS::pCalculateGoalRange(const pos& nextWaypoint, const pos& r
 {
   pos goalRange;
   double deltaX, deltaY;
-  double angleRobotNextWaypoint = functions.dLimitAngle(functions.dAngleBetweenFrames(nextWaypoint, robotCenter));
+  double angleRobotNextWaypoint =
+      CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(nextWaypoint, robotCenter));
 
   if (!bIsLastWaypointInPath(_iWaypointCount))
   {
@@ -645,7 +649,7 @@ pos AgribotPlannerROS::pCalculateGoalRange(const pos& nextWaypoint, const pos& r
   }
   goalRange.x = deltaX * range;
   goalRange.y = deltaY * range;
-  goalRange.az = functions.dLimitAngle(functions.dAngleBetweenFrames(nextWaypoint, goalRange));
+  goalRange.az = CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(nextWaypoint, goalRange));
 
   return goalRange;
 }
@@ -699,13 +703,13 @@ void AgribotPlannerROS::vPredictedPathVisualization(const geometry_msgs::Twist& 
 
   if (radius != 0)
   {
-    // draw arch
+    // draw arc
     geometry_msgs::Point p, tmp;
     for (int i = 0; i < param_prediction_points_per_second * param_prediction_time; i++)
     {
       double theta = i * velocity.angular.z / param_prediction_points_per_second;
-      tmp.x = radius * cos(theta - 90 * deg_to_rad) - radius * cos(-90 * deg_to_rad);
-      tmp.y = radius * sin(theta - 90 * deg_to_rad) - radius * sin(-90 * deg_to_rad);
+      tmp.x = radius * cos(theta - CommonFunctions::toRadians(90)) - radius * cos(CommonFunctions::toRadians(-90));
+      tmp.y = radius * sin(theta - CommonFunctions::toRadians(90)) - radius * sin(CommonFunctions::toRadians(-90));
 
       p.x = robotCenter.x + tmp.x * cos(robotCenter.az) - tmp.y * sin(robotCenter.az);
       p.y = robotCenter.y + tmp.x * sin(robotCenter.az) + tmp.y * cos(robotCenter.az);
