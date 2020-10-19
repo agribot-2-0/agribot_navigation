@@ -25,41 +25,41 @@ CirclesPlanner::~CirclesPlanner()
 }
 
 bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
-                                const geometry_msgs::PoseStamped& startPose,
-                                const geometry_msgs::PoseStamped& endPose) const
+                                const geometry_msgs::PoseStamped& start_pose,
+                                const geometry_msgs::PoseStamped& end_pose) const
 {
-  pos startPoint = CommonFunctions::pCoordinatesFromPoseStamped(startPose);
-  pos endPoint = CommonFunctions::pCoordinatesFromPoseStamped(endPose);
+  pos start_point = CommonFunctions::pCoordinatesFromPoseStamped(start_pose);
+  pos end_point = CommonFunctions::pCoordinatesFromPoseStamped(end_pose);
   int path_start_index = path.size();
 
-  double path_angle = CommonFunctions::dAngleBetweenCoordinates(endPoint, startPoint);
-  double reverse_path_angle = CommonFunctions::dAngleBetweenCoordinates(startPoint, endPoint);
-  double end_orientation = endPoint.az;
-  double reverse_robot_orientation = startPoint.az - M_PI;
+  double path_angle = CommonFunctions::dAngleBetweenCoordinates(end_point, start_point);
+  double reverse_path_angle = CommonFunctions::dAngleBetweenCoordinates(start_point, end_point);
+  double end_orientation = end_point.az;
+  double reverse_robot_orientation = start_point.az - M_PI;
   double end_angle_difference = CommonFunctions::dLimitAngle((end_orientation - path_angle));
   double start_angle_difference = CommonFunctions::dLimitAngle((reverse_robot_orientation - reverse_path_angle));
 
-  pos end_c2_center = pCircleTangentToVector(endPoint, end_orientation, end_angle_difference, arc_radius, dead_zone);
+  pos end_c2_center = pCircleTangentToVector(end_point, end_orientation, end_angle_difference, arc_radius, dead_zone);
   pos end_c1_center =
-      pCircleTangentToPathAndCircle(end_c2_center, endPoint, path_angle, end_angle_difference, arc_radius, dead_zone);
+      pCircleTangentToPathAndCircle(end_c2_center, end_point, path_angle, end_angle_difference, arc_radius, dead_zone);
   pos end_tangent_point =
       pCircleTangentToVector(end_c1_center, path_angle, end_angle_difference, arc_radius, dead_zone);
 
   pos start_c2_center =
-      pCircleTangentToVector(startPoint, reverse_robot_orientation, start_angle_difference, arc_radius, dead_zone);
-  pos start_c1_center = pCircleTangentToPathAndCircle(start_c2_center, startPoint, reverse_path_angle,
+      pCircleTangentToVector(start_point, reverse_robot_orientation, start_angle_difference, arc_radius, dead_zone);
+  pos start_c1_center = pCircleTangentToPathAndCircle(start_c2_center, start_point, reverse_path_angle,
                                                       start_angle_difference, arc_radius, dead_zone);
   pos start_tangent_point =
       pCircleTangentToVector(start_c1_center, reverse_path_angle, start_angle_difference, arc_radius, dead_zone);
 
-  if (!assemblePath(path, startPoint, endPoint, start_tangent_point, start_c1_center, start_c2_center,
+  if (!assemblePath(path, start_point, end_point, start_tangent_point, start_c1_center, start_c2_center,
                     end_tangent_point, end_c1_center, end_c2_center))
   {
     ROS_ERROR_STREAM("[CirclesPlanner] Failed to create plan");
     return false;
   }
 
-  path.push_back(endPose);
+  path.push_back(end_pose);
   CommonFunctions::updateOrientationInPath(path, path_start_index, path.size() - 1);
   return true;
 }
@@ -86,7 +86,7 @@ void CirclesPlanner::setStepSize(const double param_step_size)
  * as an interception of circle with radius twice as big as given radius
  * and line parallel to original path
  * distance from line and path equals given radius */
-pos CirclesPlanner::pCircleTangentToPathAndCircle(const pos& circle_center, const pos& endPoint,
+pos CirclesPlanner::pCircleTangentToPathAndCircle(const pos& circle_center, const pos& end_point,
                                                   const double path_angle, const double angle_difference,
                                                   const double arc_radius, const double dead_zone) const
 {
@@ -110,8 +110,8 @@ pos CirclesPlanner::pCircleTangentToPathAndCircle(const pos& circle_center, cons
   dy = sin(path_angle);
 
   // point laying on the parallel to the path
-  point_on_parallel.x = endPoint.x + arc_radius * cos(perpendicular);
-  point_on_parallel.y = endPoint.y + arc_radius * sin(perpendicular);
+  point_on_parallel.x = end_point.x + arc_radius * cos(perpendicular);
+  point_on_parallel.y = end_point.y + arc_radius * sin(perpendicular);
 
   // determine roots of square function - one of the roots is searched circle center
   a = dx * dx + dy * dy;
@@ -256,7 +256,7 @@ double CirclesPlanner::calculateSpanC1(const pos& tangent_point, const pos& c1_c
   return CommonFunctions::dLimitAngle(direction * (a_p1_p2 - a_p1_ps));
 }
 
-double CirclesPlanner::calculateSpanC2(const pos& endPoint, const pos& c1_center, const pos& c2_center,
+double CirclesPlanner::calculateSpanC2(const pos& end_point, const pos& c1_center, const pos& c2_center,
                                        const double angle_difference, const bool reverse_direction) const
 {
   double direction = 1.0;
@@ -265,7 +265,7 @@ double CirclesPlanner::calculateSpanC2(const pos& endPoint, const pos& c1_center
     direction = -1.0;
   }
   double a_p2_p1 = CommonFunctions::dAngleBetweenCoordinates(c1_center, c2_center);
-  double a_p2_pk = CommonFunctions::dAngleBetweenCoordinates(endPoint, c2_center);
+  double a_p2_pk = CommonFunctions::dAngleBetweenCoordinates(end_point, c2_center);
   double c2_span = direction * (a_p2_pk - a_p2_p1);
 
   /* if the final orientation relative to path is positive
@@ -288,29 +288,29 @@ double CirclesPlanner::calculateSpanC2(const pos& endPoint, const pos& c1_center
   return c2_span;
 }
 
-bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path, const pos& startPoint,
-                                  const pos& endPoint, const pos& start_tangent_point, const pos& start_c1_center,
+bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path, const pos& start_point,
+                                  const pos& end_point, const pos& start_tangent_point, const pos& start_c1_center,
                                   const pos& start_c2_center, const pos& end_tangent_point, const pos& end_c1_center,
                                   const pos& end_c2_center) const
 {
   // end_angle_difference = end_orientation - path_angle;
   double end_angle_difference =
-      CommonFunctions::dLimitAngle((endPoint.az - CommonFunctions::dAngleBetweenCoordinates(endPoint, startPoint)));
+      CommonFunctions::dLimitAngle((end_point.az - CommonFunctions::dAngleBetweenCoordinates(end_point, start_point)));
   // start_angle_difference = reverse_robot_orientation - reverse_path_angle;
   double start_angle_difference = CommonFunctions::dLimitAngle(
-      ((startPoint.az - M_PI) - CommonFunctions::dAngleBetweenCoordinates(startPoint, endPoint)));
+      ((start_point.az - M_PI) - CommonFunctions::dAngleBetweenCoordinates(start_point, end_point)));
 
   // spans for end arcs
   double end_c1_span = calculateSpanC1(end_tangent_point, end_c1_center, end_c2_center, false);
-  double end_c2_span = calculateSpanC2(endPoint, end_c1_center, end_c2_center, end_angle_difference, false);
+  double end_c2_span = calculateSpanC2(end_point, end_c1_center, end_c2_center, end_angle_difference, false);
 
   // spans for start arcs
   double start_c1_span = calculateSpanC1(start_tangent_point, start_c1_center, start_c2_center, true);
-  double start_c2_span = calculateSpanC2(startPoint, start_c1_center, start_c2_center, start_angle_difference, true);
+  double start_c2_span = calculateSpanC2(start_point, start_c1_center, start_c2_center, start_angle_difference, true);
 
-  if ((CommonFunctions::dDistanceBetweenCoordinates(startPoint, endPoint) <
-       CommonFunctions::dDistanceBetweenCoordinates(end_tangent_point, endPoint) +
-           CommonFunctions::dDistanceBetweenCoordinates(start_tangent_point, startPoint)) ||
+  if ((CommonFunctions::dDistanceBetweenCoordinates(start_point, end_point) <
+       CommonFunctions::dDistanceBetweenCoordinates(end_tangent_point, end_point) +
+           CommonFunctions::dDistanceBetweenCoordinates(start_tangent_point, start_point)) ||
       isnan(end_c2_center.x) || isnan(end_c1_center.x) || isnan(end_tangent_point.x))
   {
     ROS_ERROR_STREAM("[CirclesPlanner] Unable to create proper path");
@@ -318,7 +318,7 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   }
 
   // appednd arc from circle start_c2
-  if (!arcPath(path, startPoint, start_c2_center, start_c2_span))
+  if (!arcPath(path, start_point, start_c2_center, start_c2_span))
   {
     ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble first starting arc");
     return false;

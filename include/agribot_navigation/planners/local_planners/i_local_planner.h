@@ -19,8 +19,8 @@ class ILocalPlanner
 {
 public:
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                          const geometry_msgs::PoseStamped& startPose,
-                          const geometry_msgs::PoseStamped& endPose) const = 0;
+                          const geometry_msgs::PoseStamped& start_pose,
+                          const geometry_msgs::PoseStamped& end_pose) const = 0;
   void setFrameId(const std::string& frame);
 
 protected:

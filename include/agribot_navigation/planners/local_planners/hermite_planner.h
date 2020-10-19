@@ -20,7 +20,8 @@ public:
   explicit HermitePlanner(const std::string& frame);
   ~HermitePlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                          const geometry_msgs::PoseStamped& startPose, const geometry_msgs::PoseStamped& endPose) const;
+                          const geometry_msgs::PoseStamped& start_pose,
+                          const geometry_msgs::PoseStamped& end_pose) const;
   void setStepSize(const double param_step_size);
   void setMagnitudeStart(const double param_magnitude);
   void setMagnitudeEnd(const double param_magnitude);

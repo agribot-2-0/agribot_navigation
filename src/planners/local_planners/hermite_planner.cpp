@@ -29,11 +29,11 @@ HermitePlanner::~HermitePlanner()
 }
 
 bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
-                                const geometry_msgs::PoseStamped& startPose,
-                                const geometry_msgs::PoseStamped& endPose) const
+                                const geometry_msgs::PoseStamped& start_pose,
+                                const geometry_msgs::PoseStamped& end_pose) const
 {
-  pos startPoint = CommonFunctions::pCoordinatesFromPoseStamped(startPose);
-  pos endPoint = CommonFunctions::pCoordinatesFromPoseStamped(endPose);
+  pos startPoint = CommonFunctions::pCoordinatesFromPoseStamped(start_pose);
+  pos endPoint = CommonFunctions::pCoordinatesFromPoseStamped(end_pose);
 
   int path_start_index = path.size();
 
@@ -43,7 +43,7 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
     return false;
   }
 
-  path.push_back(endPose);
+  path.push_back(end_pose);
   CommonFunctions::updateOrientationInPath(path, path_start_index, path.size() - 1);
   return true;
 }
