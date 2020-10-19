@@ -18,7 +18,6 @@ namespace agribot_local_planner
 class ILocalPlanner
 {
 public:
-  ILocalPlanner();
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& startPose,
                           const geometry_msgs::PoseStamped& endPose) const = 0;
@@ -26,8 +25,5 @@ public:
 
 protected:
   std::string frame_id;
-  CommonFunctions functions;
-  void updateOrientation(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                         const int start_index, const int end_index) const;
 };
 }  // namespace agribot_local_planner

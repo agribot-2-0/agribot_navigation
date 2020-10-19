@@ -56,5 +56,6 @@ protected:
   double arch_step;    // degrees
   double dead_zone;    // degrees
   double step_size;    // metres
+  CommonFunctions functions;
 };
 }  // namespace agribot_local_planner

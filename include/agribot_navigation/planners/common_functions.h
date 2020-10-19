@@ -10,11 +10,11 @@
 
 #include "agribot_navigation/planners/structures.h"
 
+namespace agribot_local_planner
+{
 constexpr double deg_to_rad = (M_PI / 180);
 constexpr double rad_to_deg = (180 / M_PI);
 
-namespace agribot_local_planner
-{
 class CommonFunctions
 {
 public:
@@ -25,5 +25,7 @@ public:
   double dAngleBetweenFrames(const pos& targetFrame, const pos& currentFrame) const;
   double dDistanceBetweenFrames(const pos& targetFrame, const pos& currentFrame) const;
   pos pFrameFromPoseStamped(const geometry_msgs::PoseStamped& ps) const;
+  void updateOrientation(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                         const int start_index, const int end_index) const;
 };
 }  // namespace agribot_local_planner

@@ -13,6 +13,7 @@ namespace agribot_local_planner
 {
 HermitePlanner::HermitePlanner() : ILocalPlanner()
 {
+  functions = CommonFunctions();
   step_size = default_step_size;
   magnitude_start = default_hermite_magnitude;
   magnitude_end = default_hermite_magnitude;
@@ -44,7 +45,7 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   }
 
   path.push_back(endPose);
-  updateOrientation(path, path_start_index, path.size() - 1);
+  functions.updateOrientation(path, path_start_index, path.size() - 1);
   return true;
 }
 

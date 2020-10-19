@@ -32,5 +32,6 @@ protected:
   double step_size;        // metres
   double magnitude_start;  // factor
   double magnitude_end;    // factor
+  CommonFunctions functions;
 };
 }  // namespace agribot_local_planner

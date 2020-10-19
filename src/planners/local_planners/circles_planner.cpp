@@ -8,6 +8,7 @@ namespace agribot_local_planner
 {
 CirclesPlanner::CirclesPlanner() : ILocalPlanner()
 {
+  functions = CommonFunctions();
   dead_zone = default_design_dead_zone;
   arch_radius = default_design_arch_radius;
   step_size = default_step_size;
@@ -60,7 +61,7 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   }
 
   path.push_back(endPose);
-  updateOrientation(path, path_start_index, path.size() - 1);
+  functions.updateOrientation(path, path_start_index, path.size() - 1);
   return true;
 }
 

@@ -54,4 +54,19 @@ pos CommonFunctions::pFrameFromPoseStamped(const geometry_msgs::PoseStamped& ps)
   frame.az = dGetYawFromQuaternion(ps.pose.orientation);
   return frame;
 }
+
+void CommonFunctions::updateOrientation(std::vector<geometry_msgs::PoseStamped>& path, const int start_index,
+                                      const int end_index) const
+{
+  // add proper orientation to each point
+  for (int i = start_index; i < end_index; i++)
+  {
+    double angle = std::atan2(path[i + 1].pose.position.y - path[i].pose.position.y,
+                              path[i + 1].pose.position.x - path[i].pose.position.x);
+    path[i].pose.orientation.x = 0;
+    path[i].pose.orientation.y = 0;
+    path[i].pose.orientation.z = sin(angle / 2.0);
+    path[i].pose.orientation.w = cos(angle / 2.0);
+  }
+}
 }  // namespace agribot_local_planner
