@@ -23,6 +23,9 @@ double CommonFunctions::dGetYawFromQuaternion(const geometry_msgs::Quaternion& q
   return yaw;
 }
 
+/**
+ * Limit angles to range <-180, 180> degrees
+ */
 double CommonFunctions::dLimitAngle(double angle) const
 {
   if (angle > 180 * deg_to_rad)
