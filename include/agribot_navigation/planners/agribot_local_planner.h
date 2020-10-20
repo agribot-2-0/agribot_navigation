@@ -21,6 +21,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include "agribot_navigation/planners/structures.h"
 #include "agribot_navigation/planners/common_functions.h"
@@ -60,6 +61,7 @@ private:
   visualization_msgs::Marker _traveled_points;
   geometry_msgs::PoseStamped _robot_center;   // present robot center frame
   geometry_msgs::PoseStamped _last_waypoint;  // last target frame
+  std::unordered_map<std::string, ILocalPlanner*> planners;
   // keeps track of the number of ommited frames
   int _missed_waypoints_count;
   // keeps track of the number for the next frame in the global plan
