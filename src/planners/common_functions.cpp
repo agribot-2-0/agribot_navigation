@@ -66,4 +66,26 @@ void updateOrientationInPath(std::vector<geometry_msgs::PoseStamped>& path,  // 
     path[i].pose.orientation.w = cos(angle / 2.0);
   }
 }
+
+agribot_local_planner::pos pCalculateProjection(agribot_local_planner::pos lastWaypoint,
+                                                agribot_local_planner::pos nextWaypoint,
+                                                agribot_local_planner::pos robotCenter)
+{
+  agribot_local_planner::pos projection;
+  double a = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, lastWaypoint);
+  double b = CommonFunctions::dDistanceBetweenCoordinates(lastWaypoint, robotCenter);
+  double c = CommonFunctions::dDistanceBetweenCoordinates(nextWaypoint, robotCenter);
+  double dx = nextWaypoint.x - lastWaypoint.x;
+  double dy = nextWaypoint.y - lastWaypoint.y;
+  // taken from cosine law
+  // cosine = (a*a + b*b - c*c) / (2*a*b)
+  // a1 = b * cosine
+  // ratio = a1 / a
+  double ratio = (a * a + b * b - c * c) / (2 * a * a);
+  projection.x = lastWaypoint.x + ratio * dx;
+  projection.y = lastWaypoint.y + ratio * dy;
+  projection.az = CommonFunctions::dAngleBetweenCoordinates(nextWaypoint, lastWaypoint);
+  return projection;
+}
+
 }  // namespace CommonFunctions
