@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
 #include "agribot_navigation/planners/structures.h"
 #include "agribot_navigation/planners/common_functions.h"
@@ -61,7 +62,7 @@ private:
   visualization_msgs::Marker _traveled_points;
   geometry_msgs::PoseStamped _robot_center;   // present robot center frame
   geometry_msgs::PoseStamped _last_waypoint;  // last target frame
-  std::unordered_map<std::string, ILocalPlanner*> planners;
+  std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners;
   // keeps track of the number of ommited frames
   int _missed_waypoints_count;
   // keeps track of the number for the next frame in the global plan
@@ -109,7 +110,7 @@ private:
 
   bool xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                         const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
-                        ILocalPlanner* const planner);
+                        const std::unique_ptr<ILocalPlanner>& planner);
 
   void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
   void createPlanners();

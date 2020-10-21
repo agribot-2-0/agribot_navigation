@@ -117,9 +117,7 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _plan = orig_global_plan;
   _local_plan.clear();
 
-  ILocalPlanner* planner_ptr = planners["circles"];
-
-  if (!xDesignLocalPath(_local_plan, _robot_center, _plan.back(), planner_ptr))
+  if (!xDesignLocalPath(_local_plan, _robot_center, _plan.back(), planners["circles"]))
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Local planner unable to create path ");
     return false;
@@ -151,22 +149,23 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
 
 void AgribotPlannerROS::createPlanners()
 {
-  CirclesPlanner* circles_planner = new CirclesPlanner(_robot_center.header.frame_id);
+  auto circles_planner = std::make_unique<CirclesPlanner>(_robot_center.header.frame_id);
   circles_planner->setArcRadius(default_design_arc_radius);
   circles_planner->setDeadZone(default_design_dead_zone);
   circles_planner->setStepSize(default_step_size);
-  planners["circles"] = circles_planner;
+  planners["circles"] = std::move(circles_planner);
 
-  HermitePlanner* hermite_planner = new HermitePlanner(_robot_center.header.frame_id);
+  auto hermite_planner = std::make_unique<HermitePlanner>(_robot_center.header.frame_id);
   hermite_planner->setStepSize(default_step_size);
   hermite_planner->setMagnitudeStart(default_hermite_magnitude);
   hermite_planner->setMagnitudeEnd(default_hermite_magnitude);
-  planners["hermite"] = hermite_planner;
+  planners["hermite"] = std::move(hermite_planner);
 }
 
 bool AgribotPlannerROS::xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,
                                          const geometry_msgs::PoseStamped& start_pose,
-                                         const geometry_msgs::PoseStamped& end_pose, ILocalPlanner* const planner)
+                                         const geometry_msgs::PoseStamped& end_pose,
+                                         const std::unique_ptr<ILocalPlanner>& planner)
 {
   return planner->designPath(path, start_pose, end_pose);
 }
