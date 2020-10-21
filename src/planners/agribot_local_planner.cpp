@@ -12,17 +12,6 @@ namespace agribot_local_planner
 {
 AgribotPlannerROS::AgribotPlannerROS() : _costmap_ros(NULL), _initialized(false)
 {
-  CirclesPlanner* circles_planner = new CirclesPlanner(_robot_center.header.frame_id);
-  circles_planner->setArcRadius(default_design_arc_radius);
-  circles_planner->setDeadZone(default_design_dead_zone);
-  circles_planner->setStepSize(default_step_size);
-  planners["circles"] = circles_planner;
-
-  HermitePlanner* hermite_planner = new HermitePlanner(_robot_center.header.frame_id);
-  hermite_planner->setStepSize(default_step_size);
-  hermite_planner->setMagnitudeStart(default_hermite_magnitude);
-  hermite_planner->setMagnitudeEnd(default_hermite_magnitude);
-  planners["hermite"] = hermite_planner;
 }
 
 AgribotPlannerROS::~AgribotPlannerROS()
@@ -92,6 +81,8 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     _robot_center.header.frame_id = "odom";
     _last_waypoint.header.frame_id = "odom";
 
+    createPlanners();
+
     _initialized = true;
 
     if (param_statistics)
@@ -156,6 +147,21 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   }
 
   return true;
+}
+
+void AgribotPlannerROS::createPlanners()
+{
+  CirclesPlanner* circles_planner = new CirclesPlanner(_robot_center.header.frame_id);
+  circles_planner->setArcRadius(default_design_arc_radius);
+  circles_planner->setDeadZone(default_design_dead_zone);
+  circles_planner->setStepSize(default_step_size);
+  planners["circles"] = circles_planner;
+
+  HermitePlanner* hermite_planner = new HermitePlanner(_robot_center.header.frame_id);
+  hermite_planner->setStepSize(default_step_size);
+  hermite_planner->setMagnitudeStart(default_hermite_magnitude);
+  hermite_planner->setMagnitudeEnd(default_hermite_magnitude);
+  planners["hermite"] = hermite_planner;
 }
 
 bool AgribotPlannerROS::xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,

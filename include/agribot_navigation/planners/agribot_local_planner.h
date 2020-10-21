@@ -112,6 +112,7 @@ private:
                         ILocalPlanner* const planner);
 
   void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
+  void createPlanners();
   pos pCalculateRobotFrontPosition(const pos& robot_center);
   pos pGetFrame(int count);
   pos pGetWaypoint(int count);
