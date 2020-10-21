@@ -108,10 +108,6 @@ private:
   bool param_statistics;
   bool param_take_front;
 
-  bool xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                        const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
-                        const std::unique_ptr<ILocalPlanner>& planner);
-
   void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
   void createPlanners();
   pos pCalculateRobotFrontPosition(const pos& robot_center);

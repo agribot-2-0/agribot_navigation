@@ -117,7 +117,7 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   _plan = orig_global_plan;
   _local_plan.clear();
 
-  if (!xDesignLocalPath(_local_plan, _robot_center, _plan.back(), planners["circles"]))
+  if (!planners["circles"]->designPath(_local_plan, _robot_center, _plan.back()))
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Local planner unable to create path ");
     return false;
@@ -160,14 +160,6 @@ void AgribotPlannerROS::createPlanners()
   hermite_planner->setMagnitudeStart(default_hermite_magnitude);
   hermite_planner->setMagnitudeEnd(default_hermite_magnitude);
   planners["hermite"] = std::move(hermite_planner);
-}
-
-bool AgribotPlannerROS::xDesignLocalPath(std::vector<geometry_msgs::PoseStamped>& path,
-                                         const geometry_msgs::PoseStamped& start_pose,
-                                         const geometry_msgs::PoseStamped& end_pose,
-                                         const std::unique_ptr<ILocalPlanner>& planner)
-{
-  return planner->designPath(path, start_pose, end_pose);
 }
 
 bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
