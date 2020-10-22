@@ -37,7 +37,6 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   pos startPoint = CommonFunctions::pCoordinatesFromPoseStamped(start_pose);
   pos endPoint = CommonFunctions::pCoordinatesFromPoseStamped(end_pose);
 
-
   int path_start_index = path.size();
 
   double start_magnitude = calculateMagnitude(startPoint, endPoint, base_magnitude_start, true);
@@ -66,11 +65,11 @@ double HermitePlanner::calculateMagnitude(const pos& start, const pos& end, cons
   double start_angle_difference = CommonFunctions::dLimitAngle((path_angle - start.az));
   if (calculate_front)
   {
-    magnitude *= (M_PI - tangent_coefficient *  atan(M_PI - start_angle_difference));
+    magnitude *= (M_PI - tangent_coefficient * atan(M_PI - start_angle_difference));
   }
   else
   {
-    magnitude *= (M_PI - tangent_coefficient *  atan(M_PI - end_angle_difference));
+    magnitude *= (M_PI - tangent_coefficient * atan(M_PI - end_angle_difference));
   }
   return magnitude;
 }
