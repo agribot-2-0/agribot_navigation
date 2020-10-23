@@ -31,7 +31,7 @@ protected:
                    const pos& start_point, const pos& end_point, double m_start, double m_end) const;
   pos calculateDerivatives(const double angle, const double magnitude) const;
   double calculateMagnitude(const pos& start, const pos& end, const double base_magnitude,
-                            const bool calculate_front) const;
+                            const bool calculate_start) const;
   double step_size;             // metres
   double base_magnitude_start;  // factor
   double base_magnitude_end;    // factor
