@@ -44,69 +44,69 @@ public:
   bool isGoalReached();
 
 private:
-  costmap_2d::Costmap2DROS* _costmap_ros;
-  tf2_ros::Buffer* _tf_buffer;
-  tf2_ros::TransformListener* _tf_listener;
-  ros::Subscriber _odom_sub;
-  ros::Publisher _path_pub;
-  ros::Publisher _predicted_path_pub;
-  ros::Publisher _goal_range_pub;
-  ros::Publisher _next_goal_pub;
-  ros::Publisher _local_path_pub;
+  costmap_2d::Costmap2DROS* costmap_ros_;
+  tf2_ros::Buffer* tf_buffer_;
+  tf2_ros::TransformListener* tf_listener_;
+  ros::Subscriber odom_sub_;
+  ros::Publisher path_pub_;
+  ros::Publisher predicted_path_pub_;
+  ros::Publisher goal_range_pub_;
+  ros::Publisher next_goal_pub_;
+  ros::Publisher local_path_pub_;
   // contains the global plan
-  std::vector<geometry_msgs::PoseStamped> _plan;
-  std::vector<geometry_msgs::PoseStamped> _local_plan;
-  std::vector<geometry_msgs::PoseStamped> _display_plan;
-  nav_msgs::Path _local_path;
-  geometry_msgs::Twist _velocities;  // contains the velocity
-  visualization_msgs::Marker _traveled_points;
-  geometry_msgs::PoseStamped _robot_center;   // present robot center frame
-  geometry_msgs::PoseStamped _last_waypoint;  // last target frame
-  std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners;
+  std::vector<geometry_msgs::PoseStamped> plan_;
+  std::vector<geometry_msgs::PoseStamped> local_plan_;
+  std::vector<geometry_msgs::PoseStamped> display_plan_;
+  nav_msgs::Path local_path_;
+  geometry_msgs::Twist velocities_;  // contains the velocity
+  visualization_msgs::Marker traveled_points_;
+  geometry_msgs::PoseStamped robot_center_;   // present robot center frame
+  geometry_msgs::PoseStamped last_waypoint_;  // last target frame
+  std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
   // keeps track of the number of ommited frames
-  int _missed_waypoints_count;
+  int missed_waypoints_count_;
   // keeps track of the number for the next frame in the global plan
-  int _waypoint_count;
-  bool _goal_reached;
-  bool _initialized;
+  int waypoint_count_;
+  bool goal_reached_;
+  bool initialized_;
   // time measuring for statistics
-  double _stop_time, _start_time, _dlast_time, _actual_time;
-  double _last_odom_stamp;
+  double stop_time_, start_time_, last_time_, actual_time_;
+  double last_odom_stamp_;
   // deviation measuring for statistics
-  double _deviation_integral;
-  double _traveled_distance;
-  double _last_traveled_distance;
-  bool _abort_executing;
+  double deviation_integral_;
+  double traveled_distance_;
+  double last_traveled_distance_;
+  bool abort_executing_;
   // params
-  int param_missed_points_tolerance;          // n
-  int param_prediction_time;                  // seconds
-  int param_prediction_points_per_second;     // n/second
-  double param_goal_distance_tolerance;       // metres
-  double param_goal_range;                    // factor
-  double param_chassis_length;                // metres
-  double param_min_radius;                    // metres
-  double param_dead_zone;                     // degrees
-  double param_max_linear_vel;                // m/s
-  double param_min_linear_vel;                // m/s
-  double param_current_deviation_weight;      // factor
-  double param_current_parallelness_weight;   // factor
-  double param_deviation_weight_straight;     // factor
-  double param_parallelness_weight_straight;  // factor
-  double param_deviation_weight_arc;          // factor
-  double param_parallelness_weight_arc;       // factor
-  double param_epsilon;                       // unitless
+  int param_missed_points_tolerance_;          // n
+  int param_prediction_time_;                  // seconds
+  int param_prediction_points_per_second_;     // n/second
+  double param_goal_distance_tolerance_;       // metres
+  double param_goal_range_;                    // factor
+  double param_chassis_length_;                // metres
+  double param_min_radius_;                    // metres
+  double param_dead_zone_;                     // degrees
+  double param_max_linear_vel_;                // m/s
+  double param_min_linear_vel_;                // m/s
+  double param_current_deviation_weight_;      // factor
+  double param_current_parallelness_weight_;   // factor
+  double param_deviation_weight_straight_;     // factor
+  double param_parallelness_weight_straight_;  // factor
+  double param_deviation_weight_arc_;          // factor
+  double param_parallelness_weight_arc_;       // factor
+  double param_epsilon_;                       // unitless
 
-  double param_design_dead_zone;             // degrees
-  double param_design_arc_radius;            // metres
-  double param_design_step_size;             // metres
-  double param_hermite_magnitude;            // factor
-  double param_odom_filter_time;             // seconds
-  double param_missed_distance_coefficient;  // factor >1
+  double param_design_dead_zone_;             // degrees
+  double param_design_arc_radius_;            // metres
+  double param_design_step_size_;             // metres
+  double param_hermite_magnitude_;            // factor
+  double param_odom_filter_time_;             // seconds
+  double param_missed_distance_coefficient_;  // factor >1
 
-  bool param_speed_limit;
-  bool param_debug;
-  bool param_statistics;
-  bool param_take_front;
+  bool param_speed_limit_;
+  bool param_debug_;
+  bool param_statistics_;
+  bool param_take_front_;
 
   void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
   void createPlanners();
