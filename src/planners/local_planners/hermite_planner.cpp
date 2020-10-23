@@ -146,7 +146,7 @@ pos HermitePlanner::calculateDerivatives(const double angle, const double magnit
   }
 
   // take negative derivatives for angles between 135 and -45 (315) degrees
-  if (CommonFunctions::toDegrees(angle) >= -45 && CommonFunctions::toDegrees(angle) < 135)
+  if (CommonFunctions::toDegrees(angle) < -45 || CommonFunctions::toDegrees(angle) > 135)
   {
     derivative.x *= -1;
     derivative.y *= -1;
