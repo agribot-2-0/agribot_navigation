@@ -4,10 +4,6 @@
 
 #include "agribot_navigation/planners/local_planners/hermite_planner.h"
 
-constexpr double cot(double alfa)
-{
-  return 1.0 / tan(alfa);
-}
 constexpr double distance_power_coefficient = 0.25;
 constexpr double tangent_coefficient = 1.8;
 
@@ -134,14 +130,14 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
 pos HermitePlanner::calculateDerivatives(const double angle, const double magnitude) const
 {
   pos derivative;
-  if (abs(tan(angle)) < abs(cot(angle)))
+  if (abs(tan(angle)) < abs(CommonFunctions::cot(angle)))
   {
     derivative.x = magnitude;
     derivative.y = magnitude * tan(angle);
   }
   else
   {
-    derivative.x = magnitude * cot(angle);
+    derivative.x = magnitude * CommonFunctions::cot(angle);
     derivative.y = magnitude;
   }
 
