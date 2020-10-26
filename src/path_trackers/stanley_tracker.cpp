@@ -2,21 +2,21 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include "agribot_navigation/path_trackers/pure_pursuit_tracker.h"
+#include "agribot_navigation/path_trackers/stanley_tracker.h"
 
 namespace agribot_path_trackers
 {
-PurePursuitTracker::PurePursuitTracker() : IPathTracker()
+StanleyTracker::StanleyTracker() : IPathTracker()
 {
 }
 
-PurePursuitTracker::~PurePursuitTracker()
+StanleyTracker::~StanleyTracker()
 {
 }
 
-bool PurePursuitTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
-                                        const std::vector<geometry_msgs::PoseStamped>& path_to_track,
-                                        const geometry_msgs::PoseStamped& robot_pose)
+bool StanleyTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
+                                    const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                                    const geometry_msgs::PoseStamped& robot_pose)
 {
   geometry_msgs::Twist cmd_vel_tmp;
   double vf = 0.5;
