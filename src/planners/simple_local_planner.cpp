@@ -353,7 +353,7 @@ geometry_msgs::Twist SimplePlannerROS::xFinishedPathBehaviour()
   if (param_statistics)
   {
     _dStopTime = ros::Time::now().toSec();
-    ROS_INFO("[SimplePlanner] T = %f;l¸= %f;Er = %f;n = %d;x = %d", _dStopTime - _dStartTime, _dTraveledDistance,
+    ROS_INFO("[SimplePlanner] T = %f;lÂ¸= %f;Er = %f;n = %d;x = %d", _dStopTime - _dStartTime, _dTraveledDistance,
              _dDeviationIntegral, _iWaypointCount, _iMissedWaypointsCount);
   }
   return xStopRobot();
