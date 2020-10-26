@@ -22,14 +22,15 @@ bool PurePursuitTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLIN
   double vf = 0.5;
   double k = 0.1;
 
-  pos next_waypoint = pFrameFromPoseStamped(path_to_track[-1]);
-  pos last_waypoint = pFrameFromPoseStamped(path_to_track[0]);
-  pos robot_center_base_footprint = pFrameFromPoseStamped(robot_pose);
+  agribot_local_planner::pos next_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track[-1]);
+  agribot_local_planner::pos last_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track[0]);
+  agribot_local_planner::pos robot_center_base_footprint = CommonFunctions::pCoordinatesFromPoseStamped(robot_pose);
 
-  pos projection = pCalculateProjection(last_waypoint, next_waypoint, robot_center_base_footprint);
+  agribot_local_planner::pos projection =
+      CommonFunctions::pCalculateProjection(last_waypoint, next_waypoint, robot_center_base_footprint);
   // projection.az = dAngleBetweenFrames(goal_pose, lastWaypoint);
   // vNextGoalVisualization(projection);
-  double error = dDistanceBetweenFrames(robot_center_base_footprint, projection);
+  double error = CommonFunctions::dDistanceBetweenCoordinates(robot_center_base_footprint, projection);
   double angle = projection.az - robot_center_base_footprint.az;
   double crosstrack_factor = atan2(k * error, vf);
   if (angle < 0)

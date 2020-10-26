@@ -30,5 +30,8 @@ double dDistanceBetweenCoordinates(const agribot_local_planner::pos& targetFrame
 agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::PoseStamped& ps);
 void updateOrientationInPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                              const int start_index, const int end_index);
+agribot_local_planner::pos pCalculateProjection(const agribot_local_planner::pos& lastWaypoint,
+                                                const agribot_local_planner::pos& nextWaypoint,
+                                                const agribot_local_planner::pos& robotCenter);
 
 }  // namespace CommonFunctions
