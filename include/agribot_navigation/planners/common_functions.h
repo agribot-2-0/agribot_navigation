@@ -13,11 +13,15 @@
 
 namespace CommonFunctions
 {
-inline double toRadians(double degrees)
+constexpr double cot(double alfa)
+{
+  return 1.0 / tan(alfa);
+}
+constexpr double toRadians(double degrees)
 {
   return degrees * (M_PI / 180);
 }
-inline double toDegrees(double radians)
+constexpr double toDegrees(double radians)
 {
   return radians * (180 / M_PI);
 }
