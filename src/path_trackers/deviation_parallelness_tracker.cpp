@@ -8,51 +8,205 @@ namespace agribot_path_trackers
 {
 DeviationParallelnessTracker::DeviationParallelnessTracker() : IPathTracker()
 {
+  param_epsilon = default_epsilon;
+  param_max_linear_vel = default_max_linear_vel;
+  param_min_linear_vel = default_min_linear_vel;
+  param_min_radius = default_min_radius;
+  param_current_deviation_weight = default_deviation_weight_straight;
+  param_current_parallelness_weight = default_parallelness_weight_straight;
+  param_speed_limit = true;
 }
 
 DeviationParallelnessTracker::~DeviationParallelnessTracker()
 {
 }
 
+void DeviationParallelnessTracker::setSpeedLimiting(bool limiting)
+{
+  param_speed_limit = limiting;
+}
+
+void DeviationParallelnessTracker::setParallelnessWeight(double parallelness_weight)
+{
+  param_current_parallelness_weight = parallelness_weight;
+}
+
+void DeviationParallelnessTracker::setDeviationWeight(double deviation_weight)
+{
+  param_current_deviation_weight = deviation_weight;
+}
+
+void DeviationParallelnessTracker::setMinRadius(double min_radius)
+{
+  param_min_radius = min_radius;
+}
+
+void DeviationParallelnessTracker::setMaxLinearVelocity(double max_velocity)
+{
+  param_max_linear_vel = max_velocity;
+}
+
+void DeviationParallelnessTracker::setMinLinearVelocity(double min_velocity)
+{
+  param_max_linear_vel = min_velocity;
+}
+
+void DeviationParallelnessTracker::setEpsilon(double epsilon)
+{
+  param_epsilon = epsilon;
+}
+
 bool DeviationParallelnessTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                                                   const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                                   const geometry_msgs::PoseStamped& robot_pose)
 {
-  geometry_msgs::Twist cmd_vel_tmp;
-  double vf = 0.3;
-  double r = 0.16;
-  double l = 1.21;
-  double k = 10;
-  uint rabbit_count = 0;
-
-  agribot_local_planner::pos rabbit_pos = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track[rabbit_count]);
-  agribot_local_planner::pos robot_center_base_footprint = CommonFunctions::pCoordinatesFromPoseStamped(robot_pose);
-
-  if (CommonFunctions::dDistanceBetweenCoordinates(rabbit_pos, robot_center_base_footprint) < 5.0)
+  if (path_to_track.size() < 2)
   {
-    rabbit_count++;
-    if (rabbit_count >= path_to_track.size())
-      rabbit_count = path_to_track.size() - 1;
-  }
-  double alpha = CommonFunctions::dAngleBetweenCoordinates(rabbit_pos, robot_center_base_footprint);
-
-  double ld = CommonFunctions::dDistanceBetweenCoordinates(rabbit_pos, robot_center_base_footprint);
-  double theta = asin(2 * sin(alpha) / k / vf);
-
-  if (isnan(theta))
-  {
-    theta = 0.0;
+    ROS_ERROR("[DeviationParallelnessController] Plan to track too short, cannot compute velocity");
+    return false;
   }
 
-  cmd_vel.linear.x = vf;
-  cmd_vel.angular.z = sin(theta) * vf;
-  // ROS_INFO_STREAM("goal_pose x " << goal_pose.x << " goal_pose y " << goal_pose.y << " goal_pose az " <<
-  // goal_pose.az); ROS_INFO_STREAM("robot_pose x " << robot_pose.x << " robot_pose y " << robot_pose.y << "
-  // robot_pose
-  // az "
-  //                                 << robot_pose.az);
-  ROS_INFO_STREAM("pure theta " << theta);
-  ROS_INFO_STREAM("pure angular " << cmd_vel.angular.z);
+  agribot_local_planner::pos next_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track.back());
+  agribot_local_planner::pos last_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track.front());
+  agribot_local_planner::pos robot_center = CommonFunctions::pCoordinatesFromPoseStamped(robot_pose);
+
+  xSetVel(next_waypoint, last_waypoint, robot_center, cmd_vel);
+
   return true;
 }
+
+double DeviationParallelnessTracker::dCloseToZero(double value)
+{
+  if (fabs(value) < param_epsilon)
+  {
+    return 0.0;
+  }
+  else
+  {
+    return value;
+  }
+}
+
+void DeviationParallelnessTracker::xSetVel(const agribot_local_planner::pos& next_waypoint,
+                                           const agribot_local_planner::pos& last_waypoint,
+                                           const agribot_local_planner::pos& robot_center,
+                                           geometry_msgs::Twist& velocity)
+{
+  if (param_speed_limit)
+  {
+    xLinearSpeedLimitedApproach(next_waypoint, last_waypoint, robot_center, velocity);
+  }
+  else
+  {
+    velocity.linear.x = param_max_linear_vel;
+  }
+
+  xDeviationApproach(next_waypoint, last_waypoint, robot_center, velocity);
+
+  // Velocity limiter
+  xLimitVelocities(velocity);
+}
+
+void DeviationParallelnessTracker::xLimitVelocities(geometry_msgs::Twist& velocities)
+{
+  if (velocities.linear.x > param_max_linear_vel)
+  {
+    velocities.linear.x = param_max_linear_vel;
+  }
+  if (velocities.linear.x < param_min_linear_vel)
+  {
+    velocities.linear.x = param_min_linear_vel;
+  }
+  if (velocities.angular.z > velocities.linear.x / param_min_radius)
+  {
+    velocities.angular.z = velocities.linear.x / param_min_radius;
+  }
+  if (velocities.angular.z < -velocities.linear.x / param_min_radius)
+  {
+    velocities.angular.z = -velocities.linear.x / param_min_radius;
+  }
+}
+
+void DeviationParallelnessTracker::xDeviationApproach(const agribot_local_planner::pos& next_waypoint,
+                                                      const agribot_local_planner::pos& last_waypoint,
+                                                      const agribot_local_planner::pos& robot_center,
+                                                      geometry_msgs::Twist& velocity)
+{
+  double deviation = dCalculateDeviation(last_waypoint, next_waypoint, robot_center);
+
+  double factorDeviation = param_current_deviation_weight * deviation / (1 + deviation);
+
+  double factorParallelness =
+      param_current_parallelness_weight * (1 - dCalculateParallelness(last_waypoint, next_waypoint, robot_center));
+
+  if (CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(next_waypoint, robot_center) -
+                                   CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint)) < 0)
+  {
+    factorDeviation *= -1;
+  }
+
+  if (CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint) -
+                                   robot_center.az) < 0)
+  {
+    factorParallelness *= -1;
+  }
+
+  velocity.angular.z = (factorDeviation + factorParallelness) * param_max_linear_vel / param_min_radius;
+}
+
+void DeviationParallelnessTracker::xLinearSpeedLimitedApproach(const agribot_local_planner::pos& next_waypoint,
+                                                               const agribot_local_planner::pos& last_waypoint,
+                                                               const agribot_local_planner::pos& robot_center,
+                                                               geometry_msgs::Twist& velocity)
+{
+  double deviation = dCalculateDeviation(last_waypoint, next_waypoint, robot_center);
+  double deviationFactor = 1 / (1 + deviation);
+
+  double distanceWaypoints = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, last_waypoint);
+  double distanceToNext = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, robot_center);
+  double distanceFactor = 1 - fabs((distanceWaypoints - distanceToNext) / distanceWaypoints);
+  double waypointsDistanceFactor = distanceWaypoints / (1 + distanceWaypoints);
+
+  double parallelnessFactor = dCalculateParallelness(last_waypoint, next_waypoint, robot_center);
+
+  double multiplier = (1 - deviationFactor) * (1 - distanceFactor);
+
+  velocity.linear.x =
+      param_max_linear_vel * (deviationFactor * (1 - multiplier)) * waypointsDistanceFactor * parallelnessFactor;
+  if (isnan(velocity.linear.x))
+  {
+    velocity.linear.x = 0.0;
+  }
+}
+
+void DeviationParallelnessTracker::xStopRobot(geometry_msgs::Twist& velocity)
+{
+  velocity.linear.x = 0.0;
+  velocity.linear.y = 0.0;
+  velocity.angular.z = 0.0;
+}
+
+double DeviationParallelnessTracker::dCalculateDeviation(const agribot_local_planner::pos& last_waypoint,
+                                                         const agribot_local_planner::pos& next_waypoint,
+                                                         const agribot_local_planner::pos& robot_center)
+{
+  if (CommonFunctions::dDistanceBetweenCoordinates(last_waypoint, next_waypoint) > 0)
+  {
+    agribot_local_planner::pos projection =
+        CommonFunctions::pCalculateProjection(last_waypoint, next_waypoint, robot_center);
+    return CommonFunctions::dDistanceBetweenCoordinates(robot_center, projection);
+  }
+  else
+  {
+    return 0.0;
+  }
+}
+
+double DeviationParallelnessTracker::dCalculateParallelness(const agribot_local_planner::pos& last_waypoint,
+                                                            const agribot_local_planner::pos& next_waypoint,
+                                                            const agribot_local_planner::pos& robot_center)
+{
+  return fabs(cos(CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint) - robot_center.az));
+}
+
 }  // namespace agribot_path_trackers
