@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "agribot_navigation/planners/common_functions.h"
+
 namespace agribot_path_trackers
 {
 class IPathTracker
