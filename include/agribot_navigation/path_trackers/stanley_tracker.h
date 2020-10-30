@@ -22,5 +22,13 @@ public:
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
+  void setVelocityLinear(const double velocity);
+  void setErrorGain(const double gain);
+  void setThetaLimit(const double limit);
+
+private:
+  double lin_vel_;
+  double error_gain_;
+  double theta_limit_;
 };
 }  // namespace agribot_path_trackers
