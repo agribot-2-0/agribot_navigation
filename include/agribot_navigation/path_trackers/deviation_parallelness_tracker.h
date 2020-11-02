@@ -8,9 +8,9 @@
 #include <vector>
 
 #include "agribot_navigation/path_trackers/i_path_tracker.h"
-#include "agribot_navigation/planners/structures.h"
-#include "agribot_navigation/planners/default_values.h"
-#include "agribot_navigation/planners/common_functions.h"
+#include "agribot_navigation/common/structures.h"
+#include "agribot_navigation/common/default_values.h"
+#include "agribot_navigation/common/common_functions.h"
 
 namespace agribot_path_trackers
 {

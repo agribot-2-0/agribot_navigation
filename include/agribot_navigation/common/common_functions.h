@@ -9,8 +9,8 @@
 #include <cmath>
 #include <vector>
 
-#include "agribot_navigation/planners/default_values.h"
-#include "agribot_navigation/planners/structures.h"
+#include "agribot_navigation/common/default_values.h"
+#include "agribot_navigation/common/structures.h"
 
 namespace CommonFunctions
 {

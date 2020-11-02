@@ -9,9 +9,9 @@
 #include <vector>
 #include <string>
 
-#include "agribot_navigation/planners/structures.h"
-#include "agribot_navigation/planners/common_functions.h"
-#include "agribot_navigation/planners/default_values.h"
+#include "agribot_navigation/common/structures.h"
+#include "agribot_navigation/common/common_functions.h"
+#include "agribot_navigation/common/default_values.h"
 
 namespace agribot_local_planner
 {

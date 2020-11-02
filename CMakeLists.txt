@@ -157,7 +157,7 @@ add_library(simple_local_planner
 )
 
 add_library(common_functions
-  src/planners/common_functions.cpp
+  src/common/common_functions.cpp
 )
 
 add_library(i_local_planner
@@ -174,7 +174,7 @@ add_library(hermite_planner
 
 add_library(agribot_local_planner
   src/planners/agribot_local_planner.cpp
-  src/planners/common_functions.cpp
+  src/common/common_functions.cpp
   src/planners/local_planners/i_local_planner.cpp
   src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp

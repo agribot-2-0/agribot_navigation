@@ -22,12 +22,12 @@
 #include <string>
 #include <vector>
 
-#include "agribot_navigation/planners/structures.h"
-#include "agribot_navigation/planners/common_functions.h"
+#include "agribot_navigation/common/structures.h"
+#include "agribot_navigation/common/common_functions.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
 #include "agribot_navigation/planners/local_planners/circles_planner.h"
 #include "agribot_navigation/planners/local_planners/hermite_planner.h"
-#include "agribot_navigation/planners/default_values.h"
+#include "agribot_navigation/common/default_values.h"
 
 namespace agribot_local_planner
 {

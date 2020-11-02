@@ -2,7 +2,7 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include "agribot_navigation/planners/common_functions.h"
+#include "agribot_navigation/common/common_functions.h"
 
 namespace CommonFunctions
 {
