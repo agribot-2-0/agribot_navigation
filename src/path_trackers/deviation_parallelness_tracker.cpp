@@ -158,23 +158,28 @@ void DeviationParallelnessTracker::xLinearSpeedLimitedApproach(geometry_msgs::Tw
                                                                const agribot_local_planner::pos& last_waypoint,
                                                                const agribot_local_planner::pos& robot_center)
 {
-  double deviation = dCalculateDeviation(last_waypoint, next_waypoint, robot_center);
-  double deviationFactor = 1 / (1 + deviation);
-
-  double distanceWaypoints = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, last_waypoint);
-  double distanceToNext = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, robot_center);
-  double distanceFactor = 1 - fabs((distanceWaypoints - distanceToNext) / distanceWaypoints);
-  double waypointsDistanceFactor = distanceWaypoints / (1 + distanceWaypoints);
-
-  double parallelnessFactor = dCalculateParallelness(last_waypoint, next_waypoint, robot_center);
-
-  double multiplier = (1 - deviationFactor) * (1 - distanceFactor);
-
-  velocity.linear.x =
-      param_max_linear_vel * (deviationFactor * (1 - multiplier)) * waypointsDistanceFactor * parallelnessFactor;
-  if (isnan(velocity.linear.x))
+  double distanceWaypoints =
+      CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, last_waypoint);  // in range <0, inf)
+  if (distanceWaypoints < param_epsilon)
   {
     velocity.linear.x = 0.0;
+  }
+  else
+  {
+    double distanceToNext =
+        CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, robot_center);               // in range <0, inf)
+    double distanceFactor = 1 - fabs((distanceWaypoints - distanceToNext) / distanceWaypoints);  // in range (-inf , 1>
+    double waypointsDistanceFactor = distanceWaypoints / (1 + distanceWaypoints);                // in range (0, 1>
+
+    double parallelnessFactor = dCalculateParallelness(last_waypoint, next_waypoint, robot_center);  // in range <0, 1>
+
+    double deviation = dCalculateDeviation(last_waypoint, next_waypoint, robot_center);  // in range <0, inf>
+    double deviationFactor = 1 / (1 + deviation);                                        // in range (0, 1>
+
+    double multiplier = (1 - deviationFactor) * (1 - distanceFactor);  // in range <0, inf>
+
+    velocity.linear.x =
+        param_max_linear_vel * (deviationFactor * (1 - multiplier)) * waypointsDistanceFactor * parallelnessFactor;
   }
 }
 

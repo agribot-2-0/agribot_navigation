@@ -38,12 +38,12 @@ bool StanleyTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(ru
 {
   agribot_local_planner::pos next_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track[-1]);
   agribot_local_planner::pos last_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track[0]);
-  agribot_local_planner::pos robot_center_base_footprint = CommonFunctions::pCoordinatesFromPoseStamped(robot_pose);
+  agribot_local_planner::pos robot_center = CommonFunctions::pCoordinatesFromPoseStamped(robot_pose);
 
   agribot_local_planner::pos projection =
-      CommonFunctions::pCalculateProjection(last_waypoint, next_waypoint, robot_center_base_footprint);
-  double error = CommonFunctions::dDistanceBetweenCoordinates(robot_center_base_footprint, projection);
-  double angle = projection.az - robot_center_base_footprint.az;
+      CommonFunctions::pCalculateProjection(last_waypoint, next_waypoint, robot_center);
+  double error = CommonFunctions::dDistanceBetweenCoordinates(robot_center, projection);
+  double angle = projection.az - robot_center.az;
   double crosstrack_factor = atan2(error_gain_ * error, lin_vel_);
   if (angle < 0)
   {

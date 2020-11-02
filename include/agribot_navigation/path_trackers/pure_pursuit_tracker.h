@@ -23,16 +23,16 @@ public:
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
   void setVelocityLinear(const double velocity);
-  void setCurvature(const double curvature);
+  void setRobotLength(const double robot_length);
   void setRabbitDistance(const double distance);
   void resetRabbit();
 
 private:
   void computeRabbit(const agribot_local_planner::pos& rabbit_pos, const agribot_local_planner::pos& robot_center,
-                     const int path_size);
+                     const std::size_t& path_size);
   double lin_vel_;
-  double curvature_;
+  double robot_length_;
   double rabbit_distance_;
-  uint rabbit_count_;
+  std::size_t rabbit_count_;
 };
 }  // namespace agribot_path_trackers
