@@ -14,7 +14,7 @@ DeviationParallelnessTracker::DeviationParallelnessTracker() : IPathTracker()
   param_min_radius = default_min_radius;
   param_current_deviation_weight = default_deviation_weight_straight;
   param_current_parallelness_weight = default_parallelness_weight_straight;
-  param_speed_limit = true;
+  param_speed_limiting = true;
 }
 
 DeviationParallelnessTracker::~DeviationParallelnessTracker()
@@ -23,7 +23,7 @@ DeviationParallelnessTracker::~DeviationParallelnessTracker()
 
 void DeviationParallelnessTracker::setSpeedLimiting(bool limiting)
 {
-  param_speed_limit = limiting;
+  param_speed_limiting = limiting;
 }
 
 void DeviationParallelnessTracker::setParallelnessWeight(double parallelness_weight)
@@ -70,7 +70,7 @@ bool DeviationParallelnessTracker::computeControl(geometry_msgs::Twist& cmd_vel,
   agribot_local_planner::pos last_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track.front());
   agribot_local_planner::pos robot_center = CommonFunctions::pCoordinatesFromPoseStamped(robot_pose);
 
-  xSetVel(next_waypoint, last_waypoint, robot_center, cmd_vel);
+  xSetVel(cmd_vel, next_waypoint, last_waypoint, robot_center);
 
   return true;
 }
@@ -87,21 +87,21 @@ double DeviationParallelnessTracker::dCloseToZero(double value)
   }
 }
 
-void DeviationParallelnessTracker::xSetVel(const agribot_local_planner::pos& next_waypoint,
+void DeviationParallelnessTracker::xSetVel(geometry_msgs::Twist& velocity,
+                                           const agribot_local_planner::pos& next_waypoint,
                                            const agribot_local_planner::pos& last_waypoint,
-                                           const agribot_local_planner::pos& robot_center,
-                                           geometry_msgs::Twist& velocity)
+                                           const agribot_local_planner::pos& robot_center)
 {
-  if (param_speed_limit)
+  if (param_speed_limiting)
   {
-    xLinearSpeedLimitedApproach(next_waypoint, last_waypoint, robot_center, velocity);
+    xLinearSpeedLimitedApproach(velocity, next_waypoint, last_waypoint, robot_center);
   }
   else
   {
     velocity.linear.x = param_max_linear_vel;
   }
 
-  xDeviationApproach(next_waypoint, last_waypoint, robot_center, velocity);
+  xDeviationApproach(velocity, next_waypoint, last_waypoint, robot_center);
 
   // Velocity limiter
   xLimitVelocities(velocity);
@@ -127,10 +127,10 @@ void DeviationParallelnessTracker::xLimitVelocities(geometry_msgs::Twist& veloci
   }
 }
 
-void DeviationParallelnessTracker::xDeviationApproach(const agribot_local_planner::pos& next_waypoint,
+void DeviationParallelnessTracker::xDeviationApproach(geometry_msgs::Twist& velocity,
+                                                      const agribot_local_planner::pos& next_waypoint,
                                                       const agribot_local_planner::pos& last_waypoint,
-                                                      const agribot_local_planner::pos& robot_center,
-                                                      geometry_msgs::Twist& velocity)
+                                                      const agribot_local_planner::pos& robot_center)
 {
   double deviation = dCalculateDeviation(last_waypoint, next_waypoint, robot_center);
   double factorDeviation = param_current_deviation_weight * deviation / (1 + deviation);
@@ -153,10 +153,10 @@ void DeviationParallelnessTracker::xDeviationApproach(const agribot_local_planne
   velocity.angular.z = (factorDeviation + factorParallelness) * param_max_linear_vel / param_min_radius;
 }
 
-void DeviationParallelnessTracker::xLinearSpeedLimitedApproach(const agribot_local_planner::pos& next_waypoint,
+void DeviationParallelnessTracker::xLinearSpeedLimitedApproach(geometry_msgs::Twist& velocity,
+                                                               const agribot_local_planner::pos& next_waypoint,
                                                                const agribot_local_planner::pos& last_waypoint,
-                                                               const agribot_local_planner::pos& robot_center,
-                                                               geometry_msgs::Twist& velocity)
+                                                               const agribot_local_planner::pos& robot_center)
 {
   double deviation = dCalculateDeviation(last_waypoint, next_waypoint, robot_center);
   double deviationFactor = 1 / (1 + deviation);

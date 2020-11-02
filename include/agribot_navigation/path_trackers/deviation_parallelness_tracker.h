@@ -25,19 +25,19 @@ public:
 
 private:
   double dCloseToZero(double value);
-  void xSetVel(const agribot_local_planner::pos& next_waypoint, const agribot_local_planner::pos& last_waypoint,
-               const agribot_local_planner::pos& robot_center,
-               geometry_msgs::Twist& velocity);             // NOLINT(runtime/references)
+  void xSetVel(geometry_msgs::Twist& velocity,  // NOLINT(runtime/references)
+               const agribot_local_planner::pos& next_waypoint, const agribot_local_planner::pos& last_waypoint,
+               const agribot_local_planner::pos& robot_center);
   void xLimitVelocities(geometry_msgs::Twist& velocities);  // NOLINT(runtime/references)
-  void xDeviationApproach(const agribot_local_planner::pos& next_waypoint,
+  void xDeviationApproach(geometry_msgs::Twist& velocity,   // NOLINT(runtime/references)
+                          const agribot_local_planner::pos& next_waypoint,
                           const agribot_local_planner::pos& last_waypoint,
-                          const agribot_local_planner::pos& robot_center,
-                          geometry_msgs::Twist& velocity);  // NOLINT(runtime/references)
-  void xLinearSpeedLimitedApproach(const agribot_local_planner::pos& next_waypoint,
+                          const agribot_local_planner::pos& robot_center);
+  void xLinearSpeedLimitedApproach(geometry_msgs::Twist& velocity,  // NOLINT(runtime/references)
+                                   const agribot_local_planner::pos& next_waypoint,
                                    const agribot_local_planner::pos& last_waypoint,
-                                   const agribot_local_planner::pos& robot_center,
-                                   geometry_msgs::Twist& velocity);  // NOLINT(runtime/references)
-  void xStopRobot(geometry_msgs::Twist& velocity);                   // NOLINT(runtime/references)
+                                   const agribot_local_planner::pos& robot_center);
+  void xStopRobot(geometry_msgs::Twist& velocity);  // NOLINT(runtime/references)
   double dCalculateDeviation(const agribot_local_planner::pos& last_waypoint,
                              const agribot_local_planner::pos& next_waypoint,
                              const agribot_local_planner::pos& robot_center);
@@ -59,6 +59,6 @@ private:
   double param_min_radius;                   // metres
   double param_current_deviation_weight;     // factor
   double param_current_parallelness_weight;  // factor
-  bool param_speed_limit;
+  bool param_speed_limiting;
 };
 }  // namespace agribot_path_trackers
