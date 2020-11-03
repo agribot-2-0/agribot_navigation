@@ -2,7 +2,7 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include "agribot_navigation/planners/common_functions.h"
+#include "agribot_navigation/common/common_functions.h"
 
 namespace CommonFunctions
 {
@@ -65,5 +65,26 @@ void updateOrientationInPath(std::vector<geometry_msgs::PoseStamped>& path,  // 
     path[i].pose.orientation.z = sin(angle / 2.0);
     path[i].pose.orientation.w = cos(angle / 2.0);
   }
+}
+
+agribot_local_planner::pos pCalculateProjection(const agribot_local_planner::pos& lastWaypoint,
+                                                const agribot_local_planner::pos& nextWaypoint,
+                                                const agribot_local_planner::pos& robotCenter)
+{
+  agribot_local_planner::pos projection;
+  double a = dDistanceBetweenCoordinates(nextWaypoint, lastWaypoint);
+  double b = dDistanceBetweenCoordinates(lastWaypoint, robotCenter);
+  double c = dDistanceBetweenCoordinates(nextWaypoint, robotCenter);
+  double dx = nextWaypoint.x - lastWaypoint.x;
+  double dy = nextWaypoint.y - lastWaypoint.y;
+  // taken from cosine law
+  // cosine = (a*a + b*b - c*c) / (2*a*b)
+  // a1 = b * cosine
+  // ratio = a1 / a
+  double ratio = (a * a + b * b - c * c) / (2 * a * a);
+  projection.x = lastWaypoint.x + ratio * dx;
+  projection.y = lastWaypoint.y + ratio * dy;
+  projection.az = dAngleBetweenCoordinates(nextWaypoint, lastWaypoint);
+  return projection;
 }
 }  // namespace CommonFunctions

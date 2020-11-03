@@ -116,14 +116,14 @@ catkin_package(
   LIBRARIES agribot_navigation
   CATKIN_DEPENDS
   base_local_planner
-	costmap_2d
-	geometry_msgs
-	nav_core
-	nav_msgs
-	pluginlib
-	roscpp
-	visualization_msgs
-	move_base
+  costmap_2d
+  geometry_msgs
+  nav_core
+  nav_msgs
+  pluginlib
+  roscpp
+  visualization_msgs
+  move_base
   tf
 )
 
@@ -157,35 +157,50 @@ add_library(simple_local_planner
 )
 
 add_library(common_functions
-  src/planners/common_functions.cpp
+  src/common/common_functions.cpp
 )
 
 add_library(i_local_planner
-	src/planners/local_planners/i_local_planner.cpp
+  src/planners/local_planners/i_local_planner.cpp
 )
 
 add_library(circles_planner
-	src/planners/local_planners/circles_planner.cpp
+  src/planners/local_planners/circles_planner.cpp
 )
 
 add_library(hermite_planner
-	src/planners/local_planners/hermite_planner.cpp
+  src/planners/local_planners/hermite_planner.cpp
 )
 
 add_library(agribot_local_planner
   src/planners/agribot_local_planner.cpp
-  src/planners/common_functions.cpp
-	src/planners/local_planners/i_local_planner.cpp
-	src/planners/local_planners/circles_planner.cpp
+  src/common/common_functions.cpp
+  src/planners/local_planners/i_local_planner.cpp
+  src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp
+  src/path_trackers/pure_pursuit_tracker.cpp
+  src/path_trackers/stanley_tracker.cpp
+  src/path_trackers/deviation_parallelness_tracker.cpp
 )
 
 add_library(waypoint_global_planner
-	src/planners/waypoint_global_planner.cpp
+  src/planners/waypoint_global_planner.cpp
+)
+
+add_library(pure_pursuit_tracker
+  src/path_trackers/pure_pursuit_tracker.cpp
+)
+
+add_library(stanley_tracker
+  src/path_trackers/stanley_tracker.cpp
+)
+
+add_library(deviation_parallelness_tracker
+  src/path_trackers/deviation_parallelness_tracker.cpp
 )
 
 add_library(pid
-	src/kinematics_control/PID.cpp
+  src/kinematics_control/PID.cpp
 )
 
 add_executable(kinematics_control
@@ -199,6 +214,13 @@ add_executable(cmd_vel_arbiter_node
   src/cmd_vel_arbiter/CmdVelArbiterNode.cpp
 )
 
+target_link_libraries(
+  pure_pursuit_tracker
+  stanley_tracker
+  deviation_parallelness_tracker
+  ${catkin_LIBRARIES}
+)
+
 target_link_libraries(kinematics_control
   ${GAZEBO_LIBRARIES}
   ${catkin_LIBRARIES}
@@ -206,39 +228,39 @@ target_link_libraries(kinematics_control
 )
 
 target_link_libraries(simple_local_planner
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(common_functions
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(i_local_planner
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(circles_planner
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(hermite_planner
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(agribot_local_planner
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(waypoint_global_planner
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(pid
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 target_link_libraries(cmd_vel_arbiter_node
-	${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
 )
 
 ## Declare a C++ library

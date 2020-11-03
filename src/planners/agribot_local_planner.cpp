@@ -610,32 +610,13 @@ double AgribotPlannerROS::dCalculateDeviation(const pos& last_waypoint, const po
 {
   if (CommonFunctions::dDistanceBetweenCoordinates(last_waypoint, next_waypoint) > 0)
   {
-    pos projection = pCalculateProjection(last_waypoint, next_waypoint, robot_center);
+    pos projection = CommonFunctions::pCalculateProjection(last_waypoint, next_waypoint, robot_center);
     return CommonFunctions::dDistanceBetweenCoordinates(robot_center, projection);
   }
   else
   {
     return 0.0;
   }
-}
-
-pos AgribotPlannerROS::pCalculateProjection(const pos& last_waypoint, const pos& next_waypoint, const pos& robot_center)
-{
-  pos projection;
-  double a = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, last_waypoint);
-  double b = CommonFunctions::dDistanceBetweenCoordinates(last_waypoint, robot_center);
-  double c = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, robot_center);
-  double dx = next_waypoint.x - last_waypoint.x;
-  double dy = next_waypoint.y - last_waypoint.y;
-  // taken from cosine law
-  // cosine = (a*a + b*b - c*c) / (2*a*b)
-  // a1 = b * cosine
-  // ratio = a1 / a
-  double ratio = (a * a + b * b - c * c) / (2 * a * a);
-  projection.x = last_waypoint.x + ratio * dx;
-  projection.y = last_waypoint.y + ratio * dy;
-  projection.az = CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint);
-  return projection;
 }
 
 pos AgribotPlannerROS::pCalculateGoalRange(const pos& next_waypoint, const pos& robot_center, double range)
