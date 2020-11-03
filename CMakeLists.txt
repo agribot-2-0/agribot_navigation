@@ -178,6 +178,16 @@ add_library(agribot_local_planner
 	src/planners/local_planners/i_local_planner.cpp
 	src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp
+  src/path_slicers/following_slicer.cpp
+  src/path_slicers/ray_slicer.cpp
+)
+
+add_library(following_slicer
+  src/path_slicers/following_slicer.cpp
+)
+
+add_library(ray_slicer
+  src/path_slicers/ray_slicer.cpp
 )
 
 add_library(waypoint_global_planner
