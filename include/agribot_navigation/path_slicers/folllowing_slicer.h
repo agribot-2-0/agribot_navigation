@@ -21,5 +21,37 @@ public:
   bool findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
                      const std::vector<geometry_msgs::PoseStamped>& local_path,
                      const geometry_msgs::PoseStamped& robot_pose) override;
+  void reset();
+  void setMissedDistanceCoefficient(double coefficient);
+  void setGoalDistanceTolerance(double tolerance);
+
+private:
+  void takeNextGoal();
+  bool isLastWaypointInPath(std::size_t waypoints_count, std::size_t path_length);
+  bool waypointHitCondition(const agribot_local_planner::pos& robot_center,
+                             const agribot_local_planner::pos& last_waypoint,
+                             const agribot_local_planner::pos& next_waypoint);
+  bool waypointMissedCondition(const agribot_local_planner::pos& robot_center,
+                                const agribot_local_planner::pos& last_waypoint,
+                                const agribot_local_planner::pos& next_waypoint);
+  bool traveledDistanceBetweenWaypoints(const agribot_local_planner::pos& robot_center,
+                                         const agribot_local_planner::pos& last_waypoint,
+                                         const agribot_local_planner::pos& next_waypoint);
+  bool withinGoalRange(const agribot_local_planner::pos& robot_center,
+                        const agribot_local_planner::pos& next_waypoint);
+  bool centerTraveledBeyondGoal(const agribot_local_planner::pos& robot_center,
+                                 const agribot_local_planner::pos& last_waypoint,
+                                 const agribot_local_planner::pos& next_waypoint);
+  bool centerOutOfGoalRange(const agribot_local_planner::pos& robot_center,
+                             const agribot_local_planner::pos& next_waypoint);
+  double calculateTraveledDistance(const agribot_local_planner::pos& current_position,
+                                   const agribot_local_planner::pos& last_position);
+  agribot_local_planner::pos last_robot_center_;
+  std::size_t waypoint_count_;
+  double param_missed_distance_coefficient_;
+  double param_goal_distance_tolerance_;
+  double last_traveled_distance_;
+  double traveled_distance_;
+  bool is_last_robot_center_initialized_;
 };
 }  // namespace agribot_path_slicers
