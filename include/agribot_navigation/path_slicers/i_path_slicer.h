@@ -22,4 +22,4 @@ public:
                              const std::vector<geometry_msgs::PoseStamped>& local_path,
                              const geometry_msgs::PoseStamped& robot_pose) = 0;
 };
-}  // namespace agribot_path_trackers
+}  // namespace agribot_path_slicers

@@ -21,5 +21,18 @@ public:
   bool findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
                      const std::vector<geometry_msgs::PoseStamped>& local_path,
                      const geometry_msgs::PoseStamped& robot_pose) override;
+  void setRayLength(const double length);
+  void setRayWidth(const double width);
+  void reset();
+
+private:
+  bool checkWaypoint(const geometry_msgs::PoseStamped& robot_pose, const geometry_msgs::PoseStamped& waypoint_pose) const;
+  bool withinRayDistance(const agribot_local_planner::pos& robot_center,
+                         const agribot_local_planner::pos& waypoint) const;
+  bool withinRayAngle(const agribot_local_planner::pos& robot_center, const agribot_local_planner::pos& waypoint) const;
+  bool calculateLinesSpan(const double target_line_angle, const double base_line_angle) const;
+  double ray_length_;  // metres
+  double ray_width_;   // degrees
+  std::size_t search_start_index_;
 };
 }  // namespace agribot_path_slicers
