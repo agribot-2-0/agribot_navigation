@@ -26,7 +26,8 @@ public:
   void reset();
 
 private:
-  bool checkWaypoint(const geometry_msgs::PoseStamped& robot_pose, const geometry_msgs::PoseStamped& waypoint_pose) const;
+  bool checkWaypoint(const geometry_msgs::PoseStamped& robot_pose,
+                     const geometry_msgs::PoseStamped& waypoint_pose) const;
   bool withinRayDistance(const agribot_local_planner::pos& robot_center,
                          const agribot_local_planner::pos& waypoint) const;
   bool withinRayAngle(const agribot_local_planner::pos& robot_center, const agribot_local_planner::pos& waypoint) const;
