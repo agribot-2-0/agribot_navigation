@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "agribot_navigation/planners/common_functions.h"
+#include "agribot_navigation/common/common_functions.h"
 
 namespace agribot_path_slicers
 {

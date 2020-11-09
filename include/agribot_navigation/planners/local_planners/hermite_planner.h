@@ -7,9 +7,9 @@
 #include <vector>
 #include <string>
 
-#include "agribot_navigation/planners/structures.h"
+#include "agribot_navigation/common/structures.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
-#include "agribot_navigation/planners/default_values.h"
+#include "agribot_navigation/common/default_values.h"
 
 namespace agribot_local_planner
 {
@@ -30,8 +30,10 @@ protected:
   bool hermitePath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                    const pos& start_point, const pos& end_point, double m_start, double m_end) const;
   pos calculateDerivatives(const double angle, const double magnitude) const;
-  double step_size;        // metres
-  double magnitude_start;  // factor
-  double magnitude_end;    // factor
+  double calculateMagnitude(const pos& start, const pos& end, const double base_magnitude,
+                            const bool calculate_start) const;
+  double step_size;             // metres
+  double base_magnitude_start;  // factor
+  double base_magnitude_end;    // factor
 };
 }  // namespace agribot_local_planner

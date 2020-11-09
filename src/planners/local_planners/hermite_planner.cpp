@@ -4,18 +4,16 @@
 
 #include "agribot_navigation/planners/local_planners/hermite_planner.h"
 
-constexpr double cot(double alfa)
-{
-  return 1.0 / tan(alfa);
-}
+constexpr double distance_power_coefficient = 0.25;
+constexpr double tangent_coefficient = 1.8;
 
 namespace agribot_local_planner
 {
 HermitePlanner::HermitePlanner() : ILocalPlanner()
 {
   step_size = default_step_size;
-  magnitude_start = default_hermite_magnitude;
-  magnitude_end = default_hermite_magnitude;
+  base_magnitude_start = default_hermite_magnitude;
+  base_magnitude_end = default_hermite_magnitude;
 }
 
 HermitePlanner::HermitePlanner(const std::string& frame) : ILocalPlanner()
@@ -37,7 +35,10 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
 
   int path_start_index = path.size();
 
-  if (hermitePath(path, startPoint, endPoint, magnitude_start, magnitude_end))
+  double start_magnitude = calculateMagnitude(startPoint, endPoint, base_magnitude_start, true);
+  double end_magnitude = calculateMagnitude(startPoint, endPoint, base_magnitude_end, false);
+
+  if (!hermitePath(path, startPoint, endPoint, base_magnitude_start, base_magnitude_end))
   {
     ROS_ERROR_STREAM("[HermitePlanner] Unable to create proper path");
     return false;
@@ -48,6 +49,32 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   return true;
 }
 
+/**
+ * Magnitude is proportional to distance between start and end
+ * and additionally proportional to difference
+ * between path angle and orientation angle
+ */
+double HermitePlanner::calculateMagnitude(const pos& start, const pos& end, const double base_magnitude,
+                                          const bool calculate_start) const
+{
+  double magnitude = base_magnitude;
+
+  magnitude *= pow(CommonFunctions::dDistanceBetweenCoordinates(end, start), distance_power_coefficient);
+
+  double path_angle = CommonFunctions::dAngleBetweenCoordinates(end, start);
+  double angle_difference;
+  if (calculate_start)
+  {
+    angle_difference = CommonFunctions::dLimitAngle((path_angle - start.az));
+  }
+  else
+  {
+    angle_difference = CommonFunctions::dLimitAngle((end.az - path_angle));
+  }
+  magnitude *= (M_PI - tangent_coefficient * atan(M_PI - angle_difference));
+  return magnitude;
+}
+
 void HermitePlanner::setStepSize(const double param_step_size)
 {
   step_size = param_step_size;
@@ -55,12 +82,12 @@ void HermitePlanner::setStepSize(const double param_step_size)
 
 void HermitePlanner::setMagnitudeStart(const double param_magnitude)
 {
-  magnitude_start = param_magnitude;
+  base_magnitude_start = param_magnitude;
 }
 
 void HermitePlanner::setMagnitudeEnd(const double param_magnitude)
 {
-  magnitude_end = param_magnitude;
+  base_magnitude_end = param_magnitude;
 }
 
 bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
@@ -103,33 +130,22 @@ bool HermitePlanner::hermitePath(std::vector<geometry_msgs::PoseStamped>& path, 
 pos HermitePlanner::calculateDerivatives(const double angle, const double magnitude) const
 {
   pos derivative;
-  if (CommonFunctions::toDegrees(angle)>= -45 && CommonFunctions::toDegrees(angle) < 135)
+  if (abs(tan(angle)) < abs(CommonFunctions::cot(angle)))
   {
-    if (abs(tan(angle)) < abs(cot(angle)))
-    {
-      derivative.x = magnitude;
-      derivative.y = magnitude * tan(angle);
-    }
-    else
-    {
-      derivative.x = magnitude * cot(angle);
-      derivative.y = magnitude;
-    }
+    derivative.x = magnitude;
+    derivative.y = magnitude * tan(angle);
   }
   else
   {
-    {
-      if (abs(tan(angle)) < abs(cot(angle)))
-      {
-        derivative.x = -magnitude;
-        derivative.y = -magnitude * tan(angle);
-      }
-      else
-      {
-        derivative.x = -magnitude * cot(angle);
-        derivative.y = -magnitude;
-      }
-    }
+    derivative.x = magnitude * CommonFunctions::cot(angle);
+    derivative.y = magnitude;
+  }
+
+  // take negative derivatives for angles between 135 and -45 (315) degrees
+  if (CommonFunctions::toDegrees(angle) < -45 || CommonFunctions::toDegrees(angle) > 135)
+  {
+    derivative.x *= -1;
+    derivative.y *= -1;
   }
   return derivative;
 }
