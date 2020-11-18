@@ -10,38 +10,29 @@ void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const agr
                                  const double prediction_points_per_second, const double prediction_time,
                                  const std::string& frame_id, const ros::Publisher& publisher)
 {
-  visualization_msgs::Marker futurePoints;
-  futurePoints.header.frame_id = frame_id;
-  futurePoints.header.stamp = ros::Time::now();
-  futurePoints.ns = "predicted_path";
-  futurePoints.action = visualization_msgs::Marker::ADD;
-  futurePoints.id = 1;
-  futurePoints.type = visualization_msgs::Marker::LINE_STRIP;
-  futurePoints.scale.x = 0.1;
-  futurePoints.color.r = 1.0;
-  futurePoints.color.a = 1.0;
-  futurePoints.pose.orientation.w = 1;
-
-  // calculating turn radius from angular and linear velocity
-  // R = v / w
+  std::vector<geometry_msgs::PoseStamped> predicted_path;
+  geometry_msgs::PoseStamped point;
+  point.header.frame_id = frame_id;
+  point.header.stamp = ros::Time::now();
+  point.header.seq = 0;
 
   double radius = CommonFunctions::dCalculateRadiusFromVelocity(velocity);
 
   if (radius != 0)
   {
     // draw arc
-    geometry_msgs::Point p, tmp;
+    double tmp_x, tmp_y;
     for (int i = 0; i < prediction_points_per_second * prediction_time; i++)
     {
       double theta = i * velocity.angular.z / prediction_points_per_second;
-      tmp.x = radius * cos(theta - CommonFunctions::toRadians(90)) - radius * cos(CommonFunctions::toRadians(-90));
-      tmp.y = radius * sin(theta - CommonFunctions::toRadians(90)) - radius * sin(CommonFunctions::toRadians(-90));
+      tmp_x = radius * cos(theta - CommonFunctions::toRadians(90)) - radius * cos(CommonFunctions::toRadians(-90));
+      tmp_y = radius * sin(theta - CommonFunctions::toRadians(90)) - radius * sin(CommonFunctions::toRadians(-90));
 
-      p.x = robot_center.x + tmp.x * cos(robot_center.az) - tmp.y * sin(robot_center.az);
-      p.y = robot_center.y + tmp.x * sin(robot_center.az) + tmp.y * cos(robot_center.az);
+      point.pose.position.x = robot_center.x + tmp_x * cos(robot_center.az) - tmp_y * sin(robot_center.az);
+      point.pose.position.y = robot_center.y + tmp_x * sin(robot_center.az) + tmp_y * cos(robot_center.az);
 
-      p.z = 0.1;
-      futurePoints.points.push_back(p);
+      predicted_path.push_back(point);
+      point.header.seq++;
     }
   }
   else
@@ -50,13 +41,16 @@ void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const agr
     geometry_msgs::Point p;
     for (int i = 0; i < prediction_points_per_second * prediction_time; i++)
     {
-      p.x = robot_center.x + i * velocity.linear.x / prediction_points_per_second * cos(robot_center.az);
-      p.y = robot_center.y + i * velocity.linear.x / prediction_points_per_second * sin(robot_center.az);
-      p.z = 0.1;
-      futurePoints.points.push_back(p);
+      point.pose.position.x =
+          robot_center.x + i * velocity.linear.x / prediction_points_per_second * cos(robot_center.az);
+      point.pose.position.y =
+          robot_center.y + i * velocity.linear.x / prediction_points_per_second * sin(robot_center.az);
+
+      predicted_path.push_back(point);
+      point.header.seq++;
     }
   }
-  publisher.publish(futurePoints);
+  vLocalPathVisualization(predicted_path, frame_id, publisher);
 }
 
 void vNextGoalVisualization(const agribot_local_planner::pos& last_waypoint, const agribot_local_planner::pos& goal,
