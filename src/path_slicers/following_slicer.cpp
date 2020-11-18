@@ -2,7 +2,7 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include "agribot_navigation/path_slicers/folllowing_slicer.h"
+#include "agribot_navigation/path_slicers/following_slicer.h"
 
 namespace agribot_path_slicers
 {
@@ -58,11 +58,11 @@ void FollowingSlicer::reset()
   is_last_robot_center_initialized_ = false;
 }
 
-void FollowingSlicer::setMissedDistanceCoefficient(double coefficient)
+void FollowingSlicer::setMissedDistanceCoefficient(const double coefficient)
 {
   param_missed_distance_coefficient_ = coefficient;
 }
-void FollowingSlicer::setGoalDistanceTolerance(double tolerance)
+void FollowingSlicer::setGoalDistanceTolerance(const double tolerance)
 {
   param_goal_distance_tolerance_ = tolerance;
 }
@@ -79,26 +79,24 @@ bool FollowingSlicer::isLastWaypointInPath(std::size_t waypoints_count, std::siz
 }
 
 bool FollowingSlicer::waypointHitCondition(const agribot_local_planner::pos& robot_center,
-                                            const agribot_local_planner::pos& last_waypoint,
-                                            const agribot_local_planner::pos& next_waypoint)
+                                           const agribot_local_planner::pos& last_waypoint,
+                                           const agribot_local_planner::pos& next_waypoint)
 {
-  {
-    return (traveledDistanceBetweenWaypoints(robot_center, last_waypoint, next_waypoint) &&
-            withinGoalRange(robot_center, next_waypoint));
-  }
+  return (traveledDistanceBetweenWaypoints(robot_center, last_waypoint, next_waypoint) &&
+          withinGoalRange(robot_center, next_waypoint));
 }
 
 bool FollowingSlicer::waypointMissedCondition(const agribot_local_planner::pos& robot_center,
-                                               const agribot_local_planner::pos& last_waypoint,
-                                               const agribot_local_planner::pos& next_waypoint)
+                                              const agribot_local_planner::pos& last_waypoint,
+                                              const agribot_local_planner::pos& next_waypoint)
 {
   return centerTraveledBeyondGoal(robot_center, last_waypoint, next_waypoint) &&
          !withinGoalRange(robot_center, next_waypoint);
 }
 
 bool FollowingSlicer::traveledDistanceBetweenWaypoints(const agribot_local_planner::pos& robot_center,
-                                                        const agribot_local_planner::pos& last_waypoint,
-                                                        const agribot_local_planner::pos& next_waypoint)
+                                                       const agribot_local_planner::pos& last_waypoint,
+                                                       const agribot_local_planner::pos& next_waypoint)
 {
   double distance_waypoints = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, last_waypoint);
   double traveled_distance = CommonFunctions::dDistanceBetweenCoordinates(last_waypoint, robot_center);
@@ -106,15 +104,15 @@ bool FollowingSlicer::traveledDistanceBetweenWaypoints(const agribot_local_plann
 }
 
 bool FollowingSlicer::withinGoalRange(const agribot_local_planner::pos& robot_center,
-                                       const agribot_local_planner::pos& next_waypoint)
+                                      const agribot_local_planner::pos& next_waypoint)
 {
   double distance_to_goal = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, robot_center);
   return (distance_to_goal <= param_goal_distance_tolerance_);
 }
 
 bool FollowingSlicer::centerTraveledBeyondGoal(const agribot_local_planner::pos& robot_center,
-                                                const agribot_local_planner::pos& last_waypoint,
-                                                const agribot_local_planner::pos& next_waypoint)
+                                               const agribot_local_planner::pos& last_waypoint,
+                                               const agribot_local_planner::pos& next_waypoint)
 {
   double distance_waypoints = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, last_waypoint);
   double traveled_distance = traveled_distance_ - last_traveled_distance_;

@@ -80,11 +80,7 @@ bool RaySlicer::checkWaypoint(const geometry_msgs::PoseStamped& robot_pose,
 bool RaySlicer::withinRayDistance(const agribot_local_planner::pos& robot_center,
                                   const agribot_local_planner::pos& waypoint) const
 {
-  if (CommonFunctions::dDistanceBetweenCoordinates(waypoint, robot_center) <= ray_length_)
-  {
-    return true;
-  }
-  return false;
+  return (CommonFunctions::dDistanceBetweenCoordinates(waypoint, robot_center) <= ray_length_);
 }
 
 bool RaySlicer::withinRayAngle(const agribot_local_planner::pos& robot_center,
@@ -93,12 +89,8 @@ bool RaySlicer::withinRayAngle(const agribot_local_planner::pos& robot_center,
   double left_ray_angle = CommonFunctions::dLimitAngle(robot_center.az + M_PI_2);
   double right_ray_angle = CommonFunctions::dLimitAngle(robot_center.az - M_PI_2);
   double robot_waypoint_angle = CommonFunctions::dAngleBetweenCoordinates(waypoint, robot_center);
-  if ((calculateLinesSpan(robot_waypoint_angle, left_ray_angle) <= ray_width_ / 2.0) ||
-      (calculateLinesSpan(robot_waypoint_angle, right_ray_angle) <= ray_width_ / 2.0))
-  {
-    return true;
-  }
-  return false;
+  return ((calculateLinesSpan(robot_waypoint_angle, left_ray_angle) <= ray_width_ / 2.0) ||
+          (calculateLinesSpan(robot_waypoint_angle, right_ray_angle) <= ray_width_ / 2.0));
 }
 
 bool RaySlicer::calculateLinesSpan(const double target_line_angle, const double base_line_angle) const

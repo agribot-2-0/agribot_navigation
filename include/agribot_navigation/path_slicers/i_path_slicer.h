@@ -5,13 +5,8 @@
 #pragma once
 
 #include <geometry_msgs/PoseStamped.h>
-#include <tf/tf.h>
 
-#include <cmath>
-#include <string>
 #include <vector>
-
-#include "agribot_navigation/common/common_functions.h"
 
 namespace agribot_path_slicers
 {

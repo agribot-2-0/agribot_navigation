@@ -22,8 +22,8 @@ public:
                      const std::vector<geometry_msgs::PoseStamped>& local_path,
                      const geometry_msgs::PoseStamped& robot_pose) override;
   void reset();
-  void setMissedDistanceCoefficient(double coefficient);
-  void setGoalDistanceTolerance(double tolerance);
+  void setMissedDistanceCoefficient(const double coefficient);
+  void setGoalDistanceTolerance(const double tolerance);
 
 private:
   void takeNextGoal();
