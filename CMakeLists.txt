@@ -160,6 +160,10 @@ add_library(common_functions
   src/common/common_functions.cpp
 )
 
+add_library(visualization_functions
+  src/common/visualization_functions.cpp
+)
+
 add_library(i_local_planner
   src/planners/local_planners/i_local_planner.cpp
 )
@@ -175,6 +179,7 @@ add_library(hermite_planner
 add_library(agribot_local_planner
   src/planners/agribot_local_planner.cpp
   src/common/common_functions.cpp
+  src/common/visualization_functions.cpp
   src/planners/local_planners/i_local_planner.cpp
   src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp
@@ -242,6 +247,10 @@ target_link_libraries(simple_local_planner
 )
 
 target_link_libraries(common_functions
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(visualization_functions
   ${catkin_LIBRARIES}
 )
 

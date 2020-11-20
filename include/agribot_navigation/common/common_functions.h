@@ -38,5 +38,6 @@ void updateOrientationInPath(std::vector<geometry_msgs::PoseStamped>& path,  // 
 agribot_local_planner::pos pCalculateProjection(const agribot_local_planner::pos& lastWaypoint,
                                                 const agribot_local_planner::pos& nextWaypoint,
                                                 const agribot_local_planner::pos& robotCenter);
+double dCalculateRadiusFromVelocity(const geometry_msgs::Twist& velocity);
 
 }  // namespace CommonFunctions

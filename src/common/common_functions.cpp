@@ -87,4 +87,13 @@ agribot_local_planner::pos pCalculateProjection(const agribot_local_planner::pos
   projection.az = dAngleBetweenCoordinates(nextWaypoint, lastWaypoint);
   return projection;
 }
+
+double dCalculateRadiusFromVelocity(const geometry_msgs::Twist& velocity)
+{
+  if (velocity.angular.z != 0)
+  {
+    return velocity.linear.x / velocity.angular.z;
+  }
+  return 0.0;
+}
 }  // namespace CommonFunctions
