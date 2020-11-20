@@ -14,7 +14,6 @@ void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const agr
   geometry_msgs::PoseStamped point;
   point.header.frame_id = frame_id;
   point.header.stamp = ros::Time::now();
-  point.header.seq = 0;
 
   double radius = CommonFunctions::dCalculateRadiusFromVelocity(velocity);
 
@@ -32,7 +31,6 @@ void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const agr
       point.pose.position.y = robot_center.y + tmp_x * sin(robot_center.az) + tmp_y * cos(robot_center.az);
 
       predicted_path.push_back(point);
-      point.header.seq++;
     }
   }
   else
@@ -47,7 +45,6 @@ void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const agr
           robot_center.y + i * velocity.linear.x / prediction_points_per_second * sin(robot_center.az);
 
       predicted_path.push_back(point);
-      point.header.seq++;
     }
   }
   vLocalPathVisualization(predicted_path, frame_id, publisher);
