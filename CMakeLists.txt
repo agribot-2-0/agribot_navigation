@@ -188,6 +188,8 @@ add_library(agribot_local_planner
   src/path_trackers/pure_pursuit_tracker.cpp
   src/path_trackers/stanley_tracker.cpp
   src/path_trackers/deviation_parallelness_tracker.cpp
+  src/path_validators/distance_validator.cpp
+  src/path_validators/curvature_validator.cpp
 )
 
 add_library(following_slicer
@@ -212,6 +214,14 @@ add_library(stanley_tracker
 
 add_library(deviation_parallelness_tracker
   src/path_trackers/deviation_parallelness_tracker.cpp
+)
+
+add_library(distance_validator
+  src/path_validators/distance_validator.cpp
+)
+
+add_library(curvature_validator
+  src/path_validators/curvature_validator.cpp
 )
 
 add_library(pid
