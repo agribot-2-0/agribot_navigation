@@ -13,7 +13,6 @@ namespace agribot_path_validators
 class IPathValidator
 {
 public:
-  virtual bool
-  validatePath(const std::vector<geometry_msgs::PoseStamped>& path) = 0;  // NOLINT(runtime/references)
+  virtual bool validatePath(const std::vector<geometry_msgs::PoseStamped>& path) = 0;
 };
 }  // namespace agribot_path_validators

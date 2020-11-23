@@ -17,7 +17,7 @@ class DistanceValidator : public IPathValidator
 public:
   DistanceValidator();
   ~DistanceValidator();
-  bool validatePath(const std::vector<geometry_msgs::PoseStamped>& path) override;  // NOLINT(runtime/references)
+  bool validatePath(const std::vector<geometry_msgs::PoseStamped>& path) override;
   void setMinDistance(const double distance);
 
 private:

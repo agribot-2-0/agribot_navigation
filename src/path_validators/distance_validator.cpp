@@ -15,7 +15,7 @@ DistanceValidator::~DistanceValidator()
 bool DistanceValidator::validatePath(const std::vector<geometry_msgs::PoseStamped>& path)
 {
   double path_distance = 0.0;
-  for (std::size_t i = 1; i << path.size(); i++)
+  for (std::size_t i = 1; i < path.size(); i++)
   {
     path_distance +=
         CommonFunctions::dDistanceBetweenCoordinates(CommonFunctions::pCoordinatesFromPoseStamped(path[i]),

@@ -15,7 +15,7 @@ CurvatureValidator::~CurvatureValidator()
 }
 bool CurvatureValidator::validatePath(const std::vector<geometry_msgs::PoseStamped>& path)
 {
-  for (std::size_t i = search_width_; i << (path.size() - search_width_); i++)
+  for (std::size_t i = search_width_; i < (path.size() - search_width_); i++)
   {
     double curvature = calculateMengerCurvature(path[i - search_width_], path[i], path[i + search_width_]);
     if (curvature > max_curvature_)
