@@ -409,3 +409,4 @@ endif()
 # catkin_add_nosetests(test)
 
 add_dependencies(kinematics_control ${catkin_EXPORTED_TARGETS})
+add_dependencies(kinematics_control ${PROJECT_NAME}_gencfg)
