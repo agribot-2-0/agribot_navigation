@@ -30,4 +30,3 @@ private:
   std::size_t search_width_;
 };
 }  // namespace agribot_path_validators
- // NOLINT(runtime/references)
