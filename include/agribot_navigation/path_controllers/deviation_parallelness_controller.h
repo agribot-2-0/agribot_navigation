@@ -7,18 +7,18 @@
 #include <string>
 #include <vector>
 
-#include "agribot_navigation/path_trackers/i_path_tracker.h"
+#include "agribot_navigation/path_controllers/i_path_controller.h"
 #include "agribot_navigation/common/structures.h"
 #include "agribot_navigation/common/default_values.h"
 #include "agribot_navigation/common/common_functions.h"
 
-namespace agribot_path_trackers
+namespace agribot_path_controllers
 {
-class DeviationParallelnessTracker : public IPathTracker
+class DeviationParallelnessController : public IPathController
 {
 public:
-  DeviationParallelnessTracker();
-  ~DeviationParallelnessTracker();
+  DeviationParallelnessController();
+  ~DeviationParallelnessController();
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
@@ -61,4 +61,4 @@ private:
   double param_current_parallelness_weight;  // factor
   bool param_speed_limiting;
 };
-}  // namespace agribot_path_trackers
+}  // namespace agribot_path_controllers

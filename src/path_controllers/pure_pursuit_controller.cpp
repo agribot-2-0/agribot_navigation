@@ -2,11 +2,11 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include "agribot_navigation/path_trackers/pure_pursuit_tracker.h"
+#include "agribot_navigation/path_controllers/pure_pursuit_controller.h"
 
-namespace agribot_path_trackers
+namespace agribot_path_controllers
 {
-PurePursuitTracker::PurePursuitTracker() : IPathTracker()
+PurePursuitController::PurePursuitController() : IPathController()
 {
   lin_vel_ = default_max_linear_vel;
   robot_length_ = default_chassis_length;
@@ -14,31 +14,31 @@ PurePursuitTracker::PurePursuitTracker() : IPathTracker()
   rabbit_count_ = 0;
 }
 
-PurePursuitTracker::~PurePursuitTracker()
+PurePursuitController::~PurePursuitController()
 {
 }
 
-void PurePursuitTracker::setVelocityLinear(const double velocity)
+void PurePursuitController::setVelocityLinear(const double velocity)
 {
   lin_vel_ = velocity;
 }
 
-void PurePursuitTracker::setRobotLength(const double robot_length)
+void PurePursuitController::setRobotLength(const double robot_length)
 {
   robot_length_ = robot_length;
 }
 
-void PurePursuitTracker::setRabbitDistance(const double distance)
+void PurePursuitController::setRabbitDistance(const double distance)
 {
   rabbit_distance_ = distance;
 }
 
-void PurePursuitTracker::resetRabbit()
+void PurePursuitController::resetRabbit()
 {
   rabbit_count_ = 0;
 }
 
-bool PurePursuitTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
+bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                                         const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                         const geometry_msgs::PoseStamped& robot_pose)
 {
@@ -64,7 +64,7 @@ bool PurePursuitTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLIN
   return true;
 }
 
-void PurePursuitTracker::computeRabbit(const agribot_local_planner::pos& rabbit_pos,
+void PurePursuitController::computeRabbit(const agribot_local_planner::pos& rabbit_pos,
                                        const agribot_local_planner::pos& robot_center, const std::size_t& path_size)
 {
   if (CommonFunctions::dDistanceBetweenCoordinates(rabbit_pos, robot_center) < rabbit_distance_)
@@ -74,4 +74,4 @@ void PurePursuitTracker::computeRabbit(const agribot_local_planner::pos& rabbit_
       rabbit_count_ = path_size - 1;
   }
 }
-}  // namespace agribot_path_trackers
+}  // namespace agribot_path_controllers

@@ -2,37 +2,37 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include "agribot_navigation/path_trackers/stanley_tracker.h"
+#include "agribot_navigation/path_controllers/stanley_controller.h"
 
-namespace agribot_path_trackers
+namespace agribot_path_controllers
 {
-StanleyTracker::StanleyTracker() : IPathTracker()
+StanleyController::StanleyController() : IPathController()
 {
   double lin_vel_ = default_max_linear_vel;
   double error_gain_ = default_stanley_error_gain;
   double theta_limit_ = asin(default_chassis_length / 2 / default_min_radius);
 }
 
-StanleyTracker::~StanleyTracker()
+StanleyController::~StanleyController()
 {
 }
 
-void StanleyTracker::setVelocityLinear(const double velocity)
+void StanleyController::setVelocityLinear(const double velocity)
 {
   lin_vel_ = velocity;
 }
 
-void StanleyTracker::setErrorGain(const double gain)
+void StanleyController::setErrorGain(const double gain)
 {
   error_gain_ = gain;
 }
 
-void StanleyTracker::setThetaLimit(const double limit)
+void StanleyController::setThetaLimit(const double limit)
 {
   theta_limit_ = limit;
 }
 
-bool StanleyTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
+bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                                     const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                     const geometry_msgs::PoseStamped& robot_pose)
 {
@@ -65,4 +65,4 @@ bool StanleyTracker::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(ru
 
   return true;
 }
-}  // namespace agribot_path_trackers
+}  // namespace agribot_path_controllers

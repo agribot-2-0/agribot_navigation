@@ -2,26 +2,26 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include "agribot_navigation/path_slicers/ray_slicer.h"
+#include "agribot_navigation/path_trackers/ray_tracker.h"
 
-namespace agribot_path_slicers
+namespace agribot_path_trackers
 {
-RaySlicer::RaySlicer()
+RayTracker::RayTracker()
 {
   ray_length_ = 0;
   ray_width_ = 0;
   reset();
 }
-RaySlicer::~RaySlicer()
+RayTracker::~RayTracker()
 {
 }
 
-void RaySlicer::reset()
+void RayTracker::reset()
 {
   search_start_index_ = 0;
 }
 
-bool RaySlicer::findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
+bool RayTracker::findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
                               const std::vector<geometry_msgs::PoseStamped>& local_path,
                               const geometry_msgs::PoseStamped& robot_pose)
 {
@@ -60,16 +60,16 @@ bool RaySlicer::findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slic
   return true;
 }
 
-void RaySlicer::setRayLength(const double length)
+void RayTracker::setRayLength(const double length)
 {
   ray_length_ = length;
 }
-void RaySlicer::setRayWidth(const double width)
+void RayTracker::setRayWidth(const double width)
 {
   ray_width_ = width;
 }
 
-bool RaySlicer::checkWaypoint(const geometry_msgs::PoseStamped& robot_pose,
+bool RayTracker::checkWaypoint(const geometry_msgs::PoseStamped& robot_pose,
                               const geometry_msgs::PoseStamped& waypoint_pose) const
 {
   agribot_local_planner::pos waypoint = CommonFunctions::pCoordinatesFromPoseStamped(waypoint_pose);
@@ -77,13 +77,13 @@ bool RaySlicer::checkWaypoint(const geometry_msgs::PoseStamped& robot_pose,
   return (withinRayDistance(robot_center, waypoint) && withinRayAngle(robot_center, waypoint));
 }
 
-bool RaySlicer::withinRayDistance(const agribot_local_planner::pos& robot_center,
+bool RayTracker::withinRayDistance(const agribot_local_planner::pos& robot_center,
                                   const agribot_local_planner::pos& waypoint) const
 {
   return (CommonFunctions::dDistanceBetweenCoordinates(waypoint, robot_center) <= ray_length_);
 }
 
-bool RaySlicer::withinRayAngle(const agribot_local_planner::pos& robot_center,
+bool RayTracker::withinRayAngle(const agribot_local_planner::pos& robot_center,
                                const agribot_local_planner::pos& waypoint) const
 {
   double left_ray_angle = CommonFunctions::dLimitAngle(robot_center.az + M_PI_2);
@@ -93,8 +93,8 @@ bool RaySlicer::withinRayAngle(const agribot_local_planner::pos& robot_center,
           (calculateLinesSpan(robot_waypoint_angle, right_ray_angle) <= ray_width_ / 2.0));
 }
 
-bool RaySlicer::calculateLinesSpan(const double target_line_angle, const double base_line_angle) const
+bool RayTracker::calculateLinesSpan(const double target_line_angle, const double base_line_angle) const
 {
   return abs(CommonFunctions::dLimitAngle(target_line_angle - base_line_angle));
 }
-}  // namespace agribot_path_slicers
+}  // namespace agribot_path_trackers

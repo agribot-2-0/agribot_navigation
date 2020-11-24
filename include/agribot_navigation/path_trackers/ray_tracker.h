@@ -6,18 +6,18 @@
 
 #include <vector>
 
-#include "agribot_navigation/path_slicers/i_path_slicer.h"
+#include "agribot_navigation/path_trackers/i_path_tracker.h"
 #include "agribot_navigation/common/structures.h"
 #include "agribot_navigation/common/default_values.h"
 #include "agribot_navigation/common/common_functions.h"
 
-namespace agribot_path_slicers
+namespace agribot_path_trackers
 {
-class RaySlicer : public IPathSlicer
+class RayTracker : public IPathTracker
 {
 public:
-  RaySlicer();
-  ~RaySlicer();
+  RayTracker();
+  ~RayTracker();
   bool findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
                      const std::vector<geometry_msgs::PoseStamped>& local_path,
                      const geometry_msgs::PoseStamped& robot_pose) override;
@@ -36,4 +36,4 @@ private:
   double ray_width_;   // degrees
   std::size_t search_start_index_;
 };
-}  // namespace agribot_path_slicers
+}  // namespace agribot_path_trackers
