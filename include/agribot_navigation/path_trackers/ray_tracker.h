@@ -23,7 +23,7 @@ public:
                      const geometry_msgs::PoseStamped& robot_pose) override;
   void setRayLength(const double length);
   void setRayWidth(const double width);
-  void reset();
+  void reset() override;
 
 private:
   bool checkWaypoint(const geometry_msgs::PoseStamped& robot_pose,

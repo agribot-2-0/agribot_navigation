@@ -21,7 +21,7 @@ public:
   bool findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
                      const std::vector<geometry_msgs::PoseStamped>& local_path,
                      const geometry_msgs::PoseStamped& robot_pose) override;
-  void reset();
+  void reset() override;
   void setMissedDistanceCoefficient(const double coefficient);
   void setGoalDistanceTolerance(const double tolerance);
 

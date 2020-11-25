@@ -18,6 +18,71 @@ AgribotPlannerROS::~AgribotPlannerROS()
 {
 }
 
+void AgribotPlannerROS::createPlanners()
+{
+  auto circles_planner = std::make_unique<CirclesPlanner>(robot_center_.header.frame_id);
+  circles_planner->setArcRadius(default_design_arc_radius);
+  circles_planner->setDeadZone(default_design_dead_zone);
+  circles_planner->setStepSize(default_step_size);
+  planners_["circles"] = std::move(circles_planner);
+
+  auto hermite_planner = std::make_unique<HermitePlanner>(robot_center_.header.frame_id);
+  hermite_planner->setStepSize(default_step_size);
+  hermite_planner->setMagnitudeStart(default_hermite_magnitude);
+  hermite_planner->setMagnitudeEnd(default_hermite_magnitude);
+  planners_["hermite"] = std::move(hermite_planner);
+}
+
+void AgribotPlannerROS::createValidators()
+{
+  auto curvature_validator = std::make_unique<agribot_path_validators::CurvatureValidator>();
+  curvature_validator->setMaxCurvature(1.0 / default_min_radius);
+  validators_["curvature"] = std::move(curvature_validator);
+
+  auto distance_validator = std::make_unique<agribot_path_validators::DistanceValidator>();
+  distance_validator->setMinDistance(default_chassis_length);
+  validators_["distance"] = std::move(distance_validator);
+}
+
+void AgribotPlannerROS::createTrackers()
+{
+  auto following_tracker = std::make_unique<agribot_path_trackers::FollowingTracker>();
+  following_tracker->setGoalDistanceTolerance(default_goal_distance_tolerance);
+  following_tracker->setMissedDistanceCoefficient(default_missed_distance_coefficient);
+  trackers_["following"] = std::move(following_tracker);
+
+  auto ray_tracker = std::make_unique<agribot_path_trackers::RayTracker>();
+  ray_tracker->setRayWidth(default_tracker_ray_width);
+  ray_tracker->setRayLength(default_tracker_ray_length);
+  trackers_["ray"] = std::move(ray_tracker);
+}
+
+void AgribotPlannerROS::createControllers()
+{
+  auto pure_pursuit_controller = std::make_unique<agribot_path_controllers::PurePursuitController>();
+  pure_pursuit_controller->setVelocityLinear(default_max_linear_vel);
+  pure_pursuit_controller->setRobotLength(default_chassis_length);
+  pure_pursuit_controller->setRabbitDistance(default_pure_pursuit_rabbit_distance);
+  controllers_["pure_pursuit"] = std::move(pure_pursuit_controller);
+
+  auto stanley_controller = std::make_unique<agribot_path_controllers::StanleyController>();
+  stanley_controller->setVelocityLinear(default_max_linear_vel);
+  stanley_controller->setErrorGain(default_stanley_error_gain);
+  stanley_controller->setThetaLimit(asin(default_chassis_length / 2 / default_min_radius));
+  controllers_["stanley"] = std::move(stanley_controller);
+
+  auto deviation_parallelness_controller =
+      std::make_unique<agribot_path_controllers::DeviationParallelnessController>();
+  deviation_parallelness_controller->setSpeedLimiting(true);
+  deviation_parallelness_controller->setParallelnessWeight(default_parallelness_weight_straight);
+  deviation_parallelness_controller->setDeviationWeight(default_deviation_weight_straight);
+  deviation_parallelness_controller->setMinRadius(default_min_radius);
+  deviation_parallelness_controller->setMaxLinearVelocity(default_max_linear_vel);
+  deviation_parallelness_controller->setMinLinearVelocity(default_min_linear_vel);
+  deviation_parallelness_controller->setEpsilon(default_epsilon);
+  controllers_["deviation_parallelness"] = std::move(deviation_parallelness_controller);
+}
+
 void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, costmap_2d::Costmap2DROS* costmapROS)
 {
   if (!initialized_)
@@ -84,6 +149,9 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     last_waypoint_.header.frame_id = "odom";
 
     createPlanners();
+    createTrackers();
+    createValidators();
+    createControllers();
 
     initialized_ = true;
 
@@ -129,6 +197,19 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
     ROS_INFO_STREAM("[AgribotPlanner] Local planner created, path length = " << local_plan_.size());
   }
 
+  for (auto it = trackers_.cbegin(); it != trackers_.cend(); ++it)
+  {
+    it->second->reset();
+  }
+
+  // controllers_["pure_pursuit"];
+  agribot_path_controllers::PurePursuitController* pure_pursuit_pointer =
+      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
+  if (pure_pursuit_pointer != nullptr)
+  {
+    pure_pursuit_pointer->resetRabbit();
+  }
+
   goal_reached_ = false;
   traveled_points_ = visualization_msgs::Marker();
   last_odom_stamp_ = 0;
@@ -149,25 +230,11 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   return true;
 }
 
-void AgribotPlannerROS::createPlanners()
-{
-  auto circles_planner = std::make_unique<CirclesPlanner>(robot_center_.header.frame_id);
-  circles_planner->setArcRadius(default_design_arc_radius);
-  circles_planner->setDeadZone(default_design_dead_zone);
-  circles_planner->setStepSize(default_step_size);
-  planners_["circles"] = std::move(circles_planner);
-
-  auto hermite_planner = std::make_unique<HermitePlanner>(robot_center_.header.frame_id);
-  hermite_planner->setStepSize(default_step_size);
-  hermite_planner->setMagnitudeStart(default_hermite_magnitude);
-  hermite_planner->setMagnitudeEnd(default_hermite_magnitude);
-  planners_["hermite"] = std::move(hermite_planner);
-}
-
 bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 {
   geometry_msgs::Twist velocity;
   pos goal;
+  std::vector<geometry_msgs::PoseStamped> path_slice;
 
   vLocalPathVisualization(local_plan_);
 
@@ -177,6 +244,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
                      << "call initialize() before planner");
     return false;
   }
+
   if (local_plan_.size() != 0)
   {
     // Check where robot is
@@ -186,7 +254,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 
     goal = next_waypoint;
 
-    // Decide whether following straight or arc piece of path
+    // Decide whether pure_pursuit straight or arc piece of path
     vChooseDeviationParallelnessParametres(waypoint_count_);
 
     // Deviation error for statistics

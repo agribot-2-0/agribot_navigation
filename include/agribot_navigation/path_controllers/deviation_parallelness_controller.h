@@ -22,9 +22,16 @@ public:
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
+  void setSpeedLimiting(const bool limiting);
+  void setParallelnessWeight(const double parallelness_weight);
+  void setDeviationWeight(const double deviation_weight);
+  void setMinRadius(const double min_radius);
+  void setMaxLinearVelocity(const double max_velocity);
+  void setMinLinearVelocity(const double min_velocity);
+  void setEpsilon(const double epsilon);
 
 private:
-  double dCloseToZero(double value);
+  double dCloseToZero(const double value);
   void xSetVel(geometry_msgs::Twist& velocity,  // NOLINT(runtime/references)
                const agribot_local_planner::pos& next_waypoint, const agribot_local_planner::pos& last_waypoint,
                const agribot_local_planner::pos& robot_center);
@@ -44,14 +51,6 @@ private:
   double dCalculateParallelness(const agribot_local_planner::pos& last_waypoint,
                                 const agribot_local_planner::pos& next_waypoint,
                                 const agribot_local_planner::pos& robot_center);
-
-  void setSpeedLimiting(bool limiting);
-  void setParallelnessWeight(double parallelness_weight);
-  void setDeviationWeight(double deviation_weight);
-  void setMinRadius(double min_radius);
-  void setMaxLinearVelocity(double max_velocity);
-  void setMinLinearVelocity(double min_velocity);
-  void setEpsilon(double epsilon);
 
   double param_epsilon;                      // unitless
   double param_max_linear_vel;               // m/s

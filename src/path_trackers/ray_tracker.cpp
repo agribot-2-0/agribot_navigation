@@ -8,8 +8,8 @@ namespace agribot_path_trackers
 {
 RayTracker::RayTracker()
 {
-  ray_length_ = 0;
-  ray_width_ = 0;
+  ray_length_ = default_tracker_ray_length;
+  ray_width_ = default_tracker_ray_width;
   reset();
 }
 RayTracker::~RayTracker()

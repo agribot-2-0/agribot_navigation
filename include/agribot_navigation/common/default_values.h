@@ -28,3 +28,5 @@ constexpr double default_hermite_magnitude = 20.0;             // factor
 constexpr double default_pure_pursuit_curvature = 10.0;        // factor
 constexpr double default_pure_pursuit_rabbit_distance = 5.0;   // meters
 constexpr double default_stanley_error_gain = 0.1;             // factor
+constexpr double default_tracker_ray_length = 10.0;            // meters
+constexpr double default_tracker_ray_width = 30.0;             // degrees

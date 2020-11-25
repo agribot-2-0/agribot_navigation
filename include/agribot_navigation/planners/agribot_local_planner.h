@@ -26,10 +26,24 @@
 
 #include "agribot_navigation/common/structures.h"
 #include "agribot_navigation/common/common_functions.h"
+#include "agribot_navigation/common/default_values.h"
+
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
 #include "agribot_navigation/planners/local_planners/circles_planner.h"
 #include "agribot_navigation/planners/local_planners/hermite_planner.h"
-#include "agribot_navigation/common/default_values.h"
+
+#include "agribot_navigation/path_validators/i_path_validator.h"
+#include "agribot_navigation/path_validators/distance_validator.h"
+#include "agribot_navigation/path_validators/curvature_validator.h"
+
+#include "agribot_navigation/path_trackers/i_path_tracker.h"
+#include "agribot_navigation/path_trackers/ray_tracker.h"
+#include "agribot_navigation/path_trackers/following_tracker.h"
+
+#include "agribot_navigation/path_controllers/i_path_controller.h"
+#include "agribot_navigation/path_controllers/deviation_parallelness_controller.h"
+#include "agribot_navigation/path_controllers/pure_pursuit_controller.h"
+#include "agribot_navigation/path_controllers/stanley_controller.h"
 
 namespace agribot_local_planner
 {
@@ -63,6 +77,9 @@ private:
   geometry_msgs::PoseStamped robot_center_;   // present robot center frame
   geometry_msgs::PoseStamped last_waypoint_;  // last target frame
   std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
+  std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
+  std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
+  std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;
   // keeps track of the number of ommited frames
   int missed_waypoints_count_;
   // keeps track of the number for the next frame in the global plan
@@ -110,6 +127,9 @@ private:
 
   void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
   void createPlanners();
+  void createTrackers();
+  void createValidators();
+  void createControllers();
   pos pCalculateRobotFrontPosition(const pos& robot_center);
   pos pGetFrame(int count);
   pos pGetWaypoint(int count);

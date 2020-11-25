@@ -8,50 +8,50 @@ namespace agribot_path_controllers
 {
 DeviationParallelnessController::DeviationParallelnessController() : IPathController()
 {
-  param_epsilon = default_epsilon;
+  param_speed_limiting = true;
+  param_current_parallelness_weight = default_parallelness_weight_straight;
+  param_current_deviation_weight = default_deviation_weight_straight;
+  param_min_radius = default_min_radius;
   param_max_linear_vel = default_max_linear_vel;
   param_min_linear_vel = default_min_linear_vel;
-  param_min_radius = default_min_radius;
-  param_current_deviation_weight = default_deviation_weight_straight;
-  param_current_parallelness_weight = default_parallelness_weight_straight;
-  param_speed_limiting = true;
+  param_epsilon = default_epsilon;
 }
 
 DeviationParallelnessController::~DeviationParallelnessController()
 {
 }
 
-void DeviationParallelnessController::setSpeedLimiting(bool limiting)
+void DeviationParallelnessController::setSpeedLimiting(const bool limiting)
 {
   param_speed_limiting = limiting;
 }
 
-void DeviationParallelnessController::setParallelnessWeight(double parallelness_weight)
+void DeviationParallelnessController::setParallelnessWeight(const double parallelness_weight)
 {
   param_current_parallelness_weight = parallelness_weight;
 }
 
-void DeviationParallelnessController::setDeviationWeight(double deviation_weight)
+void DeviationParallelnessController::setDeviationWeight(const double deviation_weight)
 {
   param_current_deviation_weight = deviation_weight;
 }
 
-void DeviationParallelnessController::setMinRadius(double min_radius)
+void DeviationParallelnessController::setMinRadius(const double min_radius)
 {
   param_min_radius = min_radius;
 }
 
-void DeviationParallelnessController::setMaxLinearVelocity(double max_velocity)
+void DeviationParallelnessController::setMaxLinearVelocity(const double max_velocity)
 {
   param_max_linear_vel = max_velocity;
 }
 
-void DeviationParallelnessController::setMinLinearVelocity(double min_velocity)
+void DeviationParallelnessController::setMinLinearVelocity(const double min_velocity)
 {
   param_max_linear_vel = min_velocity;
 }
 
-void DeviationParallelnessController::setEpsilon(double epsilon)
+void DeviationParallelnessController::setEpsilon(const double epsilon)
 {
   param_epsilon = epsilon;
 }
@@ -75,7 +75,7 @@ bool DeviationParallelnessController::computeControl(geometry_msgs::Twist& cmd_v
   return true;
 }
 
-double DeviationParallelnessController::dCloseToZero(double value)
+double DeviationParallelnessController::dCloseToZero(const double value)
 {
   if (fabs(value) < param_epsilon)
   {
