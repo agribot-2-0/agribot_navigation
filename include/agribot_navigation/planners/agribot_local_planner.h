@@ -68,31 +68,24 @@ private:
   ros::Publisher next_goal_pub_;
   ros::Publisher local_path_pub_;
   // contains the global plan
-  std::vector<geometry_msgs::PoseStamped> plan_;
+  std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
   std::vector<geometry_msgs::PoseStamped> display_plan_;
   nav_msgs::Path local_path_;
   geometry_msgs::Twist velocities_;  // contains the velocity
   visualization_msgs::Marker traveled_points_;
-  geometry_msgs::PoseStamped robot_center_;   // present robot center frame
-  geometry_msgs::PoseStamped last_waypoint_;  // last target frame
+  geometry_msgs::PoseStamped robot_center_;  // present robot center frame
   std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;
-  // keeps track of the number of ommited frames
-  int missed_waypoints_count_;
-  // keeps track of the number for the next frame in the global plan
-  int waypoint_count_;
   bool goal_reached_;
   bool initialized_;
   // time measuring for statistics
-  double stop_time_, start_time_, last_time_, actual_time_;
+  double stop_time_, start_time_, last_time_;
   double last_odom_stamp_;
   // deviation measuring for statistics
-  double deviation_integral_;
   double traveled_distance_;
-  double last_traveled_distance_;
   bool abort_executing_;
   // params
   int param_missed_points_tolerance_;          // n
@@ -130,34 +123,14 @@ private:
   void createTrackers();
   void createValidators();
   void createControllers();
-  pos pCalculateRobotFrontPosition(const pos& robot_center);
-  pos pGetFrame(int count);
-  pos pGetWaypoint(int count);
-  pos pCalculateGoalRange(const pos& next_waypoint, const pos& robot_center, double range);
-  pos pCalculateProjection(const pos& last_waypoint, const pos& next_waypoint, const pos& robot_center);
+  bool replan(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+              const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose);
   geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps);
-  geometry_msgs::Twist xSetVel(const pos& goal, const pos& next_waypoint, const pos& last_waypoint,
-                               const pos& robot_center);
-  geometry_msgs::Twist xDeviationApproach(const pos& goal, const pos& last_waypoint, const pos& robot_center,
-                                          geometry_msgs::Twist velocity);
-  geometry_msgs::Twist xLinearSpeedLimitedApproach(const pos& goal, const pos& last_waypoint, const pos& robot_center);
   geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist xStopRobot();
   geometry_msgs::Twist xFinishedPathBehaviour();
-  void vTakeNextGoal(const pos& current_goal, const pos& robot_center);
-  void vCalculateDeviationIntegral(const pos& last_waypoint, const pos& next_waypoint, const pos& robot_center);
-  void vChooseDeviationParallelnessParametres(int waypoint_number);
-  double dCloseToZero(double value);
-  double dCalculateRadius(double distance_robot_waypoint, double angle_robot_waypoint);
-  double dCalculateDeviation(const pos& last_waypoint, const pos& next_waypoint, const pos& robot_center);
-  bool bMissedTooManyWaypointsCondition(int missed_waypoints);
-  bool bWaypointHitCondition(const pos& robot_center, const pos& last_waypoint, const pos& next_waypoint);
-  bool bWaypointMissedCondition(const pos& robot_center, const pos& last_waypoint, const pos& next_waypoint);
-  bool bTraveledDistanceBetweenWaypoints(pos robot_front, const pos& last_waypoint, const pos& next_waypoint);
-  bool bWithinGoalRange(pos robot_front, const pos& next_waypoint);
-  bool bIsLastWaypointInPath(int waypoints_count);
-  bool bCenterTraveledBeyondGoal(const pos& robot_center, const pos& last_waypoint, const pos& next_waypoint);
-  bool bCenterOutOfGoalRange(const pos& robot_center, const pos& next_waypoint);
+  double dCloseToZero(const double value);
+  bool bReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
 
   void vPathVisualization(const pos& robot_center);
   void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const pos& robot_center);
