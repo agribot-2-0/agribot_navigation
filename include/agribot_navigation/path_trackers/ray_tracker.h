@@ -23,17 +23,21 @@ public:
                      const geometry_msgs::PoseStamped& robot_pose) override;
   void setRayLength(const double length);
   void setRayWidth(const double width);
+  void setTrackingMethod(const bool side_tracking);
   void reset() override;
 
 private:
-  bool checkWaypoint(const geometry_msgs::PoseStamped& robot_pose,
-                     const geometry_msgs::PoseStamped& waypoint_pose) const;
+  bool checkWaypoint(const agribot_local_planner::pos& robot_coordinates,
+                     const agribot_local_planner::pos& waypoint_coordinates) const;
   bool withinRayDistance(const agribot_local_planner::pos& robot_center,
                          const agribot_local_planner::pos& waypoint) const;
-  bool withinRayAngle(const agribot_local_planner::pos& robot_center, const agribot_local_planner::pos& waypoint) const;
-  bool calculateLinesSpan(const double target_line_angle, const double base_line_angle) const;
+  bool withinSideRayAngle(const agribot_local_planner::pos& robot_center,
+                          const agribot_local_planner::pos& waypoint) const;
+  bool withinFrontRayAngle(const agribot_local_planner::pos& robot_center,
+                           const agribot_local_planner::pos& waypoint) const;
+  double calculateLinesSpan(const double target_line_angle, const double base_line_angle) const;
   double ray_length_;  // metres
   double ray_width_;   // degrees
-  std::size_t search_start_index_;
+  bool side_tracking_;
 };
 }  // namespace agribot_path_trackers

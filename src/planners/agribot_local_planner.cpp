@@ -51,10 +51,17 @@ void AgribotPlannerROS::createTrackers()
   following_tracker->setMissedDistanceCoefficient(default_missed_distance_coefficient);
   trackers_["following"] = std::move(following_tracker);
 
-  auto ray_tracker = std::make_unique<agribot_path_trackers::RayTracker>();
-  ray_tracker->setRayWidth(default_tracker_ray_width);
-  ray_tracker->setRayLength(default_tracker_ray_length);
-  trackers_["ray"] = std::move(ray_tracker);
+  auto front_ray_tracker = std::make_unique<agribot_path_trackers::RayTracker>();
+  front_ray_tracker->setRayWidth(default_tracker_front_ray_width);
+  front_ray_tracker->setRayLength(default_tracker_front_ray_length);
+  front_ray_tracker->setTrackingMethod(false);
+  trackers_["front_ray"] = std::move(front_ray_tracker);
+
+  auto side_ray_tracker = std::make_unique<agribot_path_trackers::RayTracker>();
+  side_ray_tracker->setRayWidth(default_tracker_side_ray_width);
+  side_ray_tracker->setRayLength(default_tracker_side_ray_length);
+  side_ray_tracker->setTrackingMethod(true);
+  trackers_["side_ray"] = std::move(side_ray_tracker);
 }
 
 void AgribotPlannerROS::createControllers()
@@ -97,10 +104,12 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     odom_sub_ = gn.subscribe("odom", 100, &AgribotPlannerROS::vOdomCallback, this);
     path_pub_ = pnh.advertise<visualization_msgs::Marker>("travelled_path", 10);
     predicted_path_pub_ = pnh.advertise<visualization_msgs::Marker>("predicted_path", 10);
-    goal_range_pub_ = pnh.advertise<visualization_msgs::Marker>("goal_range", 10);
     next_goal_pub_ = pnh.advertise<visualization_msgs::Marker>("next_goal", 10);
     local_path_pub_ = pnh.advertise<nav_msgs::Path>("local_path", 10);
+    path_slice_pub_ = pnh.advertise<nav_msgs::Path>("path_slice", 10);
+    reference_frame_id_ = "map";
     local_path_.header.frame_id = "map";
+    path_slice_.header.frame_id = "map";
 
     pnh.param("goal_distance_tolerance", param_goal_distance_tolerance_, default_goal_distance_tolerance);
     pnh.param("goal_range", param_goal_range_, default_goal_range);
@@ -145,7 +154,7 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("statistics", param_statistics_, true);
     pnh.param("take_front", param_take_front_, false);
 
-    robot_center_.header.frame_id = "odom";
+    robot_center_.header.frame_id = "map";
 
     createPlanners();
     createTrackers();
@@ -211,7 +220,7 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
 {
   // make local plan
   local_plan_.clear();
-  if (!planners_["circles"]->designPath(local_plan, start_pose, end_pose))
+  if (!planners_["hermite"]->designPath(local_plan, start_pose, end_pose))
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Local planner unable to create path ");
     return false;
@@ -240,6 +249,7 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
   {
     pure_pursuit_pointer->resetRabbit();
   }
+  return true;
 }
 
 bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
@@ -257,11 +267,30 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   if (local_plan_.size() != 0)
   {
     std::vector<geometry_msgs::PoseStamped> path_slice;
+    std::vector<geometry_msgs::PoseStamped> path_slice_ray;
 
-    geometry_msgs::PoseStamped robot_center = xTransformPose(robot_center_);
-    pos path_end_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(local_plan_.back()));
+    geometry_msgs::PoseStamped robot_center = xTransformPose(robot_center_, reference_frame_id_);
+    pos path_end_waypoint =
+        CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(local_plan_.back(), reference_frame_id_));
 
-    trackers_["following"]->findPathSlice(path_slice, local_plan_, robot_center);
+    if (!trackers_["front_ray"]->findPathSlice(path_slice_ray, local_plan_, robot_center))
+    {
+      trackers_["side_ray"]->findPathSlice(path_slice_ray, local_plan_, robot_center);
+    }
+    // ROS_ERROR_STREAM(path_slice_ray.size());
+    vPathSliceVisualization(path_slice_ray);
+    // return false;
+
+    if (!trackers_["following"]->findPathSlice(path_slice, local_plan_, robot_center))
+    {
+      ROS_ERROR_STREAM("[AgribotPlanner] Path slice not found");
+      return false;
+    }
+
+    if (path_slice_ray.size() > 1)
+    {
+      path_slice = path_slice_ray;
+    }
 
     controllers_["deviation_parallelness"]->computeControl(velocity, path_slice, robot_center);
 
@@ -350,7 +379,7 @@ void AgribotPlannerROS::vOdomCallback(const nav_msgs::Odometry& odometry_msg)
 
     robotPose.header = odometry_msg.header;
     robotPose.pose = odometry_msg.pose.pose;
-    robot_center_ = xTransformPose(robotPose);
+    robot_center_ = xTransformPose(robotPose, reference_frame_id_);
 
     traveled_distance_ += CommonFunctions::dDistanceBetweenCoordinates(
         lastRobotPosition, CommonFunctions::pCoordinatesFromPoseStamped(robot_center_));
@@ -387,15 +416,15 @@ geometry_msgs::Twist AgribotPlannerROS::xStopRobot()
   return velocity;
 }
 
-geometry_msgs::PoseStamped AgribotPlannerROS::xTransformPose(geometry_msgs::PoseStamped ps)
+geometry_msgs::PoseStamped AgribotPlannerROS::xTransformPose(geometry_msgs::PoseStamped ps, std::string& frame_id)
 {
   geometry_msgs::PoseStamped poseTransformed;
-  poseTransformed.header.frame_id = "map";
+  poseTransformed.header.frame_id = frame_id;
 
   try
   {
     ps.header.stamp = ros::Time::now();
-    tf_buffer_->transform(ps, poseTransformed, "map", ros::Duration(0.2));
+    tf_buffer_->transform(ps, poseTransformed, frame_id, ros::Duration(0.2));
   }
   catch (tf2::ExtrapolationException e)
   {
@@ -512,36 +541,20 @@ void AgribotPlannerROS::vNextGoalVisualization(const pos& last_waypoint, const p
   next_goal_pub_.publish(marker);
 }
 
-void AgribotPlannerROS::vGoalRangeVisualization(const pos& goal, const pos& range)
-{
-  visualization_msgs::Marker marker;
-  marker.header.frame_id = "map";
-  marker.header.stamp = ros::Time::now();
-  marker.ns = "goal_range";
-  marker.action = visualization_msgs::Marker::ADD;
-  marker.id = 0;
-  marker.type = visualization_msgs::Marker::SPHERE;
-  marker.color.r = 1.0;
-  marker.color.a = 0.2;
-
-  geometry_msgs::Point p;
-  marker.scale.x = 2 * param_goal_distance_tolerance_;
-  marker.scale.y = 2 * param_goal_distance_tolerance_;
-  marker.scale.z = 0.01;
-  marker.pose.position.x = goal.x;
-  marker.pose.position.y = goal.y;
-  marker.pose.position.z = 0;
-  marker.pose.orientation.w = 1;
-
-  goal_range_pub_.publish(marker);
-}
-
 void AgribotPlannerROS::vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path)
 {
   local_path_.header.stamp = ros::Time::now();
   local_path_.poses.clear();
   local_path_.poses = path;
   local_path_pub_.publish(local_path_);
+}
+
+void AgribotPlannerROS::vPathSliceVisualization(const std::vector<geometry_msgs::PoseStamped>& path_slice)
+{
+  path_slice_.header.stamp = ros::Time::now();
+  path_slice_.poses.clear();
+  path_slice_.poses = path_slice;
+  path_slice_pub_.publish(path_slice_);
 }
 
 void AgribotPlannerROS::vVisualizations(const pos& last_waypoint, const pos& goal, const pos& next_waypoint,

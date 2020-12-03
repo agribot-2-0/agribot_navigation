@@ -64,7 +64,7 @@ private:
   ros::Subscriber odom_sub_;
   ros::Publisher path_pub_;
   ros::Publisher predicted_path_pub_;
-  ros::Publisher goal_range_pub_;
+  ros::Publisher path_slice_pub_;
   ros::Publisher next_goal_pub_;
   ros::Publisher local_path_pub_;
   // contains the global plan
@@ -72,10 +72,12 @@ private:
   std::vector<geometry_msgs::PoseStamped> local_plan_;
   std::vector<geometry_msgs::PoseStamped> display_plan_;
   nav_msgs::Path local_path_;
+  nav_msgs::Path path_slice_;
   geometry_msgs::Twist velocities_;  // contains the velocity
   visualization_msgs::Marker traveled_points_;
   geometry_msgs::PoseStamped robot_center_;  // present robot center frame
   std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
+  std::string reference_frame_id_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;
@@ -125,7 +127,8 @@ private:
   void createControllers();
   bool replan(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
               const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose);
-  geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps);
+  geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps,
+                                            std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist xStopRobot();
   geometry_msgs::Twist xFinishedPathBehaviour();
@@ -135,8 +138,9 @@ private:
   void vPathVisualization(const pos& robot_center);
   void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const pos& robot_center);
   void vNextGoalVisualization(const pos& last_waypoint, const pos& goal);
-  void vGoalRangeVisualization(const pos& goal, const pos& range);
   void vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT(runtime/references)
+  void
+  vPathSliceVisualization(const std::vector<geometry_msgs::PoseStamped>& path_slice);  // NOLINT(runtime/references)
   void vVisualizations(const pos& last_waypoint, const pos& goal, const pos& next_waypoint, const pos& robot_center,
                        const geometry_msgs::Twist& velocity);
 };
