@@ -26,6 +26,7 @@
 
 #include "agribot_navigation/common/structures.h"
 #include "agribot_navigation/common/common_functions.h"
+#include "agribot_navigation/common/visualization_functions.h"
 #include "agribot_navigation/common/default_values.h"
 
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
@@ -65,8 +66,6 @@ private:
   ros::Publisher path_pub_;
   ros::Publisher predicted_path_pub_;
   ros::Publisher path_slice_pub_;
-  ros::Publisher next_goal_pub_;
-  ros::Publisher local_path_pub_;
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
@@ -134,14 +133,5 @@ private:
   geometry_msgs::Twist xFinishedPathBehaviour();
   double dCloseToZero(const double value);
   bool bReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
-
-  void vPathVisualization(const pos& robot_center);
-  void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const pos& robot_center);
-  void vNextGoalVisualization(const pos& last_waypoint, const pos& goal);
-  void vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT(runtime/references)
-  void
-  vPathSliceVisualization(const std::vector<geometry_msgs::PoseStamped>& path_slice);  // NOLINT(runtime/references)
-  void vVisualizations(const pos& last_waypoint, const pos& goal, const pos& next_waypoint, const pos& robot_center,
-                       const geometry_msgs::Twist& velocity);
 };
 }  // namespace agribot_local_planner

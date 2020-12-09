@@ -18,13 +18,11 @@
 
 namespace VisualizatioFucntions
 {
-void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const agribot_local_planner::pos& robot_center,
+void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agribot_local_planner::pos& robot_center,
                                  const double prediction_points_per_second, const double prediction_time,
                                  const std::string& frame_id, const ros::Publisher& publisher);
-void vNextGoalVisualization(const agribot_local_planner::pos& last_waypoint, const agribot_local_planner::pos& goal,
+void goalVisualization(const agribot_local_planner::pos& last_waypoint, const agribot_local_planner::pos& goal,
                             const std::string& frame_id, const ros::Publisher& publisher);
-void vGoalRangeVisualization(const agribot_local_planner::pos& goal, const double goal_distance_tolerance,
-                             const std::string& frame_id, const ros::Publisher& publisher);
-void vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
+void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
                              const ros::Publisher& publisher);  // NOLINT(runtime/references)
 }  // namespace VisualizatioFucntions

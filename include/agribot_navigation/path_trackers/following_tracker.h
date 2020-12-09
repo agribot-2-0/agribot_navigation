@@ -24,6 +24,7 @@ public:
   void reset() override;
   void setMissedDistanceCoefficient(const double coefficient);
   void setGoalDistanceTolerance(const double tolerance);
+  void setMaxMissedWaypoints(const int max_missed_waypoints);
 
 private:
   void takeNextGoal();
@@ -47,6 +48,8 @@ private:
                                    const agribot_local_planner::pos& last_position);
   agribot_local_planner::pos last_robot_center_;
   std::size_t waypoint_count_;
+  int missed_counter_;
+  int param_max_missed_waypoints_;
   double param_missed_distance_coefficient_;
   double param_goal_distance_tolerance_;
   double last_traveled_distance_;
