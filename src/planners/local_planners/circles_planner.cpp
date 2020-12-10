@@ -204,7 +204,7 @@ bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, cons
 
   if (steps <= 0)
   {
-    ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble arc path");
+    ROS_WARN_STREAM("[CirclesPlanner] Could not assemble arc path");
     return false;
   }
 
@@ -318,16 +318,14 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   }
 
   // appednd arc from circle start_c2
-  if (!arcPath(path, start_point, start_c2_center, start_c2_span))
+  if (!arcPath(path, start_point, start_c2_center, start_c2_span) ||
+      !arcPath(path, start_c2_center, start_c1_center, start_c1_span))
   {
-    ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble first starting arc");
-    return false;
-  }
-  // appednd arc from circle start_c1
-  if (!arcPath(path, start_c2_center, start_c1_center, start_c1_span))
-  {
-    ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble second starting arc");
-    return false;
+    if (!straightPath(path, start_point, start_tangent_point, step_size))
+    {
+      ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble starting arc");
+      return false;
+    }
   }
   // appednd straight from circle start to circle end
   if (!straightPath(path, start_tangent_point, end_tangent_point, step_size))
@@ -336,16 +334,14 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
     return false;
   }
   // appednd arc from circle end_c1
-  if (!arcPath(path, end_tangent_point, end_c1_center, end_c1_span))
+  if (!arcPath(path, end_tangent_point, end_c1_center, end_c1_span) ||
+      !arcPath(path, end_c1_center, end_c2_center, end_c2_span))
   {
-    ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble first ending arc");
-    return false;
-  }
-  // appednd arc from circle end_c2
-  if (!arcPath(path, end_c1_center, end_c2_center, end_c2_span))
-  {
-    ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble second ending arc");
-    return false;
+    if (!straightPath(path, end_tangent_point, end_point, step_size))
+    {
+      ROS_ERROR_STREAM("[CirclesPlanner] Could not assemble ending arc");
+      return false;
+    }
   }
 
   return true;
