@@ -102,8 +102,8 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     ros::NodeHandle pnh("~" + name);
 
     odom_sub_ = gn.subscribe("odom", 100, &AgribotPlannerROS::vOdomCallback, this);
-    path_pub_ = pnh.advertise<visualization_msgs::Marker>("travelled_path", 10);
-    predicted_path_pub_ = pnh.advertise<visualization_msgs::Marker>("predicted_path", 10);
+    path_pub_ = pnh.advertise<nav_msgs::Path>("local_path", 10);
+    predicted_path_pub_ = pnh.advertise<nav_msgs::Path>("predicted_path", 10);
     path_slice_pub_ = pnh.advertise<nav_msgs::Path>("path_slice", 10);
     reference_frame_id_ = "map";
     local_path_.header.frame_id = "map";
