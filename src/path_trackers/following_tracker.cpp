@@ -53,7 +53,7 @@ bool FollowingTracker::findPathSlice(std::vector<geometry_msgs::PoseStamped>& pa
   if (missed_counter_ > param_max_missed_waypoints_)
   {
     missed_counter_ = 0;
-    ROS_ERROR_STREAM("[FollowingTracker] Missed too many waypoints.");
+    ROS_WARN_STREAM("[FollowingTracker] Missed too many waypoints.");
     return false;
   }
 

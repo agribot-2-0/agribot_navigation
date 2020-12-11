@@ -191,9 +191,10 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   global_plan_ = orig_global_plan;
 
   // make local plan
-  if (!replan(local_plan_, robot_center_, global_plan_.back()))
+  if (!replan(local_plan_, robot_center_, global_plan_.back(), "circles"))
   {
-    ROS_ERROR_STREAM("[AgribotPlanner] Unable to create valid path");
+    if (!replan(local_plan_, robot_center_, global_plan_.back(), "hermite"))
+      ROS_ERROR_STREAM("[AgribotPlanner] Unable to create valid path");
     return false;
   }
 
@@ -214,13 +215,14 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
 }
 
 bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_plan,
-                               const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose)
+                               const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
+                               const std::string& planner_id)
 {
   // make local plan
   local_plan_.clear();
-  if (!planners_["circles"]->designPath(local_plan, start_pose, end_pose))
+  if (!planners_[planner_id]->designPath(local_plan, start_pose, end_pose))
   {
-    ROS_ERROR_STREAM("[AgribotPlanner] Local planner unable to create path ");
+    ROS_ERROR_STREAM("[" << planner_id << "_planner] Local planner unable to create path ");
     return false;
   }
   else
@@ -228,10 +230,10 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
     // validate
     if (!validators_["distance"]->validatePath(local_plan))
     {
-      ROS_ERROR_STREAM("[AgribotPlanner] Local path is invalid - too short");
+      ROS_ERROR_STREAM("[" << planner_id << "_planner] Local path is invalid - too short");
       return false;
     }
-    ROS_INFO_STREAM("[AgribotPlanner] Local planner created, path length = " << local_plan_.size());
+    ROS_INFO_STREAM("[" << planner_id << "_planner] Local planner created, path length = " << local_plan_.size());
   }
 
   // reset trackers
@@ -288,7 +290,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     if (path_slice.size() < 2)
     {
       cmd_vel = xStopRobot();
-      if (!replan(local_plan_, robot_center_, global_plan_.back()))
+      if (!replan(local_plan_, robot_center_, global_plan_.back(), "circles"))
       {
         ROS_ERROR_STREAM("[AgribotPlanner] Unable to replan path");
         return false;

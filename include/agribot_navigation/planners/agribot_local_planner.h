@@ -125,7 +125,8 @@ private:
   void createValidators();
   void createControllers();
   bool replan(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-              const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose);
+              const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
+              const std::string& planner_id);
   geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps,
                                             std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist velocities);
