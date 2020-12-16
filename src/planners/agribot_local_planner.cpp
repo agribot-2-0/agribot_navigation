@@ -194,8 +194,10 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   if (!replan(local_plan_, robot_center_, global_plan_.back(), "circles"))
   {
     if (!replan(local_plan_, robot_center_, global_plan_.back(), "hermite"))
+    {
       ROS_ERROR_STREAM("[AgribotPlanner] Unable to create valid path");
-    return false;
+      return false;
+    }
   }
 
   // set flags and reset additional variables
@@ -227,7 +229,7 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
   }
   else
   {
-    // validate
+    // // validate
     if (!validators_["distance"]->validatePath(local_plan))
     {
       ROS_ERROR_STREAM("[" << planner_id << "_planner] Local path is invalid - too short");
