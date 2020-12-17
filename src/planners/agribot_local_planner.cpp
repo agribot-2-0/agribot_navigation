@@ -159,6 +159,9 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     createValidators();
     createControllers();
 
+    last_odom_stamp_ = 0;
+    ros::topic::waitForMessage<nav_msgs::Odometry>("odom");
+
     initialized_ = true;
 
     if (param_statistics_)
@@ -190,6 +193,9 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   // remember global plan
   global_plan_ = orig_global_plan;
 
+  last_odom_stamp_ = 0;
+  ros::topic::waitForMessage<nav_msgs::Odometry>("odom");
+
   // make local plan
   if (!replan(local_plan_, robot_center_, global_plan_.back(), "circles"))
   {
@@ -204,7 +210,6 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   abort_executing_ = false;
   goal_reached_ = false;
   traveled_points_ = visualization_msgs::Marker();
-  last_odom_stamp_ = 0;
   traveled_distance_ = 0;
 
   if (param_statistics_)
