@@ -234,7 +234,7 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
   }
   else
   {
-    // // validate
+    // validate
     if (!validators_["distance"]->validatePath(local_plan))
     {
       ROS_ERROR_STREAM("[" << planner_id << "_planner] Local path is invalid - too short");
