@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(agribot_navigation)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++14)
+add_compile_options(-std=c++17)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -183,37 +183,37 @@ add_library(agribot_local_planner
   src/planners/local_planners/i_local_planner.cpp
   src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp
-  src/path_slicers/following_slicer.cpp
-  src/path_slicers/ray_slicer.cpp
-  src/path_trackers/pure_pursuit_tracker.cpp
-  src/path_trackers/stanley_tracker.cpp
-  src/path_trackers/deviation_parallelness_tracker.cpp
+  src/path_trackers/following_tracker.cpp
+  src/path_trackers/ray_tracker.cpp
+  src/path_controllers/pure_pursuit_controller.cpp
+  src/path_controllers/stanley_controller.cpp
+  src/path_controllers/deviation_parallelness_controller.cpp
   src/path_validators/distance_validator.cpp
   src/path_validators/curvature_validator.cpp
 )
 
-add_library(following_slicer
-  src/path_slicers/following_slicer.cpp
+add_library(following_tracker
+  src/path_trackers/following_tracker.cpp
 )
 
-add_library(ray_slicer
-  src/path_slicers/ray_slicer.cpp
+add_library(ray_tracker
+  src/path_trackers/ray_tracker.cpp
 )
 
 add_library(waypoint_global_planner
   src/planners/waypoint_global_planner.cpp
 )
 
-add_library(pure_pursuit_tracker
-  src/path_trackers/pure_pursuit_tracker.cpp
+add_library(pure_pursuit_controller
+  src/path_controllers/pure_pursuit_controller.cpp
 )
 
-add_library(stanley_tracker
-  src/path_trackers/stanley_tracker.cpp
+add_library(stanley_controller
+  src/path_controllers/stanley_controller.cpp
 )
 
-add_library(deviation_parallelness_tracker
-  src/path_trackers/deviation_parallelness_tracker.cpp
+add_library(deviation_parallelness_controller
+  src/path_controllers/deviation_parallelness_controller.cpp
 )
 
 add_library(distance_validator
@@ -240,9 +240,9 @@ add_executable(cmd_vel_arbiter_node
 )
 
 target_link_libraries(
-  pure_pursuit_tracker
-  stanley_tracker
-  deviation_parallelness_tracker
+  pure_pursuit_controller
+  stanley_controller
+  deviation_parallelness_controller
   ${catkin_LIBRARIES}
 )
 

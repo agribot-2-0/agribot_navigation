@@ -4,9 +4,9 @@
 
 #include "agribot_navigation/common/visualization_functions.h"
 
-namespace VisualizatioFucntions
+namespace VisualizatioFunctions
 {
-void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const agribot_local_planner::pos& robot_center,
+void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agribot_local_planner::pos& robot_center,
                                  const double prediction_points_per_second, const double prediction_time,
                                  const std::string& frame_id, const ros::Publisher& publisher)
 {
@@ -47,10 +47,10 @@ void vPredictedPathVisualization(const geometry_msgs::Twist& velocity, const agr
       predicted_path.push_back(point);
     }
   }
-  vLocalPathVisualization(predicted_path, frame_id, publisher);
+  pathVisualization(predicted_path, frame_id, publisher);
 }
 
-void vNextGoalVisualization(const agribot_local_planner::pos& last_waypoint, const agribot_local_planner::pos& goal,
+void goalVisualization(const agribot_local_planner::pos& last_waypoint, const agribot_local_planner::pos& goal,
                             const std::string& frame_id, const ros::Publisher& publisher)
 {
   visualization_msgs::Marker marker;
@@ -79,32 +79,7 @@ void vNextGoalVisualization(const agribot_local_planner::pos& last_waypoint, con
   publisher.publish(marker);
 }
 
-void vGoalRangeVisualization(const agribot_local_planner::pos& goal, const double goal_distance_tolerance,
-                             const std::string& frame_id, const ros::Publisher& publisher)
-{
-  visualization_msgs::Marker marker;
-  marker.header.frame_id = frame_id;
-  marker.header.stamp = ros::Time::now();
-  marker.ns = "goal_range";
-  marker.action = visualization_msgs::Marker::ADD;
-  marker.id = 0;
-  marker.type = visualization_msgs::Marker::SPHERE;
-  marker.color.r = 1.0;
-  marker.color.a = 0.2;
-
-  geometry_msgs::Point p;
-  marker.scale.x = 2 * goal_distance_tolerance;
-  marker.scale.y = 2 * goal_distance_tolerance;
-  marker.scale.z = 0.01;
-  marker.pose.position.x = goal.x;
-  marker.pose.position.y = goal.y;
-  marker.pose.position.z = 0;
-  marker.pose.orientation.w = 1;
-
-  publisher.publish(marker);
-}
-
-void vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
+void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
                              const ros::Publisher& publisher)
 {
   nav_msgs::Path local_path;
@@ -113,4 +88,4 @@ void vLocalPathVisualization(const std::vector<geometry_msgs::PoseStamped>& path
   local_path.poses = path;
   publisher.publish(local_path);
 }
-}  // namespace VisualizatioFucntions
+}  // namespace VisualizatioFunctions
