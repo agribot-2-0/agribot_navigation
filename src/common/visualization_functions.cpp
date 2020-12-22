@@ -4,7 +4,7 @@
 
 #include "agribot_navigation/common/visualization_functions.h"
 
-namespace VisualizatioFucntions
+namespace VisualizatioFunctions
 {
 void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agribot_local_planner::pos& robot_center,
                                  const double prediction_points_per_second, const double prediction_time,
@@ -88,4 +88,4 @@ void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, cons
   local_path.poses = path;
   publisher.publish(local_path);
 }
-}  // namespace VisualizatioFucntions
+}  // namespace VisualizatioFunctions

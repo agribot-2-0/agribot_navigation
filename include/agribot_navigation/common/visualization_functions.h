@@ -16,7 +16,7 @@
 #include "agribot_navigation/common/structures.h"
 #include "agribot_navigation/common/common_functions.h"
 
-namespace VisualizatioFucntions
+namespace VisualizatioFunctions
 {
 void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agribot_local_planner::pos& robot_center,
                                  const double prediction_points_per_second, const double prediction_time,
@@ -25,4 +25,4 @@ void goalVisualization(const agribot_local_planner::pos& last_waypoint, const ag
                             const std::string& frame_id, const ros::Publisher& publisher);
 void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
                              const ros::Publisher& publisher);  // NOLINT(runtime/references)
-}  // namespace VisualizatioFucntions
+}  // namespace VisualizatioFunctions

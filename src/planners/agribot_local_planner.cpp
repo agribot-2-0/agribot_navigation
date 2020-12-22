@@ -262,7 +262,7 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
 bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 {
   geometry_msgs::Twist velocity;
-  VisualizatioFucntions::pathVisualization(local_plan_, "map", path_pub_);
+  VisualizatioFunctions::pathVisualization(local_plan_, "map", path_pub_);
 
   if (!initialized_)
   {
@@ -292,7 +292,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       path_slice = path_slice_ray;
     }
 
-    VisualizatioFucntions::pathVisualization(path_slice, "map", path_slice_pub_);
+    VisualizatioFunctions::pathVisualization(path_slice, "map", path_slice_pub_);
 
     if (path_slice.size() < 2)
     {
@@ -322,7 +322,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     {
       velocity = xFinishedPathBehaviour();
     }
-    VisualizatioFucntions::predictedPathVisualization(
+    VisualizatioFunctions::predictedPathVisualization(
         velocity, CommonFunctions::pCoordinatesFromPoseStamped(robot_center), param_prediction_points_per_second_,
         param_prediction_time_, "map", predicted_path_pub_);
   }
