@@ -1,0 +1,5 @@
+<launch>
+  <node name="agribot_manual_control_commander" pkg="agribot_navigation" type="agribot_manual_control_commander.py"  output="screen">
+    <rosparam file="$(find agribot_navigation)/param/teleop_params.yaml" command="load" />
+  </node>
+</launch>

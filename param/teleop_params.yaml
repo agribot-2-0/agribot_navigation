@@ -1,0 +1,5 @@
+chassis_length: 2.1
+linear_speed_step: 0.1
+turn_radius_step: 0.25
+min_radius: 2.1
+cutoff_radius: 11.0
