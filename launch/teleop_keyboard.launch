@@ -1,5 +1,0 @@
-<launch>
-    <node name="agribot_teleop_keyboard" pkg="agribot_navigation" type="agribot_teleop_keyboard.py" output="screen">
-        <rosparam file="$(find agribot_navigation)/param/teleop_params.yaml" command="load" />
-    </node>
-</launch>
