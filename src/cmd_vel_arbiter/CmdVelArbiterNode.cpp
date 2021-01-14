@@ -13,35 +13,59 @@ CmdVelArbiterNode::CmdVelArbiterNode(ros::NodeHandle* nh) : _nh(*nh), _arbiterSt
   _navTopic = "/cmd_vel_navigation";
   _teleopTopic = "/cmd_vel_manual";
 
-  std::string startingState;
-  _nh.param<std::string>("starting_state", startingState, "stop");
-  _nh.param<float>("timeout", timeout, 0.5);
-  timeout = 600.0;
-  _nh.param<float>("chassis_length", chassisLength, 2.1);
-  _nh.param<float>("min_radius", minRadius, 2.5);
-  _nh.param<float>("cutoff_radius", cutoffRadius, 11.0);
-
-  // Create one-shot timeout timer and leave it in stopped state
-  createTimeoutTimer();
-  stopTimeoutTimer();
-
-  ROS_INFO_STREAM("Created cmd_vel timeout timer with " << timeout << "s...");
-
-  if (startingState == "stop")
+  if (_nh.hasParam("/cmd_vel_arbiter/starting_state"))
   {
-    switchToStop();
-  }
-  else if (startingState == "navigation")
-  {
-    switchToNavigation();
-  }
-  else if (startingState == "teleop")
-  {
-    switchToTeleop();
+    std::string startingState;
+    _nh.getParam("/cmd_vel_arbiter/starting_state", startingState);
+    if (!switchToStartingState(startingState))
+    {
+      ROS_ERROR_STREAM("Unsupported starting_state provided. Exiting...");
+      _nh.shutdown();
+      exit(0);
+    }
   }
   else
   {
-    ROS_ERROR_STREAM("Unsuported starting_state provided. Exiting...");
+    ROS_FATAL_STREAM("[CmdVelArbiter Node] Missing /cmd_vel_arbiter/starting_state parameter. Exiting...");
+    _nh.shutdown();
+    exit(0);
+  }
+
+  if (_nh.hasParam("/cmd_vel_arbiter/timeout"))
+  {
+    _nh.getParam("/cmd_vel_arbiter/timeout", timeout);
+
+    // Create one-shot timeout timer and leave it in stopped state
+    createTimeoutTimer();
+    stopTimeoutTimer();
+    ROS_INFO_STREAM("Created cmd_vel timeout timer with " << timeout << "s...");
+  }
+  else
+  {
+    ROS_FATAL_STREAM("[CmdVelArbiter Node] Missing /cmd_vel_arbiter/timeout parameter. Exiting...");
+    _nh.shutdown();
+    exit(0);
+  }
+
+  if (_nh.hasParam("/cmd_vel_arbiter/min_radius"))
+  {
+    _nh.getParam("/cmd_vel_arbiter/min_radius", minRadius);
+  }
+  else
+  {
+    ROS_FATAL_STREAM("[CmdVelArbiter Node] Missing /cmd_vel_arbiter/min_radius parameter. Exiting...");
+    _nh.shutdown();
+    exit(0);
+  }
+
+  if (_nh.hasParam("/cmd_vel_arbiter/cutoff_radius"))
+  {
+    _nh.getParam("/cmd_vel_arbiter/cutoff_radius", cutoffRadius);
+  }
+  else
+  {
+    ROS_FATAL_STREAM("[CmdVelArbiter Node] Missing /cmd_vel_arbiter/cutoff_radius parameter. Exiting...");
+    _nh.shutdown();
     exit(0);
   }
 
@@ -60,6 +84,26 @@ void CmdVelArbiterNode::subscribeToNavigation()
 void CmdVelArbiterNode::subscribeToTeleop()
 {
   _inSub = _nh.subscribe(_teleopTopic, 1, &CmdVelArbiterNode::teleopCallback, this);
+}
+
+bool CmdVelArbiterNode::switchToStartingState(const std::string& starting_state)
+{
+  if (starting_state == "stop")
+  {
+    return switchToStop();
+  }
+  else if (starting_state == "navigation")
+  {
+    return switchToNavigation();
+  }
+  else if (starting_state == "teleop")
+  {
+    return switchToTeleop();
+  }
+  else
+  {
+    return false;
+  }
 }
 
 bool CmdVelArbiterNode::switchToStop()
