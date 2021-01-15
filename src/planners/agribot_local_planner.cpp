@@ -157,7 +157,8 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("odom_filter_time", param_odom_filter_time_, default_odom_filter_time);
     pnh.param("missed_distance_coefficient", param_missed_distance_coefficient_, default_missed_distance_coefficient);
 
-    pnh.param("costmap_converter", costmap_converter_name_, std::string("costmap_converter::CostmapToPolygonsDBSConcaveHull"));
+    pnh.param("costmap_converter", costmap_converter_name_,
+              std::string("costmap_converter::CostmapToPolygonsDBSConcaveHull"));
     pnh.param("costmap_converter_odom_topic", costmap_converter_odom_topic_, std::string("/odom"));
     pnh.param("costmap_converter_rate", costmap_converter_rate_, 10.0);
 
