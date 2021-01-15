@@ -35,7 +35,6 @@ private:
   float timeout;
   float minRadius;
   float cutoffRadius;
-  float chassisLength;
 
   ArbiterState _arbiterState;
   std::string _navTopic;
@@ -46,6 +45,7 @@ public:
 
   void subscribeToNavigation();
   void subscribeToTeleop();
+  bool switchToStartingState(const std::string& starting_state);
   bool switchToStop();
   bool switchToNavigation();
   bool switchToTeleop();
