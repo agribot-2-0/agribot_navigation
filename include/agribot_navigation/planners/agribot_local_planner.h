@@ -5,10 +5,13 @@
 #pragma once
 
 #include <base_local_planner/goal_functions.h>
+#include <pluginlib/class_loader.h>
 #include <costmap_2d/costmap_2d_ros.h>
+#include <costmap_converter/costmap_converter_interface.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Polygon.h>
 #include <nav_core/base_local_planner.h>
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
@@ -60,12 +63,16 @@ public:
 
 private:
   costmap_2d::Costmap2DROS* costmap_ros_;
+  costmap_2d::Costmap2D* local_costmap_;
   tf2_ros::Buffer* tf_buffer_;
   tf2_ros::TransformListener* tf_listener_;
   ros::Subscriber odom_sub_;
   ros::Publisher path_pub_;
   ros::Publisher predicted_path_pub_;
   ros::Publisher path_slice_pub_;
+  ros::Publisher obstacles_pub_;
+  ros::Publisher obstacles_polygon_pub_;
+  ros::Publisher obstacles_markers_pub_;
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
@@ -80,6 +87,15 @@ private:
   std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;
+
+  pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> costmap_converter_loader_;
+  boost::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_;
+  std::string costmap_converter_name_;
+  std::string costmap_converter_odom_topic_;
+  double costmap_converter_rate_;
+  costmap_converter::ObstacleArrayConstPtr obstacles_;
+  std::vector<geometry_msgs::Polygon> obstacles_ros_;
+
   bool goal_reached_;
   bool initialized_;
   // time measuring for statistics
@@ -114,16 +130,19 @@ private:
   double param_odom_filter_time_;             // seconds
   double param_missed_distance_coefficient_;  // factor >1
 
+
   bool param_speed_limit_;
   bool param_debug_;
   bool param_statistics_;
   bool param_take_front_;
 
+  void publishObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
   void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
   void createPlanners();
   void createTrackers();
   void createValidators();
   void createControllers();
+  void createCostmapConverter(const ros::NodeHandle& nh);
   bool replan(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
               const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
               const std::string& planner_id);

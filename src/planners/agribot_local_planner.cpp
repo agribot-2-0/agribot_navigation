@@ -10,7 +10,10 @@ PLUGINLIB_EXPORT_CLASS(agribot_local_planner::AgribotPlannerROS, nav_core::BaseL
 
 namespace agribot_local_planner
 {
-AgribotPlannerROS::AgribotPlannerROS() : costmap_ros_(NULL), initialized_(false)
+AgribotPlannerROS::AgribotPlannerROS()
+  : costmap_ros_(NULL)
+  , initialized_(false)
+  , costmap_converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons")
 {
 }
 
@@ -90,11 +93,23 @@ void AgribotPlannerROS::createControllers()
   controllers_["deviation_parallelness"] = std::move(deviation_parallelness_controller);
 }
 
+void AgribotPlannerROS::createCostmapConverter(const ros::NodeHandle& nh)
+{
+  costmap_converter_ = costmap_converter_loader_.createInstance(costmap_converter_name_);
+  std::string converter_name = costmap_converter_loader_.getName(costmap_converter_name_);
+  boost::replace_all(converter_name, "::", "/");
+  costmap_converter_->setOdomTopic(costmap_converter_odom_topic_);
+  costmap_converter_->initialize(ros::NodeHandle(nh, "costmap_converter/" + converter_name));
+  costmap_converter_->setCostmap2D(local_costmap_);
+  costmap_converter_->startWorker(ros::Rate(costmap_converter_rate_), local_costmap_, false);
+}
+
 void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, costmap_2d::Costmap2DROS* costmapROS)
 {
   if (!initialized_)
   {
     costmap_ros_ = costmapROS;
+    local_costmap_ = costmapROS->getCostmap();
     tf_buffer_ = tfBuffer;
     tf_listener_ = new tf2_ros::TransformListener(*tfBuffer);
 
@@ -105,6 +120,9 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     path_pub_ = pnh.advertise<nav_msgs::Path>("local_path", 10);
     predicted_path_pub_ = pnh.advertise<nav_msgs::Path>("predicted_path", 10);
     path_slice_pub_ = pnh.advertise<nav_msgs::Path>("path_slice", 10);
+    obstacles_pub_ = pnh.advertise<costmap_converter::ObstacleMsg>("obstacles", 10);
+    obstacles_polygon_pub_ = pnh.advertise<geometry_msgs::PolygonStamped>("obstacles_polygons", 1000);
+    obstacles_markers_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_markers", 10);
     reference_frame_id_ = "map";
     local_path_.header.frame_id = "map";
     path_slice_.header.frame_id = "map";
@@ -139,6 +157,10 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     pnh.param("odom_filter_time", param_odom_filter_time_, default_odom_filter_time);
     pnh.param("missed_distance_coefficient", param_missed_distance_coefficient_, default_missed_distance_coefficient);
 
+    pnh.param("costmap_converter", costmap_converter_name_, std::string("costmap_converter::CostmapToPolygonsDBSConcaveHull"));
+    pnh.param("costmap_converter_odom_topic", costmap_converter_odom_topic_, std::string("/odom"));
+    pnh.param("costmap_converter_rate", costmap_converter_rate_, 10.0);
+
     // be sure that path planning arc radius is greater or equal to minimum turning radius
     if (param_design_arc_radius_ < param_min_radius_)
     {
@@ -158,6 +180,7 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     createTrackers();
     createValidators();
     createControllers();
+    createCostmapConverter(pnh);
 
     last_odom_stamp_ = 0;
     ros::topic::waitForMessage<nav_msgs::Odometry>("odom");
@@ -263,6 +286,11 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 {
   geometry_msgs::Twist velocity;
   VisualizatioFunctions::pathVisualization(local_plan_, "map", path_pub_);
+  obstacles_ = costmap_converter_->getObstacles();
+  if (obstacles_->obstacles.size() > 0)
+  {
+    publishObstacles(obstacles_);
+  }
 
   if (!initialized_)
   {
@@ -335,6 +363,57 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 
   cmd_vel = velocity;
   return true;
+}
+
+void AgribotPlannerROS::publishObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles)
+{
+  obstacles_ros_.clear();
+  for (auto const& obstacle : obstacles->obstacles)
+  {
+    if (obstacle.polygon.points.size() > 2)
+      obstacles_ros_.push_back(obstacle.polygon);
+    obstacles_pub_.publish(obstacle);
+  }
+  std::size_t idx = 0;
+  for (auto const& obstacle : obstacles_ros_)
+  {
+    geometry_msgs::PolygonStamped obstacle_stamped;
+    obstacle_stamped.header.frame_id = costmap_converter_odom_topic_;
+    obstacle_stamped.header.stamp = ros::Time::now();
+    obstacle_stamped.polygon = obstacle;
+    obstacles_polygon_pub_.publish(obstacle_stamped);
+
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = costmap_converter_odom_topic_;
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "PolyObstacles";
+    marker.id = idx++;
+    marker.type = visualization_msgs::Marker::LINE_STRIP;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(1.0);
+
+    geometry_msgs::Point point;
+    for (auto const& vertex : obstacle.points)
+    {
+      point.x = vertex.x;
+      point.y = vertex.y;
+      point.z = 0;
+      marker.points.push_back(point);
+    }
+    point.x = obstacle.points.at(0).x;
+    point.y = obstacle.points.at(0).y;
+    point.z = 0;
+    marker.points.push_back(point);
+
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.color.a = 1.0;
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+    obstacles_markers_pub_.publish(marker);
+  }
+  return;
 }
 
 double AgribotPlannerROS::dCloseToZero(const double value)
