@@ -164,6 +164,10 @@ add_library(visualization_functions
   src/common/visualization_functions.cpp
 )
 
+add_library(obstacle_detection
+  src/obstacle_detection/obstacle.cpp
+)
+
 add_library(i_local_planner
   src/planners/local_planners/i_local_planner.cpp
 )
@@ -190,6 +194,7 @@ add_library(agribot_local_planner
   src/path_controllers/deviation_parallelness_controller.cpp
   src/path_validators/distance_validator.cpp
   src/path_validators/curvature_validator.cpp
+  src/obstacle_detection/obstacle.cpp
 )
 
 add_library(following_tracker
@@ -261,6 +266,10 @@ target_link_libraries(common_functions
 )
 
 target_link_libraries(visualization_functions
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(obstacle_detection
   ${catkin_LIBRARIES}
 )
 
