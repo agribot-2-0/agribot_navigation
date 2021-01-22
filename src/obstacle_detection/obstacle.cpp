@@ -11,21 +11,18 @@ Obstacle::Obstacle()
   initializeEmpty();
 }
 
-Obstacle::Obstacle(const geometry_msgs::Polygon& polygon)
+Obstacle::Obstacle(const geometry_msgs::PolygonStamped& polygon)
 {
-  if (polygon.points.size() < 3)
+  initializeEmpty();
+  if (polygon.polygon.points.size() > 2)
   {
-    initializeEmpty();
-  }
-  else
-  {
-    initializeEmpty();
+    frame_id_ = polygon.header.frame_id;
     // assign number of vertices
-    vertices_number_ = polygon.points.size();
+    vertices_number_ = polygon.polygon.points.size();
     // append vertices and edges length
-    for (auto& p : polygon.points)
+    for (auto& point : polygon.polygon.points)
     {
-      Eigen::Vector2d vertex(p.x, p.y);
+      Eigen::Vector2d vertex(point.x, point.y);
       //   append edge
       if (!vertices_.empty())
       {
@@ -33,6 +30,7 @@ Obstacle::Obstacle(const geometry_msgs::Polygon& polygon)
       }
       //   append vertex
       vertices_.push_back(vertex);
+      //  update extremal vertices
       if (vertex.x() < min_x_.x())
         min_x_ = vertex;
       if (vertex.x() > max_x_.x())
@@ -50,7 +48,7 @@ Obstacle::Obstacle(const geometry_msgs::Polygon& polygon)
   }
 }
 
-double Obstacle::computeArea()
+double Obstacle::computeArea() const
 {
   // computed from shoelace formula
   double area = 0.0;
@@ -63,7 +61,7 @@ double Obstacle::computeArea()
   return area;
 }
 
-double Obstacle::computePerimeter()
+double Obstacle::computePerimeter() const
 {
   double perimeter = 0.0;
   for (auto& edge : edges_)
@@ -73,7 +71,7 @@ double Obstacle::computePerimeter()
   return perimeter;
 }
 
-Eigen::Vector2d Obstacle::findCentroid()
+Eigen::Vector2d Obstacle::findCentroid() const
 {
   Eigen::Vector2d centroid;
   for (std::size_t i = 0; i < vertices_number_; i++)
@@ -99,6 +97,86 @@ void Obstacle::initializeEmpty()
   centroid_.y() = NAN;
   area_ = 0.0;
   perimeter_ = 0.0;
+}
+
+geometry_msgs::PolygonStamped Obstacle::toRectangle() const
+{
+  geometry_msgs::PolygonStamped rectangle;
+  rectangle.header.frame_id = frame_id_;
+  rectangle.header.stamp = ros::Time::now();
+  geometry_msgs::Point32 point;
+
+  point.x = min_x_.x();
+  point.y = min_y_.y();
+  rectangle.polygon.points.push_back(point);
+  point.x = min_x_.x();
+  point.y = max_y_.y();
+  rectangle.polygon.points.push_back(point);
+  point.x = max_x_.x();
+  point.y = max_y_.y();
+  rectangle.polygon.points.push_back(point);
+  point.x = max_x_.x();
+  point.y = min_y_.y();
+  rectangle.polygon.points.push_back(point);
+
+  return rectangle;
+}
+
+geometry_msgs::PolygonStamped Obstacle::toPolygon() const
+{
+  geometry_msgs::PolygonStamped polygon;
+  polygon.header.frame_id = frame_id_;
+  polygon.header.stamp = ros::Time::now();
+  geometry_msgs::Point32 point;
+  for (auto const& vertex : vertices_)
+  {
+    point.x = vertex.x();
+    point.y = vertex.y();
+    polygon.polygon.points.push_back(point);
+  }
+  return polygon;
+}
+
+Eigen::Vector2d Obstacle::getCentroid() const
+{
+  return centroid_;
+}
+Eigen::Vector2d Obstacle::getMinX() const
+{
+  return min_x_;
+}
+Eigen::Vector2d Obstacle::getMaxX() const
+{
+  return max_x_;
+}
+Eigen::Vector2d Obstacle::getMinY() const
+{
+  return min_y_;
+}
+Eigen::Vector2d Obstacle::getMaxY() const
+{
+  return max_y_;
+}
+std::size_t Obstacle::getVerticesNumber() const
+{
+  return vertices_number_;
+}
+std::vector<Eigen::Vector2d> Obstacle::getVertices() const
+{
+  return vertices_;
+}
+std::vector<Eigen::Vector2d> Obstacle::getEdges() const
+{
+  return edges_;
+}
+std::vector<double> Obstacle::getEdgesLength() const
+{
+  return edges_length_;
+}
+
+std::string Obstacle::getFrameID() const
+{
+  return frame_id_;
 }
 
 std::ostream& operator<<(std::ostream& out, const Obstacle& o)

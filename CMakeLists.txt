@@ -166,6 +166,7 @@ add_library(visualization_functions
 
 add_library(obstacle_detection
   src/obstacle_detection/obstacle.cpp
+  src/obstacle_detection/detection.cpp
 )
 
 add_library(i_local_planner
@@ -195,6 +196,7 @@ add_library(agribot_local_planner
   src/path_validators/distance_validator.cpp
   src/path_validators/curvature_validator.cpp
   src/obstacle_detection/obstacle.cpp
+  src/obstacle_detection/detection.cpp
 )
 
 add_library(following_tracker

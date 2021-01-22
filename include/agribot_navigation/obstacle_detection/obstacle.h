@@ -3,7 +3,7 @@
  */
 
 #pragma once
-#include <geometry_msgs/Polygon.h>
+#include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/Point32.h>
 #include <Eigen/Geometry>
 
@@ -13,8 +13,20 @@ class Obstacle
 {
 public:
   Obstacle();
-  Obstacle(const geometry_msgs::Polygon& polygon);
+  Obstacle(const geometry_msgs::PolygonStamped& polygon);
+  geometry_msgs::PolygonStamped toRectangle() const;
+  geometry_msgs::PolygonStamped toPolygon() const;
   friend std::ostream & operator<<(std::ostream & out, const Obstacle & o);
+  Eigen::Vector2d getCentroid() const;
+  Eigen::Vector2d getMinX() const;
+  Eigen::Vector2d getMaxX() const;
+  Eigen::Vector2d getMinY() const;
+  Eigen::Vector2d getMaxY() const;
+  std::size_t getVerticesNumber() const;
+  std::vector<Eigen::Vector2d> getVertices() const;
+  std::vector<Eigen::Vector2d> getEdges() const;
+  std::vector<double> getEdgesLength() const;
+  std::string getFrameID() const;
 
 private:
   std::size_t vertices_number_;
@@ -28,10 +40,11 @@ private:
   Eigen::Vector2d max_y_;
   double area_;
   double perimeter_;
+  std::string frame_id_;
 
   void initializeEmpty();
-  double computeArea();
-  double computePerimeter();
-  Eigen::Vector2d findCentroid();
+  double computeArea() const;
+  double computePerimeter() const;
+  Eigen::Vector2d findCentroid() const;
 };
 }  // namespace ObstacleDetection
