@@ -76,13 +76,13 @@ int main(int argc, char** argv)
   double FrontLimit;
   double BackLimit;
 
-  pnh.param("coarse_Kp", CoarseKp, 1.2);
-  pnh.param("coarse_Ki", CoarseKi, 0.1);
-  pnh.param("coarse_Kd", CoarseKd, 2.5);
+  pnh.param("coarse_Kp", CoarseKp, 0.25);
+  pnh.param("coarse_Ki", CoarseKi, 0.05);
+  pnh.param("coarse_Kd", CoarseKd, 0.3);
 
-  pnh.param("precise_Kp", PreciseKp, 0.3);
-  pnh.param("precise_Ki", PreciseKi, 0.4);
-  pnh.param("precise_Kd", PreciseKd, 4.0);
+  pnh.param("precise_Kp", PreciseKp, 0.25);
+  pnh.param("precise_Ki", PreciseKi, 0.05);
+  pnh.param("precise_Kd", PreciseKd, 0.3);
 
   pnh.param("precision_range", PrecisionRange, 7.2);
 
