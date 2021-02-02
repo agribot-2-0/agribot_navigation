@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="cmd_vel_topic" default="/cmd_vel_navigation" />
-  <arg name="odom_topic" default="/agribot/odom/estimated" />
+  <arg name="odom_topic" default="/agribot/odom/local" />
   <arg name="lidar_topic" default="/bumper/front/lidar/obstacles" />
 
   <node pkg="move_base" type="move_base" name="move_base" respawn="false" output="screen">
