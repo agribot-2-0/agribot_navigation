@@ -3,9 +3,12 @@
  */
 
 #pragma once
-#include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/Point32.h>
+#include <geometry_msgs/PolygonStamped.h>
+
 #include <Eigen/Geometry>
+#include <string>
+#include <vector>
 
 namespace ObstacleDetection
 {
@@ -13,10 +16,10 @@ class Obstacle
 {
 public:
   Obstacle();
-  Obstacle(const geometry_msgs::PolygonStamped& polygon);
+  explicit Obstacle(const geometry_msgs::PolygonStamped& polygon);
   geometry_msgs::PolygonStamped toRectangle() const;
   geometry_msgs::PolygonStamped toPolygon() const;
-  friend std::ostream & operator<<(std::ostream & out, const Obstacle & o);
+  friend std::ostream& operator<<(std::ostream& out, const Obstacle& o);
   Eigen::Vector2d getCentroid() const;
   Eigen::Vector2d getMinX() const;
   Eigen::Vector2d getMaxX() const;

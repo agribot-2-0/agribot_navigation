@@ -6,6 +6,8 @@
 #include <agribot_navigation/obstacle_detection/obstacle.h>
 #include <ros/ros.h>
 
+#include <vector>
+
 namespace ObstacleDetection
 {
 class Detection

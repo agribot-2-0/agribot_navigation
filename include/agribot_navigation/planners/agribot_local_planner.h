@@ -5,16 +5,16 @@
 #pragma once
 
 #include <base_local_planner/goal_functions.h>
-#include <pluginlib/class_loader.h>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <costmap_converter/costmap_converter_interface.h>
+#include <geometry_msgs/Polygon.h>
+#include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
-#include <geometry_msgs/PolygonStamped.h>
-#include <geometry_msgs/Polygon.h>
 #include <nav_core/base_local_planner.h>
 #include <nav_msgs/Odometry.h>
+#include <pluginlib/class_loader.h>
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <tf2_ros/buffer.h>
@@ -23,35 +23,30 @@
 #include <visualization_msgs/MarkerArray.h>
 
 #include <cmath>
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-#include "agribot_navigation/common/structures.h"
 #include "agribot_navigation/common/common_functions.h"
-#include "agribot_navigation/common/visualization_functions.h"
 #include "agribot_navigation/common/default_values.h"
-
-#include "agribot_navigation/planners/local_planners/i_local_planner.h"
-#include "agribot_navigation/planners/local_planners/circles_planner.h"
-#include "agribot_navigation/planners/local_planners/hermite_planner.h"
-
-#include "agribot_navigation/path_validators/i_path_validator.h"
-#include "agribot_navigation/path_validators/distance_validator.h"
-#include "agribot_navigation/path_validators/curvature_validator.h"
-
-#include "agribot_navigation/path_trackers/i_path_tracker.h"
-#include "agribot_navigation/path_trackers/ray_tracker.h"
-#include "agribot_navigation/path_trackers/following_tracker.h"
-
-#include "agribot_navigation/path_controllers/i_path_controller.h"
+#include "agribot_navigation/common/structures.h"
+#include "agribot_navigation/common/visualization_functions.h"
+#include "agribot_navigation/obstacle_detection/detection.h"
+#include "agribot_navigation/obstacle_detection/obstacle.h"
 #include "agribot_navigation/path_controllers/deviation_parallelness_controller.h"
+#include "agribot_navigation/path_controllers/i_path_controller.h"
 #include "agribot_navigation/path_controllers/pure_pursuit_controller.h"
 #include "agribot_navigation/path_controllers/stanley_controller.h"
-
-#include "agribot_navigation/obstacle_detection/obstacle.h"
-#include "agribot_navigation/obstacle_detection/detection.h"
+#include "agribot_navigation/path_trackers/following_tracker.h"
+#include "agribot_navigation/path_trackers/i_path_tracker.h"
+#include "agribot_navigation/path_trackers/ray_tracker.h"
+#include "agribot_navigation/path_validators/curvature_validator.h"
+#include "agribot_navigation/path_validators/distance_validator.h"
+#include "agribot_navigation/path_validators/i_path_validator.h"
+#include "agribot_navigation/planners/local_planners/circles_planner.h"
+#include "agribot_navigation/planners/local_planners/hermite_planner.h"
+#include "agribot_navigation/planners/local_planners/i_local_planner.h"
 
 namespace agribot_local_planner
 {
@@ -161,7 +156,8 @@ private:
               const std::string& planner_id);
   geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps,
                                             std::string& frame_id);  // NOLINT(runtime/references)
-  geometry_msgs::PolygonStamped transformPolygon(const geometry_msgs::PolygonStamped& ps, std::string& frame_id);
+  geometry_msgs::PolygonStamped transformPolygon(const geometry_msgs::PolygonStamped& ps,
+                                                 std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist xStopRobot();
   geometry_msgs::Twist xFinishedPathBehaviour();
