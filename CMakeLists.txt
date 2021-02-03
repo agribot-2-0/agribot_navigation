@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   agribot_common
   tf
   dynamic_reconfigure
+  costmap_converter
 )
 
 ## System dependencies are found with CMake's conventions
