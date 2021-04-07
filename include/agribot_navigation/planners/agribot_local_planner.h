@@ -74,6 +74,7 @@ private:
   ros::Publisher obstacles_rectangle_pub_;
   ros::Publisher obstacles_polygon_markers_pub_;
   ros::Publisher obstacles_rectangle_markers_pub_;
+  ros::Publisher rabbit_pubisher_;
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
@@ -161,6 +162,7 @@ private:
   geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist xStopRobot();
   geometry_msgs::Twist xFinishedPathBehaviour();
+  void resetControllers();
   double dCloseToZero(const double value);
   bool bReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
 };

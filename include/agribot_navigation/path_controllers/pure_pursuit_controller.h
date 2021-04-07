@@ -4,13 +4,15 @@
 
 #pragma once
 
+#include <agribot_msgs/AgribotManualControl.h>
+
 #include <string>
 #include <vector>
 
-#include "agribot_navigation/path_controllers/i_path_controller.h"
-#include "agribot_navigation/common/structures.h"
-#include "agribot_navigation/common/default_values.h"
 #include "agribot_navigation/common/common_functions.h"
+#include "agribot_navigation/common/default_values.h"
+#include "agribot_navigation/common/structures.h"
+#include "agribot_navigation/path_controllers/i_path_controller.h"
 
 namespace agribot_path_controllers
 {
@@ -26,13 +28,16 @@ public:
   void setRobotLength(const double robot_length);
   void setRabbitDistance(const double distance);
   void resetRabbit();
+  geometry_msgs::PoseStamped getRabbitPose();
+  void setRabbitPose(const geometry_msgs::PoseStamped& rabbit);
 
 private:
-  void computeRabbit(const agribot_local_planner::pos& rabbit_pos, const agribot_local_planner::pos& robot_center,
-                     const std::size_t& path_size);
+  bool computeRabbit(double look_ahead_distance, const std::size_t& path_size);
   double lin_vel_;
   double robot_length_;
   double rabbit_distance_;
   std::size_t rabbit_count_;
+  geometry_msgs::PoseStamped rabbit_pose_;
+  geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg);
 };
 }  // namespace agribot_path_controllers

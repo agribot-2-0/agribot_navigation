@@ -4,11 +4,11 @@
 
 #include "agribot_navigation/common/visualization_functions.h"
 
-namespace VisualizatioFunctions
+namespace VisualizationFunctions
 {
 void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agribot_local_planner::pos& robot_center,
-                                 const double prediction_points_per_second, const double prediction_time,
-                                 const std::string& frame_id, const ros::Publisher& publisher)
+                                const double prediction_points_per_second, const double prediction_time,
+                                const std::string& frame_id, const ros::Publisher& publisher)
 {
   std::vector<geometry_msgs::PoseStamped> predicted_path;
   geometry_msgs::PoseStamped point;
@@ -51,7 +51,7 @@ void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agri
 }
 
 void goalVisualization(const agribot_local_planner::pos& last_waypoint, const agribot_local_planner::pos& goal,
-                            const std::string& frame_id, const ros::Publisher& publisher)
+                       const std::string& frame_id, const ros::Publisher& publisher)
 {
   visualization_msgs::Marker marker;
   marker.header.frame_id = frame_id;
@@ -80,7 +80,7 @@ void goalVisualization(const agribot_local_planner::pos& last_waypoint, const ag
 }
 
 void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
-                             const ros::Publisher& publisher)
+                       const ros::Publisher& publisher)
 {
   nav_msgs::Path local_path;
   local_path.header.stamp = ros::Time::now();
@@ -88,4 +88,10 @@ void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, cons
   local_path.poses = path;
   publisher.publish(local_path);
 }
-}  // namespace VisualizatioFunctions
+
+void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publisher& publisher)
+{
+  publisher.publish(pose);
+}
+
+}  // namespace VisualizationFunctions

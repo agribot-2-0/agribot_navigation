@@ -70,7 +70,7 @@ void AgribotPlannerROS::createTrackers()
 void AgribotPlannerROS::createControllers()
 {
   auto pure_pursuit_controller = std::make_unique<agribot_path_controllers::PurePursuitController>();
-  pure_pursuit_controller->setVelocityLinear(default_max_linear_vel);
+  pure_pursuit_controller->setVelocityLinear(param_max_linear_vel_);
   pure_pursuit_controller->setRobotLength(default_chassis_length);
   pure_pursuit_controller->setRabbitDistance(default_pure_pursuit_rabbit_distance);
   controllers_["pure_pursuit"] = std::move(pure_pursuit_controller);
@@ -125,6 +125,7 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     obstacles_rectangle_pub_ = pnh.advertise<geometry_msgs::PolygonStamped>("obstacles_rectangles", 1000);
     obstacles_polygon_markers_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_poly_markers", 10);
     obstacles_rectangle_markers_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_rec_markers", 10);
+    rabbit_pubisher_ = pnh.advertise<geometry_msgs::PoseStamped>("rabbit_pose", 10);
     reference_frame_id_ = "map";
     local_path_.header.frame_id = "map";
     path_slice_.header.frame_id = "map";
@@ -245,7 +246,19 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
     last_time_ = 0;
   }
 
+  resetControllers();
+
   return true;
+}
+
+void AgribotPlannerROS::resetControllers()
+{
+  agribot_path_controllers::PurePursuitController* pure_pursuit_pointer =
+      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
+  if (pure_pursuit_pointer != nullptr)
+  {
+    pure_pursuit_pointer->resetRabbit();
+  }
 }
 
 bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_plan,
@@ -277,29 +290,23 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
   }
 
   // reset controllers
-  agribot_path_controllers::PurePursuitController* pure_pursuit_pointer =
-      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
-  if (pure_pursuit_pointer != nullptr)
-  {
-    pure_pursuit_pointer->resetRabbit();
-  }
+  resetControllers();
+
   return true;
 }
 
 bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 {
   geometry_msgs::Twist velocity;
-  VisualizatioFunctions::pathVisualization(local_plan_, "map", path_pub_);
+  VisualizationFunctions::pathVisualization(local_plan_, "map", path_pub_);
 
   if (!initialized_)
   {
-    ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, "
-                     << "call initialize() before planner");
+    ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, call initialize() before planner");
     return false;
   }
 
   checkObstacles();
-  ROS_WARN_STREAM("[DEBUG]\tinterrow " << in_interrow_ << " terrain ahead " << obstacle_ahead_);
 
   if (local_plan_.size() != 0)
   {
@@ -322,7 +329,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       path_slice = path_slice_ray;
     }
 
-    VisualizatioFunctions::pathVisualization(path_slice, "map", path_slice_pub_);
+    VisualizationFunctions::pathVisualization(path_slice, "map", path_slice_pub_);
 
     if (path_slice.size() < 2)
     {
@@ -335,27 +342,27 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       return true;
     }
 
-    controllers_["deviation_parallelness"]->computeControl(velocity, path_slice, robot_center);
+    controllers_["pure_pursuit"]->computeControl(velocity, local_plan_, robot_center_);
+    agribot_path_controllers::PurePursuitController* pure_pursuit_pointer =
+        dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
+    if (pure_pursuit_pointer != nullptr)
+    {
+      VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pubisher_);
+    }
+    // ROS_WARN_STREAM("v.x " << velocity.linear.x << " w.z " << velocity.angular.z);
 
     // Calculate velocities
     velocity = xLimitVelocities(velocity);
-
-    velocity.linear.x = dCloseToZero(velocity.linear.x);
-    velocity.linear.y = dCloseToZero(velocity.linear.y);
-    velocity.linear.z = dCloseToZero(velocity.linear.z);
-    velocity.angular.x = dCloseToZero(velocity.angular.x);
-    velocity.angular.y = dCloseToZero(velocity.angular.y);
-    velocity.angular.z = dCloseToZero(velocity.angular.z);
-
     // Stop condition
     if (bReachedPathEnd(CommonFunctions::pCoordinatesFromPoseStamped(robot_center), path_end_waypoint))
     {
       velocity = xFinishedPathBehaviour();
     }
-    VisualizatioFunctions::predictedPathVisualization(
+    VisualizationFunctions::predictedPathVisualization(
         velocity, CommonFunctions::pCoordinatesFromPoseStamped(robot_center), param_prediction_points_per_second_,
         param_prediction_time_, "map", predicted_path_pub_);
   }
+
   if (abort_executing_)
   {
     cmd_vel = xStopRobot();
@@ -377,6 +384,7 @@ void AgribotPlannerROS::checkObstacles()
   }
   in_interrow_ = detection_.checkInterRow(obstacles_);
   obstacle_ahead_ = detection_.checkColidingObstacle(obstacles_);
+  ROS_WARN_STREAM("[DEBUG]\tinter row " << in_interrow_ << " terrain ahead " << obstacle_ahead_);
 }
 
 void AgribotPlannerROS::processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles)
@@ -565,6 +573,13 @@ geometry_msgs::Twist AgribotPlannerROS::xLimitVelocities(geometry_msgs::Twist ve
   {
     velocities.angular.z = -velocities.linear.x / param_min_radius_;
   }
+
+  velocities.linear.x = dCloseToZero(velocities.linear.x);
+  velocities.linear.y = dCloseToZero(velocities.linear.y);
+  velocities.linear.z = dCloseToZero(velocities.linear.z);
+  velocities.angular.x = dCloseToZero(velocities.angular.x);
+  velocities.angular.y = dCloseToZero(velocities.angular.y);
+  velocities.angular.z = dCloseToZero(velocities.angular.z);
   return velocities;
 }
 
@@ -589,7 +604,7 @@ geometry_msgs::PoseStamped AgribotPlannerROS::xTransformPose(geometry_msgs::Pose
   }
   catch (tf2::ExtrapolationException e)
   {
-    ROS_ERROR_STREAM("[LocalPlanner] ExtrapolationException occur");
+    ROS_ERROR_STREAM("[AgribotPlanner] ExtrapolationException occur");
     abort_executing_ = true;
   }
   return poseTransformed;

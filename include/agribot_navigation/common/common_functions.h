@@ -32,6 +32,10 @@ double dAngleBetweenCoordinates(const agribot_local_planner::pos& targetFrame,
                                 const agribot_local_planner::pos& currentFrame);
 double dDistanceBetweenCoordinates(const agribot_local_planner::pos& targetFrame,
                                    const agribot_local_planner::pos& currentFrame);
+double angleBeetweenPoses(const geometry_msgs::PoseStamped& target_frame,
+                          const geometry_msgs::PoseStamped& current_frame);
+double distanceBeetweenPoses(const geometry_msgs::PoseStamped& target_frame,
+                             const geometry_msgs::PoseStamped& current_frame);
 agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::PoseStamped& ps);
 void updateOrientationInPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                              const int start_index, const int end_index);

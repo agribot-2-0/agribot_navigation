@@ -20,11 +20,11 @@ double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat)
  */
 double dLimitAngle(double angle)
 {
-  if (angle > toRadians(180))
+  while (angle > toRadians(180))
   {
     angle -= toRadians(360);
   }
-  if (angle < toRadians(-180))
+  while (angle < toRadians(-180))
   {
     angle += toRadians(360);
   }
@@ -41,6 +41,19 @@ double dDistanceBetweenCoordinates(const agribot_local_planner::pos& targetFrame
                                    const agribot_local_planner::pos& currentFrame)
 {
   return std::sqrt(std::pow(targetFrame.y - currentFrame.y, 2) + std::pow(targetFrame.x - currentFrame.x, 2));
+}
+
+double angleBeetweenPoses(const geometry_msgs::PoseStamped& target_frame,
+                          const geometry_msgs::PoseStamped& current_frame)
+{
+  return dAngleBetweenCoordinates(CommonFunctions::pCoordinatesFromPoseStamped(target_frame),
+                                  CommonFunctions::pCoordinatesFromPoseStamped(current_frame));
+}
+double distanceBeetweenPoses(const geometry_msgs::PoseStamped& target_frame,
+                             const geometry_msgs::PoseStamped& current_frame)
+{
+  return dDistanceBetweenCoordinates(CommonFunctions::pCoordinatesFromPoseStamped(target_frame),
+                                     CommonFunctions::pCoordinatesFromPoseStamped(current_frame));
 }
 
 agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::PoseStamped& ps)
