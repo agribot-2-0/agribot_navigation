@@ -34,7 +34,7 @@ bool Detection::checkInterRow(const std::vector<Obstacle>& obstacles) const
       }
     }
   }
-  ROS_ERROR_STREAM("[DEBUG]\tleft row " << row_on_the_left << " right row " << row_on_the_right);
+  // ROS_ERROR_STREAM("[DEBUG]\tleft row " << row_on_the_left << " right row " << row_on_the_right);
   return row_on_the_left && row_on_the_right;
 }
 

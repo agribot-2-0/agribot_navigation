@@ -384,7 +384,7 @@ void AgribotPlannerROS::checkObstacles()
   }
   in_interrow_ = detection_.checkInterRow(obstacles_);
   obstacle_ahead_ = detection_.checkColidingObstacle(obstacles_);
-  ROS_WARN_STREAM("[DEBUG]\tinter row " << in_interrow_ << " terrain ahead " << obstacle_ahead_);
+  // ROS_WARN_STREAM("[DEBUG]\tinter row " << in_interrow_ << " terrain ahead " << obstacle_ahead_);
 }
 
 void AgribotPlannerROS::processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles)
