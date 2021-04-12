@@ -94,4 +94,82 @@ void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publis
   publisher.publish(pose);
 }
 
+void visualizeObstaclesRectangles(const std::vector<ObstacleDetection::Obstacle>& obstacles,
+                                  const ros::Publisher& publisher)
+{
+  std::size_t idx = 0;
+  for (auto const& obstacle : obstacles)
+  {
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = obstacle.getFrameID();
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "RecObstacles";
+    marker.id = idx++;
+    marker.type = visualization_msgs::Marker::LINE_STRIP;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(1.0);
+
+    geometry_msgs::Point point;
+    geometry_msgs::PolygonStamped polygon_stamped = obstacle.toRectangle();
+    for (auto const& vertex : polygon_stamped.polygon.points)
+    {
+      point.x = vertex.x;
+      point.y = vertex.y;
+      point.z = 0;
+      marker.points.push_back(point);
+    }
+    point.x = polygon_stamped.polygon.points.at(0).x;
+    point.y = polygon_stamped.polygon.points.at(0).y;
+    point.z = 0;
+    marker.points.push_back(point);
+
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 0.0;
+    marker.color.b = 1.0;
+    publisher.publish(marker);
+  }
+}
+
+void visualizeObstaclesPolygons(const std::vector<ObstacleDetection::Obstacle>& obstacles,
+                                const ros::Publisher& publisher)
+{
+  std::size_t idx = 0;
+  for (auto const& obstacle : obstacles)
+  {
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = obstacle.getFrameID();
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "PolyObstacles";
+    marker.id = idx++;
+    marker.type = visualization_msgs::Marker::LINE_STRIP;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(1.0);
+
+    geometry_msgs::Point point;
+    geometry_msgs::PolygonStamped polygon_stamped = obstacle.toPolygon();
+    for (auto const& vertex : polygon_stamped.polygon.points)
+    {
+      point.x = vertex.x;
+      point.y = vertex.y;
+      point.z = 0;
+      marker.points.push_back(point);
+    }
+    point.x = polygon_stamped.polygon.points.at(0).x;
+    point.y = polygon_stamped.polygon.points.at(0).y;
+    point.z = 0;
+    marker.points.push_back(point);
+
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.color.a = 1.0;
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+    publisher.publish(marker);
+  }
+}
+
 }  // namespace VisualizationFunctions

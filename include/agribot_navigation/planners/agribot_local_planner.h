@@ -81,7 +81,6 @@ private:
   std::vector<geometry_msgs::PoseStamped> display_plan_;
   nav_msgs::Path local_path_;
   nav_msgs::Path path_slice_;
-  geometry_msgs::Twist velocities_;  // contains the velocity
   visualization_msgs::Marker traveled_points_;
   geometry_msgs::PoseStamped robot_center_;  // present robot center frame
   std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
@@ -142,6 +141,9 @@ private:
   bool param_take_front_;
 
   void checkObstacles();
+  void calculateControls(geometry_msgs::Twist& cmd_vel);
+  void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);
+
   void processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
   void publishObstacles() const;
   void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
@@ -155,14 +157,13 @@ private:
   bool replan(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
               const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
               const std::string& planner_id);
-  geometry_msgs::PoseStamped xTransformPose(geometry_msgs::PoseStamped ps,
-                                            std::string& frame_id);  // NOLINT(runtime/references)
+  geometry_msgs::PoseStamped transformPose(geometry_msgs::PoseStamped ps,
+                                           std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::PolygonStamped transformPolygon(const geometry_msgs::PolygonStamped& ps,
                                                  std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist xStopRobot();
   geometry_msgs::Twist xFinishedPathBehaviour();
-  void resetControllers();
   double dCloseToZero(const double value);
   bool bReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
 };

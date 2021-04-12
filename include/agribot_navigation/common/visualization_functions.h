@@ -15,6 +15,7 @@
 
 #include "agribot_navigation/common/common_functions.h"
 #include "agribot_navigation/common/structures.h"
+#include "agribot_navigation/obstacle_detection/detection.h"
 
 namespace VisualizationFunctions
 {
@@ -26,4 +27,8 @@ void goalVisualization(const agribot_local_planner::pos& last_waypoint, const ag
 void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
                        const ros::Publisher& publisher);  // NOLINT(runtime/references)
 void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publisher& publisher);
+void visualizeObstaclesRectangles(const std::vector<ObstacleDetection::Obstacle>& obstacles,
+                                  const ros::Publisher& publisher);
+void visualizeObstaclesPolygons(const std::vector<ObstacleDetection::Obstacle>& obstacles,
+                                const ros::Publisher& publisher);
 }  // namespace VisualizationFunctions
