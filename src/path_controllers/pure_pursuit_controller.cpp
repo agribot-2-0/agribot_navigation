@@ -12,6 +12,7 @@ PurePursuitController::PurePursuitController() : IPathController()
   robot_length_ = default_chassis_length;
   rabbit_distance_ = default_pure_pursuit_rabbit_distance;
   rabbit_count_ = 0;
+  look_ahead_distance_ = 0;
 }
 
 PurePursuitController::~PurePursuitController()
@@ -33,7 +34,7 @@ void PurePursuitController::setRabbitDistance(const double distance)
   rabbit_distance_ = distance;
 }
 
-void PurePursuitController::resetRabbit()
+void PurePursuitController::reset()
 {
   rabbit_count_ = 0;
 }
@@ -52,47 +53,22 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
                                            const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                            const geometry_msgs::PoseStamped& robot_pose)
 {
-  // rabbit_pose_ = path_to_track[rabbit_count_];
-
-  double look_ahead_distance = CommonFunctions::distanceBeetweenPoses(rabbit_pose_, robot_pose);
-
-  while (computeRabbit(look_ahead_distance, path_to_track.size()))
+  do
   {
+    look_ahead_distance_ = CommonFunctions::distanceBeetweenPoses(rabbit_pose_, robot_pose);
     rabbit_pose_ = path_to_track[rabbit_count_];
-    look_ahead_distance = CommonFunctions::distanceBeetweenPoses(rabbit_pose_, robot_pose);
-  }
+  } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
-  // double alpha = CommonFunctions::angleBeetweenPoses(rabbit_pose_, robot_pose);
-  // alpha = CommonFunctions::dLimitAngle(alpha);
   double alpha = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
                  CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
-  double motion_radius = look_ahead_distance / (2 * sin(alpha));
+  double motion_radius = look_ahead_distance_ / (2 * sin(alpha));
 
   agribot_msgs::AgribotManualControl msg;
-  msg.circle_radius = motion_radius;
   msg.linear_velocity = lin_vel_;
+  msg.circle_radius = motion_radius;
 
   cmd_vel = teleopToVel(msg);
 
-  // double theta = asin(2 * robot_length_ * sin(alpha) / look_ahead_distance);
-
-  // if (isnan(theta))
-  // {
-  //   theta = 0.0;
-  // }
-
-  // cmd_vel.linear.x = lin_vel_;
-  // cmd_vel.angular.z = sin(theta) * lin_vel_;
-  // cmd_vel.angular.z = lin_vel_ / msg.circle_radius;
-
-  // ROS_INFO_STREAM("pure rabbit pose " << rabbit_pose_.pose.position.x << " " << rabbit_pose_.pose.position.y);
-  // ROS_INFO_STREAM("pure robot pose " << robot_pose.pose.position.x << " " << robot_pose.pose.position.y);
-  // ROS_INFO_STREAM("pure ld " << look_ahead_distance);
-  // ROS_INFO_STREAM("pure R " << msg.circle_radius);
-  // ROS_INFO_STREAM("pure alpha " << alpha);
-  // // ROS_INFO_STREAM("pure theta " << theta);
-  // ROS_INFO_STREAM("pure angular " << lin_vel_ / motion_radius);
-  // ROS_INFO_STREAM("pure angular " << cmd_vel.angular.z);
   return true;
 }
 

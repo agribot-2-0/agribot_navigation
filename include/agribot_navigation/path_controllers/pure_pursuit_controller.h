@@ -24,10 +24,11 @@ public:
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
+  void reset() override;
+
   void setVelocityLinear(const double velocity);
   void setRobotLength(const double robot_length);
   void setRabbitDistance(const double distance);
-  void resetRabbit();
   geometry_msgs::PoseStamped getRabbitPose();
   void setRabbitPose(const geometry_msgs::PoseStamped& rabbit);
 
@@ -36,6 +37,7 @@ private:
   double lin_vel_;
   double robot_length_;
   double rabbit_distance_;
+  double look_ahead_distance_;
   std::size_t rabbit_count_;
   geometry_msgs::PoseStamped rabbit_pose_;
   geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg);

@@ -246,19 +246,13 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
     last_time_ = 0;
   }
 
-  resetControllers();
+  // reset controllers
+  for (auto const& [controler_id, controller] : controllers_)
+  {
+    controller->reset();
+  }
 
   return true;
-}
-
-void AgribotPlannerROS::resetControllers()
-{
-  agribot_path_controllers::PurePursuitController* pure_pursuit_pointer =
-      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
-  if (pure_pursuit_pointer != nullptr)
-  {
-    pure_pursuit_pointer->resetRabbit();
-  }
 }
 
 bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_plan,
@@ -266,7 +260,7 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
                                const std::string& planner_id)
 {
   // make local plan
-  local_plan_.clear();
+  local_plan.clear();
   if (!planners_[planner_id]->designPath(local_plan, start_pose, end_pose))
   {
     ROS_ERROR_STREAM("[" << planner_id << "_planner] Local planner unable to create path ");
@@ -280,7 +274,7 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
       ROS_ERROR_STREAM("[" << planner_id << "_planner] Local path is invalid - too short");
       return false;
     }
-    ROS_INFO_STREAM("[" << planner_id << "_planner] Local planner created, path length = " << local_plan_.size());
+    ROS_INFO_STREAM("[" << planner_id << "_planner] Local planner created, path length = " << local_plan.size());
   }
 
   // reset trackers
@@ -290,14 +284,16 @@ bool AgribotPlannerROS::replan(std::vector<geometry_msgs::PoseStamped>& local_pl
   }
 
   // reset controllers
-  resetControllers();
+  for (auto const& [controler_id, controller] : controllers_)
+  {
+    controller->reset();
+  }
 
   return true;
 }
 
 bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 {
-  geometry_msgs::Twist velocity;
   VisualizationFunctions::pathVisualization(local_plan_, "map", path_pub_);
 
   if (!initialized_)
@@ -306,62 +302,65 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     return false;
   }
 
-  checkObstacles();
+  // checkObstacles();
 
-  if (local_plan_.size() != 0)
+  if (local_plan_.size() <= 0)
   {
-    std::vector<geometry_msgs::PoseStamped> path_slice;
-    std::vector<geometry_msgs::PoseStamped> path_slice_ray;
-
-    geometry_msgs::PoseStamped robot_center = xTransformPose(robot_center_, reference_frame_id_);
-    pos path_end_waypoint =
-        CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(local_plan_.back(), reference_frame_id_));
-
-    if (!trackers_["side_ray"]->findPathSlice(path_slice_ray, local_plan_, robot_center))
-    {
-      trackers_["front_ray"]->findPathSlice(path_slice_ray, local_plan_, robot_center);
-    }
-
-    trackers_["following"]->findPathSlice(path_slice, local_plan_, robot_center);
-
-    if (path_slice_ray.size() > 1)
-    {
-      path_slice = path_slice_ray;
-    }
-
-    VisualizationFunctions::pathVisualization(path_slice, "map", path_slice_pub_);
-
-    if (path_slice.size() < 2)
-    {
-      cmd_vel = xStopRobot();
-      if (!replan(local_plan_, robot_center_, global_plan_.back(), "circles"))
-      {
-        ROS_ERROR_STREAM("[AgribotPlanner] Unable to replan path");
-        return false;
-      }
-      return true;
-    }
-
-    controllers_["pure_pursuit"]->computeControl(velocity, local_plan_, robot_center_);
-    agribot_path_controllers::PurePursuitController* pure_pursuit_pointer =
-        dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
-    if (pure_pursuit_pointer != nullptr)
-    {
-      VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pubisher_);
-    }
-    // ROS_WARN_STREAM("v.x " << velocity.linear.x << " w.z " << velocity.angular.z);
-
-    // Calculate velocities
-    velocity = xLimitVelocities(velocity);
-    // Stop condition
-    if (bReachedPathEnd(CommonFunctions::pCoordinatesFromPoseStamped(robot_center), path_end_waypoint))
-    {
-      velocity = xFinishedPathBehaviour();
-    }
-    VisualizationFunctions::predictedPathVisualization(
-        velocity, CommonFunctions::pCoordinatesFromPoseStamped(robot_center), param_prediction_points_per_second_,
-        param_prediction_time_, "map", predicted_path_pub_);
+    ROS_ERROR("[AgribotPlanner] Local plan is not created");
+    return false;
   }
+  // std::vector<geometry_msgs::PoseStamped> path_slice;
+  // std::vector<geometry_msgs::PoseStamped> path_slice_ray;
+
+  // geometry_msgs::PoseStamped robot_center = xTransformPose(robot_center_, reference_frame_id_);
+
+  // if (!trackers_["side_ray"]->findPathSlice(path_slice_ray, local_plan_, robot_center))
+  // {
+  //   trackers_["front_ray"]->findPathSlice(path_slice_ray, local_plan_, robot_center);
+  // }
+
+  // trackers_["following"]->findPathSlice(path_slice, local_plan_, robot_center);
+
+  // if (path_slice_ray.size() > 1)
+  // {
+  //   path_slice = path_slice_ray;
+  // }
+
+  // VisualizationFunctions::pathVisualization(path_slice, "map", path_slice_pub_);
+
+  // if (path_slice.size() < 2)
+  // {
+  //   cmd_vel = xStopRobot();
+  //   if (!replan(local_plan_, robot_center_, global_plan_.back(), "circles"))
+  //   {
+  //     ROS_ERROR_STREAM("[AgribotPlanner] Unable to replan path");
+  //     return false;
+  //   }
+  //   return true;
+  // }
+
+  // Calculate velocities
+  controllers_["pure_pursuit"]->computeControl(cmd_vel, local_plan_, robot_center_);
+  agribot_path_controllers::PurePursuitController* pure_pursuit_pointer =
+      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
+  if (pure_pursuit_pointer != nullptr)
+  {
+    VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pubisher_);
+  }
+  // ROS_WARN_STREAM("v.x " << velocity.linear.x << " w.z " << velocity.angular.z);
+
+  cmd_vel = xLimitVelocities(cmd_vel);
+
+  // Stop condition
+  pos path_end_waypoint =
+      CommonFunctions::pCoordinatesFromPoseStamped(xTransformPose(local_plan_.back(), reference_frame_id_));
+  if (bReachedPathEnd(CommonFunctions::pCoordinatesFromPoseStamped(robot_center_), path_end_waypoint))
+  {
+    cmd_vel = xFinishedPathBehaviour();
+  }
+  VisualizationFunctions::predictedPathVisualization(
+      cmd_vel, CommonFunctions::pCoordinatesFromPoseStamped(robot_center_), param_prediction_points_per_second_,
+      param_prediction_time_, "map", predicted_path_pub_);
 
   if (abort_executing_)
   {
@@ -370,7 +369,6 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     return false;
   }
 
-  cmd_vel = velocity;
   return true;
 }
 
