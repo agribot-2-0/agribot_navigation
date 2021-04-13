@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   agribot_common
   tf
   dynamic_reconfigure
+  robot_localization
 )
 
 ## System dependencies are found with CMake's conventions
