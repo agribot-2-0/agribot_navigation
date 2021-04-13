@@ -19,6 +19,9 @@ find_package(catkin REQUIRED COMPONENTS
   move_base
   agribot_common
   tf
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
   dynamic_reconfigure
   robot_localization
 )
