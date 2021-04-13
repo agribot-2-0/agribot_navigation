@@ -141,8 +141,8 @@ private:
   bool param_take_front_;
 
   void checkObstacles();
-  void calculateControls(geometry_msgs::Twist& cmd_vel);
-  void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);
+  void calculateControls(geometry_msgs::Twist& cmd_vel);                       // NOLINT(runtime/references)
+  void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);  // NOLINT(runtime/references)
 
   void processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
   void publishObstacles() const;
