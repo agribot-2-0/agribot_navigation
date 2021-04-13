@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(agribot_navigation)
 
-## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++17)
 
 ## Find catkin macros and libraries
@@ -20,8 +19,12 @@ find_package(catkin REQUIRED COMPONENTS
   move_base
   agribot_common
   tf
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
   dynamic_reconfigure
   costmap_converter
+  robot_localization
 )
 
 ## System dependencies are found with CMake's conventions
@@ -247,6 +250,10 @@ add_executable(cmd_vel_arbiter_node
   src/cmd_vel_arbiter/CmdVelArbiterNode.cpp
 )
 
+add_executable(move_base_monitor_node src/move_base_monitor/move_base_monitor_node.cpp src/move_base_monitor/MoveBaseMonitor.cpp)
+target_link_libraries(move_base_monitor_node ${catkin_LIBRARIES})
+add_dependencies(move_base_monitor_node ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(
   pure_pursuit_controller
   stanley_controller
@@ -343,6 +350,7 @@ target_link_libraries(cmd_vel_arbiter_node
 install(TARGETS
   kinematics_control
   cmd_vel_arbiter_node
+  move_base_monitor_node
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
