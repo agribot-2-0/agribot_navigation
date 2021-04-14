@@ -146,7 +146,7 @@ private:
 
   void processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
   void publishObstacles() const;
-  void vOdomCallback(const nav_msgs::Odometry& odometry_msg);
+  void odomCallback(const nav_msgs::Odometry& odometry_msg);
   void createPlanners();
   void createTrackers();
   void createValidators();
@@ -154,17 +154,19 @@ private:
   void createCostmapConverter(const ros::NodeHandle& nh);
   void visualizeObstaclesRectangles(const std::vector<ObstacleDetection::Obstacle>& obstacles) const;
   void visualizeObstaclesPolygons(const std::vector<ObstacleDetection::Obstacle>& obstacles) const;
-  bool replan(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-              const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
-              const std::string& planner_id);
+  bool planPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
+                const std::string& planner_id);
   geometry_msgs::PoseStamped transformPose(geometry_msgs::PoseStamped ps,
                                            std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::PolygonStamped transformPolygon(const geometry_msgs::PolygonStamped& ps,
                                                  std::string& frame_id);  // NOLINT(runtime/references)
-  geometry_msgs::Twist xLimitVelocities(geometry_msgs::Twist velocities);
-  geometry_msgs::Twist xStopRobot();
-  geometry_msgs::Twist xFinishedPathBehaviour();
-  double dCloseToZero(const double value);
-  bool bReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
+  geometry_msgs::Twist limitVelocities(geometry_msgs::Twist velocities);
+  geometry_msgs::Twist stopRobot();
+  geometry_msgs::Twist finishedPathBehaviour();
+  double closeToZero(const double value);
+  bool isReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
+
+  void getParameters(const ros::NodeHandle& nh);
 };
 }  // namespace agribot_local_planner
