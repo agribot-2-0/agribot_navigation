@@ -37,8 +37,6 @@ public:
                     const double step_size);
 
 private:
-  boost::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_;
-
   ObstacleDetection::Obstacle obstacles_left_;
   ObstacleDetection::Obstacle obstacles_right_;
   std::vector<ObstacleDetection::Obstacle> obstacles_;

@@ -71,11 +71,11 @@ double HermitePlanner::calculateMagnitude(const pos& start, const pos& end, cons
   double angle_difference;
   if (calculate_start)
   {
-    angle_difference = CommonFunctions::dLimitAngle((path_angle - start.az));
+    angle_difference = CommonFunctions::limitAngle((path_angle - start.az));
   }
   else
   {
-    angle_difference = CommonFunctions::dLimitAngle((end.az - path_angle));
+    angle_difference = CommonFunctions::limitAngle((end.az - path_angle));
   }
   magnitude *= (M_PI - tangent_coefficient * atan(M_PI - angle_difference));
   return magnitude;

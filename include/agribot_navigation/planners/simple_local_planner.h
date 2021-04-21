@@ -4,21 +4,22 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <nav_core/base_local_planner.h>
 #include <base_local_planner/goal_functions.h>
+#include <costmap_2d/costmap_2d_ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <nav_core/base_local_planner.h>
 #include <nav_msgs/Odometry.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <visualization_msgs/Marker.h>
+#include <ros/ros.h>
 #include <tf/tf.h>
-#include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
-#include <costmap_2d/costmap_2d_ros.h>
-#include <vector>
+#include <tf2_ros/transform_listener.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
+
 #include <string>
+#include <vector>
 #define PI 3.14159265
 #define DEG_TO_RAD (PI / 180)
 #define RAD_TO_DEG (180 / PI)
@@ -113,7 +114,7 @@ private:
   void vChooseDeviationParallelnessParameters(int waypointNumber);
   double dCloseToZero(double value);
   double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
-  double dLimitAngle(double angle);
+  double limitAngle(double angle);
   double dAngleBetweenFrames(pos targetFrame, pos currentFrame);
   double dDistanceBetweenFrames(pos targetFrame, pos currentFrame);
   double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);

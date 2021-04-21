@@ -18,7 +18,7 @@ double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat)
 /**
  * Limit angles to range <-180, 180> degrees
  */
-double dLimitAngle(double angle)
+double limitAngle(double angle)
 {
   while (angle > toRadians(180))
   {

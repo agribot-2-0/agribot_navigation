@@ -47,7 +47,7 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
 
   // straightPath(path, path[-1], end_pose, 0.5);
 
-  CommonFunctions::updateOrientationInPath(path, 0, path.size());
+  CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
 
   return true;
 }
@@ -60,7 +60,7 @@ bool NarrowCorridorPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>
 
   if (steps <= 0)
   {
-    ROS_ERROR_STREAM("[Obstacle] Could not assemble straight path");
+    ROS_ERROR_STREAM("[NarrowCorridorPlanner] Could not assemble straight path");
     return false;
   }
 

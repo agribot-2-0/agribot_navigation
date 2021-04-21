@@ -37,7 +37,6 @@ void AgribotPlannerROS::createPlanners()
   planners_["hermite"] = std::move(hermite_planner);
 
   auto narrow_planner = std::make_unique<NarrowCorridorPlanner>(robot_center_.header.frame_id);
-  // narrow_planner->setCostmap(local_costmap_);
   planners_["narrow"] = std::move(narrow_planner);
 }
 
@@ -144,11 +143,10 @@ void AgribotPlannerROS::getParameters(const ros::NodeHandle& nh)
   nh.param("statistics", param_statistics_, true);
   nh.param("take_front", param_take_front_, false);
 
-  costmap_converter_name_ = ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/costmap_converter_"
-                                                                                               "plugin");
-  costmap_converter_odom_topic_ = ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/costmap_"
-                                                                                                     "converter_odom_"
-                                                                                                     "topic");
+  costmap_converter_name_ =
+      ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/costmap_converter_plugin");
+  costmap_converter_odom_topic_ =
+      ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/costmap_converter_odom_topic");
   costmap_converter_rate_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/costmap_converter_rate");
 }
 
@@ -161,7 +159,6 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     tf_buffer_ = tfBuffer;
 
     reference_frame_id_ = "odom";
-    obstacle_frame_id = "base_footprint";
     local_path_.header.frame_id = reference_frame_id_;
     path_slice_.header.frame_id = reference_frame_id_;
     robot_center_.header.frame_id = reference_frame_id_;
@@ -295,9 +292,9 @@ bool AgribotPlannerROS::planPath(std::vector<geometry_msgs::PoseStamped>& local_
   }
 
   // reset controllers
-  for (auto const& [controler_id, controller] : controllers_)
+  for (auto const& [controller_id, controller] : controllers_)
   {
-    (void)controler_id;
+    (void)controller_id;
     controller->reset();
   }
 
@@ -318,14 +315,15 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     return false;
   }
 
-  // TODO(lchojnacki): uncomment when navigation in rows is working
+  // TODO(lchojnacki) : uncomment when navigation in rows is working
   // if (detection_.isInRow(obstacles_))
   // {
-  //   checkObstacles();
   //   ROS_WARN_STREAM("[DEBUG] Robot is in row");
+  //   checkObstacles();
   //   std::vector<geometry_msgs::PoseStamped> temp_plan;
   //   planners_["narrow"]->designPath(temp_plan, robot_center_, robot_center_);
   //   VisualizationFunctions::pathVisualization(temp_plan, reference_frame_id_, path_slice_pub_);
+  //   publishObstacles();
   // }
 
   truncatePath(path_slice_.poses);
@@ -404,24 +402,23 @@ void AgribotPlannerROS::processObstacles(const costmap_converter::ObstacleArrayC
     if (obstacle.polygon.points.size() > 2)
     {
       geometry_msgs::PolygonStamped polygon, transformed_polygon;
-      polygon.header.frame_id = "odom";
+      polygon.header.frame_id = reference_frame_id_;
       polygon.header.stamp = ros::Time::now();
       polygon.polygon = obstacle.polygon;
       transformed_polygon = transformPolygon(polygon, reference_frame_id_);
 
-      ObstacleDetection::Obstacle obstacle1 = ObstacleDetection::Obstacle(transformed_polygon);
+      auto obstacle1 = ObstacleDetection::Obstacle(transformed_polygon);
       planners_["narrow"]->addObstacle(obstacle1);
       obstacles_.push_back(obstacle1);
     }
   }
-  std::vector<ObstacleDetection::Obstacle> obstacles1 = planners_["narrow"]->getObstacles();
-  obstacles_left_ = obstacles1[0];
-  obstacles_right_ = obstacles1[1];
-  publishObstacles();
 }
 
-void AgribotPlannerROS::publishObstacles() const
+void AgribotPlannerROS::publishObstacles()
 {
+  auto obstacles = planners_["narrow"]->getObstacles();
+  obstacles_left_ = obstacles[0];
+  obstacles_right_ = obstacles[1];
   VisualizationFunctions::pathVisualization(obstacles_left_.toPath(), reference_frame_id_, obstacles_polygon_pub_);
   VisualizationFunctions::pathVisualization(obstacles_right_.toPath(), reference_frame_id_, obstacles_rectangle_pub_);
 }

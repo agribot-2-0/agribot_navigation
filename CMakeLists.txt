@@ -3,7 +3,7 @@ project(agribot_navigation)
 
 ## Compilation options
 add_compile_options(-std=c++17 -Wall -Wextra -Werror)
-## TODO(lchojnacki) uncoment when removed all warnings
+## TODO(lchojnacki) remove after cleaning all unused parametes in package
 add_compile_options(-Wno-unused-parameter)
 
 ## Find catkin macros and libraries

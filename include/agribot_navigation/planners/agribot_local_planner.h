@@ -92,8 +92,8 @@ private:
   boost::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_;
   std::string costmap_converter_name_;
   std::string costmap_converter_odom_topic_;
-  std::string obstacle_frame_id;
   double costmap_converter_rate_;
+
   costmap_converter::ObstacleArrayConstPtr obstacles_array_;
   std::vector<ObstacleDetection::Obstacle> obstacles_;
   ObstacleDetection::Detection detection_;
@@ -149,7 +149,7 @@ private:
 
   void checkObstacles();
   void processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
-  void publishObstacles() const;
+  void publishObstacles();
   void odomCallback(const nav_msgs::Odometry& odometry_msg);
 
   bool planPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)

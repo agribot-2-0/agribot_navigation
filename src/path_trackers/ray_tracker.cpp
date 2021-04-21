@@ -105,10 +105,10 @@ bool RayTracker::withinRayDistance(const agribot_local_planner::pos& robot_cente
 bool RayTracker::withinSideRayAngle(const agribot_local_planner::pos& robot_center,
                                     const agribot_local_planner::pos& waypoint) const
 {
-  double left_ray_angle = CommonFunctions::dLimitAngle(robot_center.az + M_PI_2);
-  double right_ray_angle = CommonFunctions::dLimitAngle(robot_center.az - M_PI_2);
+  double left_ray_angle = CommonFunctions::limitAngle(robot_center.az + M_PI_2);
+  double right_ray_angle = CommonFunctions::limitAngle(robot_center.az - M_PI_2);
   double robot_waypoint_angle =
-      CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(waypoint, robot_center));
+      CommonFunctions::limitAngle(CommonFunctions::dAngleBetweenCoordinates(waypoint, robot_center));
   return ((calculateLinesSpan(robot_waypoint_angle, left_ray_angle) <= ray_width_ / 2.0) ||
           (calculateLinesSpan(robot_waypoint_angle, right_ray_angle) <= ray_width_ / 2.0));
 }
@@ -118,12 +118,12 @@ bool RayTracker::withinFrontRayAngle(const agribot_local_planner::pos& robot_cen
 {
   double front_ray_angle = robot_center.az;
   double robot_waypoint_angle =
-      CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(waypoint, robot_center));
+      CommonFunctions::limitAngle(CommonFunctions::dAngleBetweenCoordinates(waypoint, robot_center));
   return (calculateLinesSpan(robot_waypoint_angle, front_ray_angle) <= ray_width_ / 2.0);
 }
 
 double RayTracker::calculateLinesSpan(const double target_line_angle, const double base_line_angle) const
 {
-  return CommonFunctions::toDegrees(abs(CommonFunctions::dLimitAngle(target_line_angle - base_line_angle)));
+  return CommonFunctions::toDegrees(abs(CommonFunctions::limitAngle(target_line_angle - base_line_angle)));
 }
 }  // namespace agribot_path_trackers

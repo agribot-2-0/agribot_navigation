@@ -27,7 +27,7 @@ constexpr double toDegrees(double radians)
   return radians * (180 / M_PI);
 }
 double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat);
-double dLimitAngle(double angle);
+double limitAngle(double angle);
 double dAngleBetweenCoordinates(const agribot_local_planner::pos& targetFrame,
                                 const agribot_local_planner::pos& currentFrame);
 double dDistanceBetweenCoordinates(const agribot_local_planner::pos& targetFrame,

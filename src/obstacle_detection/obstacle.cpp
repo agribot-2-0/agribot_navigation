@@ -131,11 +131,11 @@ std::vector<geometry_msgs::PoseStamped> Obstacle::toPath() const
   std::vector<geometry_msgs::PoseStamped> line;
 
   geometry_msgs::PoseStamped pose_start;
-  pose_start.header.frame_id = "base_footprint";
+  pose_start.header.frame_id = frame_id_;
   pose_start.header.stamp = ros::Time::now();
 
   geometry_msgs::PoseStamped pose_end;
-  pose_end.header.frame_id = "base_footprint";
+  pose_end.header.frame_id = frame_id_;
   pose_end.header.stamp = ros::Time::now();
   if (abs(min_y_.y()) < abs(max_y_.y()))
   {

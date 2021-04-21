@@ -138,14 +138,14 @@ void DeviationParallelnessController::xDeviationApproach(geometry_msgs::Twist& v
   double parallelness = dCalculateParallelness(last_waypoint, next_waypoint, robot_center);
   double factorParallelness = param_current_parallelness_weight * (1 - parallelness);
 
-  if (CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(next_waypoint, robot_center) -
-                                   CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint)) < 0)
+  if (CommonFunctions::limitAngle(CommonFunctions::dAngleBetweenCoordinates(next_waypoint, robot_center) -
+                                  CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint)) < 0)
   {
     factorDeviation *= -1;
   }
 
-  if (CommonFunctions::dLimitAngle(CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint) -
-                                   robot_center.az) < 0)
+  if (CommonFunctions::limitAngle(CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint) -
+                                  robot_center.az) < 0)
   {
     factorParallelness *= -1;
   }
