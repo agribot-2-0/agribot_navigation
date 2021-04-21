@@ -53,7 +53,8 @@ private:
   double computeArea() const;
   double computePerimeter() const;
   Eigen::Vector2d findCentroid() const;
-  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped& start_point,
-                    const geometry_msgs::PoseStamped& end_point, const double step_size) const;
+  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                    const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
+                    const double step_size) const;
 };
 }  // namespace ObstacleDetection

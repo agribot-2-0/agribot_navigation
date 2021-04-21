@@ -46,14 +46,14 @@ double dDistanceBetweenCoordinates(const agribot_local_planner::pos& targetFrame
 double angleBetweenPoses(const geometry_msgs::PoseStamped& target_frame,
                          const geometry_msgs::PoseStamped& current_frame)
 {
-  return dAngleBetweenCoordinates(CommonFunctions::pCoordinatesFromPoseStamped(target_frame),
-                                  CommonFunctions::pCoordinatesFromPoseStamped(current_frame));
+  return std::atan2(target_frame.pose.position.y - current_frame.pose.position.y,
+                    target_frame.pose.position.x - current_frame.pose.position.x);
 }
 double distanceBetweenPoses(const geometry_msgs::PoseStamped& target_frame,
                             const geometry_msgs::PoseStamped& current_frame)
 {
-  return dDistanceBetweenCoordinates(CommonFunctions::pCoordinatesFromPoseStamped(target_frame),
-                                     CommonFunctions::pCoordinatesFromPoseStamped(current_frame));
+  return std::sqrt(std::pow(target_frame.pose.position.y - current_frame.pose.position.y, 2) +
+                   std::pow(target_frame.pose.position.x - current_frame.pose.position.x, 2));
 }
 
 agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::PoseStamped& ps)

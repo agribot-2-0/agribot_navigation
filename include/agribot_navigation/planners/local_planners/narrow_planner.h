@@ -32,8 +32,9 @@ public:
     obstacles_right_.initializeEmpty();
     obstacles_.clear();
   }
-  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped& start_point,
-                    const geometry_msgs::PoseStamped& end_point, const double step_size);
+  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                    const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
+                    const double step_size);
 
 private:
   boost::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_;
