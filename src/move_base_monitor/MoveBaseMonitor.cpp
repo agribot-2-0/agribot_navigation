@@ -237,7 +237,7 @@ void MoveBaseMonitor::monitorPathWaypoints()
   actionlib::SimpleClientGoalState::StateEnum goal_result;
   ROS_INFO_STREAM("[MoveBaseMonitor] Start sending goals");
   _nh.setParam("/agribot/move_base_monitor/is_ready", false);
-  int currentWaypoint = 0;
+  uint currentWaypoint = 0;
   bool load_point = true;
   auto pose = path_.poses[currentWaypoint];
   ros::Rate loop_rate(10);

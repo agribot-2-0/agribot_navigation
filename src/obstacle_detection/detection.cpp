@@ -15,7 +15,7 @@ Detection::Detection()
   collision_distance_ = 4.0;
 }
 
-bool Detection::checkInterRow(const std::vector<Obstacle>& obstacles) const
+bool Detection::isInRow(const std::vector<Obstacle>& obstacles) const
 {
   bool row_on_the_left = false;
   bool row_on_the_right = false;
@@ -23,7 +23,6 @@ bool Detection::checkInterRow(const std::vector<Obstacle>& obstacles) const
   {
     if (isRowObstacle(obstacle))
     {
-      ROS_ERROR_STREAM("[DEBUG]\tRow obstacle");
       if (obstacleOnTheLeft(obstacle, minimal_lateral_distance_to_obstacle_))
       {
         row_on_the_left = true;
@@ -34,7 +33,6 @@ bool Detection::checkInterRow(const std::vector<Obstacle>& obstacles) const
       }
     }
   }
-  // ROS_ERROR_STREAM("[DEBUG]\tleft row " << row_on_the_left << " right row " << row_on_the_right);
   return row_on_the_left && row_on_the_right;
 }
 
@@ -58,7 +56,7 @@ bool Detection::isRowObstacle(const Obstacle& obstacle) const
 
 bool Detection::isColiding(const Obstacle& obstacle) const
 {
-  isAhead(obstacle) && checkLongitudinalDistanceToObstacle(obstacle, collision_distance_) && isInFront(obstacle);
+  return isAhead(obstacle) && checkLongitudinalDistanceToObstacle(obstacle, collision_distance_) && isInFront(obstacle);
 }
 
 bool Detection::checkObstacleLength(const Obstacle& obstacle, const double minimal_length) const

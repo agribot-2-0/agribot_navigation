@@ -28,7 +28,7 @@ void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, cons
                        const ros::Publisher& publisher);  // NOLINT(runtime/references)
 void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publisher& publisher);
 void visualizeObstaclesRectangles(const std::vector<ObstacleDetection::Obstacle>& obstacles,
-                                  const ros::Publisher& publisher);
+                                  const ros::Publisher& publisher, std::string color);
 void visualizeObstaclesPolygons(const std::vector<ObstacleDetection::Obstacle>& obstacles,
                                 const ros::Publisher& publisher);
 }  // namespace VisualizationFunctions

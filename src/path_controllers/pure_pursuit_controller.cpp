@@ -55,7 +55,7 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 {
   do
   {
-    look_ahead_distance_ = CommonFunctions::distanceBeetweenPoses(rabbit_pose_, robot_pose);
+    look_ahead_distance_ = CommonFunctions::distanceBetweenPoses(rabbit_pose_, robot_pose);
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 

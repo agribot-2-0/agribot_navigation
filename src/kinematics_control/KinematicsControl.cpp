@@ -3,8 +3,9 @@
  */
 
 #include <agribot_navigation/kinematics_control/KinematicsControl.h>
-#include <ros/ros.h>
 #include <ros/console.h>
+#include <ros/ros.h>
+
 #include <cmath>
 
 #define DEBUG
@@ -226,6 +227,7 @@ double KinematicsControl::dCalculateLinearControls(double linear_vel, double ang
       _pdControl[0] = 0.0;
     }
   }
+  return _pdControl[0];
 }
 
 double KinematicsControl::dCalculateFrontAngularControl(double linear_vel, double angular_vel)

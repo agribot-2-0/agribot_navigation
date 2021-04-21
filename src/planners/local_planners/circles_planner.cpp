@@ -16,7 +16,10 @@ CirclesPlanner::CirclesPlanner() : ILocalPlanner()
 
 CirclesPlanner::CirclesPlanner(const std::string& frame) : ILocalPlanner()
 {
-  CirclesPlanner();
+  dead_zone = default_design_dead_zone;
+  arc_radius = default_design_arc_radius;
+  step_size = default_step_size;
+  arc_step = calculateArcStep(arc_radius, step_size);
   setFrameId(frame);
 }
 
@@ -26,7 +29,7 @@ CirclesPlanner::~CirclesPlanner()
 
 bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
                                 const geometry_msgs::PoseStamped& start_pose,
-                                const geometry_msgs::PoseStamped& end_pose) const
+                                const geometry_msgs::PoseStamped& end_pose)
 {
   pos start_point = CommonFunctions::pCoordinatesFromPoseStamped(start_pose);
   pos end_point = CommonFunctions::pCoordinatesFromPoseStamped(end_pose);
@@ -64,6 +67,10 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   return true;
 }
 
+void CirclesPlanner::addObstacle(const ObstacleDetection::Obstacle& obstacle)
+{
+}
+
 void CirclesPlanner::setArcRadius(const double param_arc_radius)
 {
   arc_radius = param_arc_radius;
@@ -92,7 +99,7 @@ pos CirclesPlanner::pCircleTangentToPathAndCircle(const pos& circle_center, cons
 {
   pos c1_center;
   pos point_on_parallel;
-  double dx, dy, a, b, c, discriminant, t1, t2, diameter;
+  double dx, dy, a, b, c, discriminant, t2, diameter;
   diameter = arc_radius * 2.0;
 
   // angle of vector perpendicular to path

@@ -38,6 +38,8 @@ private:
   double robot_length_;
   double rabbit_distance_;
   double look_ahead_distance_;
+  double angle_between_poses_;
+
   std::size_t rabbit_count_;
   geometry_msgs::PoseStamped rabbit_pose_;
   geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg);

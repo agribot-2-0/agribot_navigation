@@ -14,7 +14,7 @@ class Detection
 {
 public:
   Detection();
-  bool checkInterRow(const std::vector<Obstacle>& obstacles) const;
+  bool isInRow(const std::vector<Obstacle>& obstacles) const;
   bool checkColidingObstacle(const std::vector<Obstacle>& obstacles) const;
 
 private:

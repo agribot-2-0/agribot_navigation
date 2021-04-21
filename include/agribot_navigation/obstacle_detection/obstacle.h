@@ -5,6 +5,7 @@
 #pragma once
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/PolygonStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <Eigen/Geometry>
 #include <string>
@@ -19,7 +20,9 @@ public:
   explicit Obstacle(const geometry_msgs::PolygonStamped& polygon);
   geometry_msgs::PolygonStamped toRectangle() const;
   geometry_msgs::PolygonStamped toPolygon() const;
+  std::vector<geometry_msgs::PoseStamped> toPath() const;
   friend std::ostream& operator<<(std::ostream& out, const Obstacle& o);
+  Obstacle& operator+=(const Obstacle& obstacle);
   Eigen::Vector2d getCentroid() const;
   Eigen::Vector2d getMinX() const;
   Eigen::Vector2d getMaxX() const;
@@ -30,6 +33,8 @@ public:
   std::vector<Eigen::Vector2d> getEdges() const;
   std::vector<double> getEdgesLength() const;
   std::string getFrameID() const;
+  void addVertex(Eigen::Vector2d vertex);
+  void initializeEmpty();
 
 private:
   std::size_t vertices_number_;
@@ -45,9 +50,10 @@ private:
   double perimeter_;
   std::string frame_id_;
 
-  void initializeEmpty();
   double computeArea() const;
   double computePerimeter() const;
   Eigen::Vector2d findCentroid() const;
+  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped& start_point,
+                    const geometry_msgs::PoseStamped& end_point, const double step_size) const;
 };
 }  // namespace ObstacleDetection

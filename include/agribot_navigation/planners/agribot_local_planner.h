@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #pragma once
 
 #include <base_local_planner/goal_functions.h>
 #include <costmap_2d/costmap_2d_ros.h>
-#include <costmap_converter/costmap_converter_interface.h>
 #include <geometry_msgs/Polygon.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -47,6 +46,7 @@
 #include "agribot_navigation/planners/local_planners/circles_planner.h"
 #include "agribot_navigation/planners/local_planners/hermite_planner.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
+#include "agribot_navigation/planners/local_planners/narrow_planner.h"
 
 namespace agribot_local_planner
 {
@@ -78,7 +78,6 @@ private:
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
-  std::vector<geometry_msgs::PoseStamped> display_plan_;
   nav_msgs::Path local_path_;
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
@@ -98,6 +97,8 @@ private:
   costmap_converter::ObstacleArrayConstPtr obstacles_array_;
   std::vector<ObstacleDetection::Obstacle> obstacles_;
   ObstacleDetection::Detection detection_;
+  ObstacleDetection::Obstacle obstacles_left_;
+  ObstacleDetection::Obstacle obstacles_right_;
   bool obstacle_ahead_;
   bool in_interrow_;
 
@@ -140,27 +141,27 @@ private:
   bool param_statistics_;
   bool param_take_front_;
 
-  void checkObstacles();
-  void calculateControls(geometry_msgs::Twist& cmd_vel);                       // NOLINT(runtime/references)
-  void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);  // NOLINT(runtime/references)
-
-  void processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
-  void publishObstacles() const;
-  void odomCallback(const nav_msgs::Odometry& odometry_msg);
   void createPlanners();
   void createTrackers();
   void createValidators();
   void createControllers();
   void createCostmapConverter(const ros::NodeHandle& nh);
-  void visualizeObstaclesRectangles(const std::vector<ObstacleDetection::Obstacle>& obstacles) const;
-  void visualizeObstaclesPolygons(const std::vector<ObstacleDetection::Obstacle>& obstacles) const;
+
+  void checkObstacles();
+  void processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
+  void publishObstacles() const;
+  void odomCallback(const nav_msgs::Odometry& odometry_msg);
+
   bool planPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                 const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
                 const std::string& planner_id);
-  geometry_msgs::PoseStamped transformPose(geometry_msgs::PoseStamped ps,
-                                           std::string& frame_id);  // NOLINT(runtime/references)
-  geometry_msgs::PolygonStamped transformPolygon(const geometry_msgs::PolygonStamped& ps,
-                                                 std::string& frame_id);  // NOLINT(runtime/references)
+  void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);  // NOLINT(runtime/references)
+  void calculateControls(geometry_msgs::Twist& cmd_vel);                       // NOLINT(runtime/references)
+
+  geometry_msgs::PoseStamped transformPose(const geometry_msgs::PoseStamped& pose,
+                                           const std::string& frame_id);  // NOLINT(runtime/references)
+  geometry_msgs::PolygonStamped transformPolygon(const geometry_msgs::PolygonStamped& pose,
+                                                 const std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::Twist limitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist stopRobot();
   geometry_msgs::Twist finishedPathBehaviour();
