@@ -2,16 +2,17 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include <ros/ros.h>
-#include <ros/console.h>
-#include <dynamic_reconfigure/server.h>
-#include <agribot_navigation/kinematics_control/KinematicsControl.h>
-#include <agribot_navigation/KinematicsConfig.h>
 #include <agribot_msgs/AgribotCaterpillar.h>
+#include <agribot_msgs/ChangeDrivingMode.h>
+#include <agribot_navigation/KinematicsConfig.h>
+#include <agribot_navigation/kinematics_control/KinematicsControl.h>
+#include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/Twist.h>
-#include <std_msgs/Float32.h>
-#include <sensor_msgs/Imu.h>
 #include <nav_msgs/Odometry.h>
+#include <ros/console.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Imu.h>
+#include <std_msgs/Float32.h>
 #include <tf/tf.h>
 
 #define ROS_TIMEOUT 20
@@ -53,6 +54,27 @@ void callback(agribot_navigation::KinematicsConfig& config,  // NOLINT(runtime/r
   KinControl.vSetFrontLimit(config.precision_range);
   KinControl.vSetBackLimit(config.front_limit);
   KinControl.vSetPrecisionRange(config.back_limit);
+}
+
+bool driving_mode_callback(agribot_msgs::ChangeDrivingMode::Request& request,    // NOLINT(runtime/references)
+                           agribot_msgs::ChangeDrivingMode::Response& response)  // NOLINT(runtime/references)
+{
+  if (request.driving_mode_command == agribot_msgs::ChangeDrivingMode::Request::NORMAL)
+  {
+    KinControl.setDrivingMode(DrivingMode::normal);
+    response.result = true;
+  }
+  else if (request.driving_mode_command == agribot_msgs::ChangeDrivingMode::Request::KINEMATIC_CAR)
+  {
+    KinControl.setDrivingMode(DrivingMode::kinematic_car);
+    response.result = true;
+  }
+  else if (request.driving_mode_command == agribot_msgs::ChangeDrivingMode::Request::CRAB_WALK)
+  {
+    KinControl.setDrivingMode(DrivingMode::crab_walk);
+    response.result = true;
+  }
+  return true;
 }
 
 int main(int argc, char** argv)
@@ -118,6 +140,8 @@ int main(int argc, char** argv)
   ros::Publisher kinematics_control_pub =
       n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar", 1);
   agribot_msgs::AgribotCaterpillar caterpilar_msg;
+  ros::ServiceServer driving_mode_service =
+      n.advertiseService("agribot/kinematics_controller/driving_mode", driving_mode_callback);
 
   while (ros::ok())
   {

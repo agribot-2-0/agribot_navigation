@@ -3,8 +3,9 @@
  */
 
 #include <agribot_navigation/kinematics_control/KinematicsControl.h>
-#include <ros/ros.h>
 #include <ros/console.h>
+#include <ros/ros.h>
+
 #include <cmath>
 
 #define DEBUG
@@ -42,6 +43,8 @@ KinematicsControl::KinematicsControl()
 
   this->_pFrontCartPID = new PID();
   this->_pBackCartPID = new PID();
+
+  setDrivingMode(DrivingMode::normal);
 }
 
 void KinematicsControl::vCreatePubs(ros::NodeHandle n)
@@ -162,14 +165,11 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
           if (linear_vel > 0)
           {
             // Moving forward - back cart is pulled
-            SP = { this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel, angular_vel)),
-                   -_pdCartAngle[FRONT_CART] };
+            SP = getSetPoints(DrivingDirection::forward, dVelocitiesToRadius(linear_vel, angular_vel));
           }
           else
           {
-            // Moving backwards - front cart is pulled
-            SP = { -_pdCartAngle[BACK_CART],
-                   -this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel, angular_vel)) };
+            SP = getSetPoints(DrivingDirection::backward, dVelocitiesToRadius(linear_vel, angular_vel));
           }
         }
       }
@@ -195,6 +195,48 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
     }
   }
   return SP;
+}
+
+Carts_Setpoints KinematicsControl::getSetPoints(DrivingDirection direction, double radius)
+{
+  if (direction == DrivingDirection::forward)
+  {
+    if (driving_mode_ == DrivingMode::normal)
+    {
+      return { dRadiusToAngle(radius), -_pdCartAngle[FRONT_CART] };
+    }
+    else if (driving_mode_ == DrivingMode::kinematic_car)
+    {
+      return { dRadiusToAngle(radius), 0 };
+    }
+    else if (driving_mode_ == DrivingMode::crab_walk)
+    {
+      return { dRadiusToAngle(radius), dRadiusToAngle(radius) };
+    }
+    else
+    {
+      return { 0, 0 };
+    }
+  }
+  else
+  {
+    if (driving_mode_ == DrivingMode::normal)
+    {
+      return { -_pdCartAngle[BACK_CART], -dRadiusToAngle(radius) };
+    }
+    else if (driving_mode_ == DrivingMode::kinematic_car)
+    {
+      return { 0, -dRadiusToAngle(radius) };
+    }
+    else if (driving_mode_ == DrivingMode::crab_walk)
+    {
+      return { -dRadiusToAngle(radius), -dRadiusToAngle(radius) };
+    }
+    else
+    {
+      return { 0, 0 };
+    }
+  }
 }
 
 double KinematicsControl::dCalculateLinearControls(double linear_vel, double angular_vel)
@@ -524,4 +566,9 @@ void KinematicsControl::vSetBackLimit(double limit)
 void KinematicsControl::vSetPrecisionRange(double range)
 {
   this->_dPrecisionRange = range;
+}
+
+void KinematicsControl::setDrivingMode(DrivingMode mode)
+{
+  driving_mode_ = mode;
 }

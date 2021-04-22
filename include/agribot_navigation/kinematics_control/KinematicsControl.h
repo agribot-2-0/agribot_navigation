@@ -30,6 +30,19 @@ enum
   BACK_CART
 };
 
+enum class DrivingMode
+{
+  kinematic_car,
+  crab_walk,
+  normal
+};
+
+enum class DrivingDirection
+{
+  forward,
+  backward
+};
+
 struct PID_terms_coefficients
 {
   double dKp;
@@ -92,6 +105,8 @@ private:
   double _dBackLimit;
   PID* _pFrontCartPID;
   PID* _pBackCartPID;
+  DrivingMode driving_mode_;
+
   void vSetPIDsParameters();
   double dCalculateLinearControls(double linear_vel, double angular_vel);
   double dCalculateFrontAngularControl(double linear_vel, double angular_vel);
@@ -113,6 +128,7 @@ private:
   double dMultiplierLinear(double x);
   double dMultiplierExponential(double x);
   Carts_Setpoints xCalculatePIDSetPoints(double linear_vel, double angular_vel);
+  Carts_Setpoints getSetPoints(DrivingDirection direction, double radius);
   PID_terms_coefficients xSelectPIDCoefficients(double Error);
 
 public:
@@ -138,4 +154,5 @@ public:
   void vSetFrontLimit(double limit);
   void vSetBackLimit(double limit);
   void vSetPrecisionRange(double range);
+  void setDrivingMode(DrivingMode mode);
 };
