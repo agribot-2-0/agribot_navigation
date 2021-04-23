@@ -30,6 +30,19 @@ enum
   BACK_CART
 };
 
+enum class SteeringMode
+{
+  four_wheel,
+  front_wheel,
+  crab
+};
+
+enum class DrivingDirection
+{
+  forward,
+  backward
+};
+
 struct PID_terms_coefficients
 {
   double dKp;
@@ -92,6 +105,8 @@ private:
   double _dBackLimit;
   PID* _pFrontCartPID;
   PID* _pBackCartPID;
+  SteeringMode steering_mode_;
+
   void vSetPIDsParameters();
   double dCalculateLinearControls(double linear_vel, double angular_vel);
   double dCalculateFrontAngularControl(double linear_vel, double angular_vel);
@@ -104,7 +119,7 @@ private:
   double dBackCartAngleDifference();
   double dMaximumCartAngleDifference(double diff_front, double diff_back);
   double dVelocitiesToRadius(double linear, double angular);
-  double dRadiusToAngle(double Radius);
+  double dRadiusToAngle(const double Radius) const;
   double dMultiplierGaussian(double x);
   double dMultiplierSigmoid(double x);
   double dMultiplierRoot2(double x);
@@ -113,6 +128,7 @@ private:
   double dMultiplierLinear(double x);
   double dMultiplierExponential(double x);
   Carts_Setpoints xCalculatePIDSetPoints(double linear_vel, double angular_vel);
+  Carts_Setpoints getSetPoints(const DrivingDirection& direction, const double radius) const;
   PID_terms_coefficients xSelectPIDCoefficients(double Error);
 
 public:
@@ -138,4 +154,5 @@ public:
   void vSetFrontLimit(double limit);
   void vSetBackLimit(double limit);
   void vSetPrecisionRange(double range);
+  void setSteeringMode(const SteeringMode& mode);
 };

@@ -43,6 +43,8 @@ KinematicsControl::KinematicsControl()
 
   this->_pFrontCartPID = new PID();
   this->_pBackCartPID = new PID();
+
+  setSteeringMode(SteeringMode::four_wheel);
 }
 
 void KinematicsControl::vCreatePubs(ros::NodeHandle n)
@@ -163,14 +165,11 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
           if (linear_vel > 0)
           {
             // Moving forward - back cart is pulled
-            SP = { this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel, angular_vel)),
-                   -_pdCartAngle[FRONT_CART] };
+            SP = getSetPoints(DrivingDirection::forward, dVelocitiesToRadius(linear_vel, angular_vel));
           }
           else
           {
-            // Moving backwards - front cart is pulled
-            SP = { -_pdCartAngle[BACK_CART],
-                   -this->dRadiusToAngle(this->dVelocitiesToRadius(linear_vel, angular_vel)) };
+            SP = getSetPoints(DrivingDirection::backward, dVelocitiesToRadius(linear_vel, angular_vel));
           }
         }
       }
@@ -196,6 +195,48 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
     }
   }
   return SP;
+}
+
+Carts_Setpoints KinematicsControl::getSetPoints(const DrivingDirection& direction, const double radius) const
+{
+  if (direction == DrivingDirection::forward)
+  {
+    if (steering_mode_ == SteeringMode::four_wheel)
+    {
+      return { dRadiusToAngle(radius), -_pdCartAngle[FRONT_CART] };
+    }
+    else if (steering_mode_ == SteeringMode::front_wheel)
+    {
+      return { dRadiusToAngle(radius), 0 };
+    }
+    else if (steering_mode_ == SteeringMode::crab)
+    {
+      return { dRadiusToAngle(radius), dRadiusToAngle(radius) };
+    }
+    else
+    {
+      return { 0, 0 };
+    }
+  }
+  else
+  {
+    if (steering_mode_ == SteeringMode::four_wheel)
+    {
+      return { -_pdCartAngle[BACK_CART], -dRadiusToAngle(radius) };
+    }
+    else if (steering_mode_ == SteeringMode::front_wheel)
+    {
+      return { 0, -dRadiusToAngle(radius) };
+    }
+    else if (steering_mode_ == SteeringMode::crab)
+    {
+      return { -dRadiusToAngle(radius), -dRadiusToAngle(radius) };
+    }
+    else
+    {
+      return { 0, 0 };
+    }
+  }
 }
 
 double KinematicsControl::dCalculateLinearControls(double linear_vel, double angular_vel)
@@ -293,7 +334,7 @@ double KinematicsControl::dVelocitiesToRadius(double linear, double angular)
   return linear / angular;
 }
 
-double KinematicsControl::dRadiusToAngle(double Radius)
+double KinematicsControl::dRadiusToAngle(const double Radius) const
 {
   return asin(_dChassisLength / 2 / Radius);
 }
@@ -526,4 +567,9 @@ void KinematicsControl::vSetBackLimit(double limit)
 void KinematicsControl::vSetPrecisionRange(double range)
 {
   this->_dPrecisionRange = range;
+}
+
+void KinematicsControl::setSteeringMode(const SteeringMode& mode)
+{
+  steering_mode_ = mode;
 }
