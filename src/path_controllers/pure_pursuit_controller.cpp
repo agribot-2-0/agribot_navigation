@@ -59,9 +59,15 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
-  double alpha = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
-                 CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
+  // double alpha = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
+  //                CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
+  double alpha = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
   double motion_radius = look_ahead_distance_ / (2 * sin(alpha));
+  double steering_angle = atan((2 * 2.1 * sin(alpha)) / (look_ahead_distance_ * lin_vel_));
+
+  ROS_ERROR_STREAM("alpha " << CommonFunctions::toDegrees(alpha));
+  ROS_ERROR_STREAM("motion_radius " << motion_radius);
+  ROS_ERROR_STREAM("steering_angle " << CommonFunctions::toDegrees(steering_angle));
 
   agribot_msgs::AgribotManualControl msg;
   msg.linear_velocity = lin_vel_;
