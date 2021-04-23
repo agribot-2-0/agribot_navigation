@@ -154,5 +154,5 @@ public:
   void vSetFrontLimit(double limit);
   void vSetBackLimit(double limit);
   void vSetPrecisionRange(double range);
-  void setDrivingMode(const SteeringMode& mode);
+  void setSteeringMode(const SteeringMode& mode);
 };

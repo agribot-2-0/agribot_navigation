@@ -44,7 +44,7 @@ KinematicsControl::KinematicsControl()
   this->_pFrontCartPID = new PID();
   this->_pBackCartPID = new PID();
 
-  setDrivingMode(SteeringMode::four_wheel);
+  setSteeringMode(SteeringMode::four_wheel);
 }
 
 void KinematicsControl::vCreatePubs(ros::NodeHandle n)
@@ -568,7 +568,7 @@ void KinematicsControl::vSetPrecisionRange(double range)
   this->_dPrecisionRange = range;
 }
 
-void KinematicsControl::setDrivingMode(const SteeringMode& mode)
+void KinematicsControl::setSteeringMode(const SteeringMode& mode)
 {
   steering_mode_ = mode;
 }

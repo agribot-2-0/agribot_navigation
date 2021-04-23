@@ -56,25 +56,25 @@ void callback(agribot_navigation::KinematicsConfig& config,  // NOLINT(runtime/r
   KinControl.vSetPrecisionRange(config.back_limit);
 }
 
-bool driving_mode_callback(agribot_msgs::SteeringMode::Request& request,    // NOLINT(runtime/references)
-                           agribot_msgs::SteeringMode::Response& response)  // NOLINT(runtime/references)
+bool steering_mode_callback(agribot_msgs::SteeringMode::Request& request,    // NOLINT(runtime/references)
+                            agribot_msgs::SteeringMode::Response& response)  // NOLINT(runtime/references)
 {
   if (request.steering_mode == agribot_msgs::SteeringMode::Request::FOUR_WHEEL)
   {
     ROS_WARN_STREAM("[KinematicsController] Switched to FOUR WHEEL steering mode");
-    KinControl.setDrivingMode(SteeringMode::four_wheel);
+    KinControl.setSteeringMode(SteeringMode::four_wheel);
     response.result = true;
   }
   else if (request.steering_mode == agribot_msgs::SteeringMode::Request::FRONT_WHEEL)
   {
     ROS_WARN_STREAM("[KinematicsController] Switched to FRONT WHEEL steering mode");
-    KinControl.setDrivingMode(SteeringMode::front_wheel);
+    KinControl.setSteeringMode(SteeringMode::front_wheel);
     response.result = true;
   }
   else if (request.steering_mode == agribot_msgs::SteeringMode::Request::CRAB)
   {
     ROS_WARN_STREAM("[KinematicsController] Switched to CRAB steering mode");
-    KinControl.setDrivingMode(SteeringMode::crab);
+    KinControl.setSteeringMode(SteeringMode::crab);
     response.result = true;
   }
   else
@@ -148,7 +148,7 @@ int main(int argc, char** argv)
       n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar", 1);
   agribot_msgs::AgribotCaterpillar caterpilar_msg;
   ros::ServiceServer steering_mode_service =
-      n.advertiseService("agribot/kinematics_controller/steering_mode", driving_mode_callback);
+      n.advertiseService("agribot/kinematics_controller/steering_mode", steering_mode_callback);
 
   while (ros::ok())
   {
