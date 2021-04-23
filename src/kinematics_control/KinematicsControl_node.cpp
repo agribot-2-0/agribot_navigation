@@ -3,7 +3,7 @@
  */
 
 #include <agribot_msgs/AgribotCaterpillar.h>
-#include <agribot_msgs/ChangeDrivingMode.h>
+#include <agribot_msgs/SteeringMode.h>
 #include <agribot_navigation/KinematicsConfig.h>
 #include <agribot_navigation/kinematics_control/KinematicsControl.h>
 #include <dynamic_reconfigure/server.h>
@@ -56,23 +56,30 @@ void callback(agribot_navigation::KinematicsConfig& config,  // NOLINT(runtime/r
   KinControl.vSetPrecisionRange(config.back_limit);
 }
 
-bool driving_mode_callback(agribot_msgs::ChangeDrivingMode::Request& request,    // NOLINT(runtime/references)
-                           agribot_msgs::ChangeDrivingMode::Response& response)  // NOLINT(runtime/references)
+bool driving_mode_callback(agribot_msgs::SteeringMode::Request& request,    // NOLINT(runtime/references)
+                           agribot_msgs::SteeringMode::Response& response)  // NOLINT(runtime/references)
 {
-  if (request.driving_mode_command == agribot_msgs::ChangeDrivingMode::Request::NORMAL)
+  if (request.steering_mode == agribot_msgs::SteeringMode::Request::FOUR_WHEEL)
   {
-    KinControl.setDrivingMode(DrivingMode::normal);
+    ROS_WARN_STREAM("[KinematicsController] Switched to FOUR WHEEL steering mode");
+    KinControl.setDrivingMode(SteeringMode::four_wheel);
     response.result = true;
   }
-  else if (request.driving_mode_command == agribot_msgs::ChangeDrivingMode::Request::KINEMATIC_CAR)
+  else if (request.steering_mode == agribot_msgs::SteeringMode::Request::FRONT_WHEEL)
   {
-    KinControl.setDrivingMode(DrivingMode::kinematic_car);
+    ROS_WARN_STREAM("[KinematicsController] Switched to FRONT WHEEL steering mode");
+    KinControl.setDrivingMode(SteeringMode::front_wheel);
     response.result = true;
   }
-  else if (request.driving_mode_command == agribot_msgs::ChangeDrivingMode::Request::CRAB_WALK)
+  else if (request.steering_mode == agribot_msgs::SteeringMode::Request::CRAB)
   {
-    KinControl.setDrivingMode(DrivingMode::crab_walk);
+    ROS_WARN_STREAM("[KinematicsController] Switched to CRAB steering mode");
+    KinControl.setDrivingMode(SteeringMode::crab);
     response.result = true;
+  }
+  else
+  {
+    response.result = false;
   }
   return true;
 }
@@ -140,8 +147,8 @@ int main(int argc, char** argv)
   ros::Publisher kinematics_control_pub =
       n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar", 1);
   agribot_msgs::AgribotCaterpillar caterpilar_msg;
-  ros::ServiceServer driving_mode_service =
-      n.advertiseService("agribot/kinematics_controller/driving_mode", driving_mode_callback);
+  ros::ServiceServer steering_mode_service =
+      n.advertiseService("agribot/kinematics_controller/steering_mode", driving_mode_callback);
 
   while (ros::ok())
   {

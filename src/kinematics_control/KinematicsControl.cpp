@@ -44,7 +44,7 @@ KinematicsControl::KinematicsControl()
   this->_pFrontCartPID = new PID();
   this->_pBackCartPID = new PID();
 
-  setDrivingMode(DrivingMode::normal);
+  setDrivingMode(SteeringMode::four_wheel);
 }
 
 void KinematicsControl::vCreatePubs(ros::NodeHandle n)
@@ -197,19 +197,19 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
   return SP;
 }
 
-Carts_Setpoints KinematicsControl::getSetPoints(DrivingDirection direction, double radius)
+Carts_Setpoints KinematicsControl::getSetPoints(const DrivingDirection& direction, const double radius) const
 {
   if (direction == DrivingDirection::forward)
   {
-    if (driving_mode_ == DrivingMode::normal)
+    if (steering_mode_ == SteeringMode::four_wheel)
     {
       return { dRadiusToAngle(radius), -_pdCartAngle[FRONT_CART] };
     }
-    else if (driving_mode_ == DrivingMode::kinematic_car)
+    else if (steering_mode_ == SteeringMode::front_wheel)
     {
       return { dRadiusToAngle(radius), 0 };
     }
-    else if (driving_mode_ == DrivingMode::crab_walk)
+    else if (steering_mode_ == SteeringMode::crab)
     {
       return { dRadiusToAngle(radius), dRadiusToAngle(radius) };
     }
@@ -220,15 +220,15 @@ Carts_Setpoints KinematicsControl::getSetPoints(DrivingDirection direction, doub
   }
   else
   {
-    if (driving_mode_ == DrivingMode::normal)
+    if (steering_mode_ == SteeringMode::four_wheel)
     {
       return { -_pdCartAngle[BACK_CART], -dRadiusToAngle(radius) };
     }
-    else if (driving_mode_ == DrivingMode::kinematic_car)
+    else if (steering_mode_ == SteeringMode::front_wheel)
     {
       return { 0, -dRadiusToAngle(radius) };
     }
-    else if (driving_mode_ == DrivingMode::crab_walk)
+    else if (steering_mode_ == SteeringMode::crab)
     {
       return { -dRadiusToAngle(radius), -dRadiusToAngle(radius) };
     }
@@ -333,7 +333,7 @@ double KinematicsControl::dVelocitiesToRadius(double linear, double angular)
   return linear / angular;
 }
 
-double KinematicsControl::dRadiusToAngle(double Radius)
+double KinematicsControl::dRadiusToAngle(const double Radius) const
 {
   return asin(_dChassisLength / 2 / Radius);
 }
@@ -568,7 +568,7 @@ void KinematicsControl::vSetPrecisionRange(double range)
   this->_dPrecisionRange = range;
 }
 
-void KinematicsControl::setDrivingMode(DrivingMode mode)
+void KinematicsControl::setDrivingMode(const SteeringMode& mode)
 {
-  driving_mode_ = mode;
+  steering_mode_ = mode;
 }
