@@ -2,16 +2,17 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include <ros/ros.h>
-#include <ros/console.h>
-#include <dynamic_reconfigure/server.h>
-#include <agribot_navigation/kinematics_control/KinematicsControl.h>
-#include <agribot_navigation/KinematicsConfig.h>
 #include <agribot_msgs/AgribotCaterpillar.h>
+#include <agribot_msgs/SteeringMode.h>
+#include <agribot_navigation/KinematicsConfig.h>
+#include <agribot_navigation/kinematics_control/KinematicsControl.h>
+#include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/Twist.h>
-#include <std_msgs/Float32.h>
-#include <sensor_msgs/Imu.h>
 #include <nav_msgs/Odometry.h>
+#include <ros/console.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Imu.h>
+#include <std_msgs/Float32.h>
 #include <tf/tf.h>
 
 #define ROS_TIMEOUT 20
@@ -53,6 +54,34 @@ void callback(agribot_navigation::KinematicsConfig& config,  // NOLINT(runtime/r
   KinControl.vSetFrontLimit(config.precision_range);
   KinControl.vSetBackLimit(config.front_limit);
   KinControl.vSetPrecisionRange(config.back_limit);
+}
+
+bool steering_mode_callback(agribot_msgs::SteeringMode::Request& request,    // NOLINT(runtime/references)
+                            agribot_msgs::SteeringMode::Response& response)  // NOLINT(runtime/references)
+{
+  if (request.steering_mode == agribot_msgs::SteeringMode::Request::FOUR_WHEEL)
+  {
+    ROS_WARN_STREAM("[KinematicsController] Switched to FOUR WHEEL steering mode");
+    KinControl.setSteeringMode(SteeringMode::four_wheel);
+    response.result = true;
+  }
+  else if (request.steering_mode == agribot_msgs::SteeringMode::Request::FRONT_WHEEL)
+  {
+    ROS_WARN_STREAM("[KinematicsController] Switched to FRONT WHEEL steering mode");
+    KinControl.setSteeringMode(SteeringMode::front_wheel);
+    response.result = true;
+  }
+  else if (request.steering_mode == agribot_msgs::SteeringMode::Request::CRAB)
+  {
+    ROS_WARN_STREAM("[KinematicsController] Switched to CRAB steering mode");
+    KinControl.setSteeringMode(SteeringMode::crab);
+    response.result = true;
+  }
+  else
+  {
+    response.result = false;
+  }
+  return true;
 }
 
 int main(int argc, char** argv)
@@ -118,6 +147,8 @@ int main(int argc, char** argv)
   ros::Publisher kinematics_control_pub =
       n.advertise<agribot_msgs::AgribotCaterpillar>("agribot/control/caterpillar", 1);
   agribot_msgs::AgribotCaterpillar caterpilar_msg;
+  ros::ServiceServer steering_mode_service =
+      n.advertiseService("agribot/kinematics_controller/steering_mode", steering_mode_callback);
 
   while (ros::ok())
   {
