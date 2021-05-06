@@ -122,11 +122,11 @@ bool CmdVelArbiterNode::switchToStop()
     // Publish zeros to cmd_vel once to stop robot
     publishStopToCmdVel();
 
-    ROS_INFO_STREAM("cmd_vel switched to stop");
+    ROS_WARN_STREAM("[CmdVelArbiter] cmd_vel switched to stop");
   }
   else
   {
-    ROS_WARN_STREAM("cmd_vel IS ALREADY switched to stop");
+    ROS_WARN_STREAM("[CmdVelArbiter] cmd_vel IS ALREADY switched to stop");
   }
 
   return true;
@@ -148,11 +148,11 @@ bool CmdVelArbiterNode::switchToNavigation()
     // Subscribe to navigation cmd_vel
     subscribeToNavigation();
 
-    ROS_INFO_STREAM("cmd_vel switched to navigation (topic: " << _navTopic << ")");
+    ROS_WARN_STREAM("[CmdVelArbiter] cmd_vel switched to navigation (topic: " << _navTopic << ")");
   }
   else
   {
-    ROS_WARN_STREAM("cmd_vel IS ALREADY switched to navigation");
+    ROS_WARN_STREAM("[CmdVelArbiter] cmd_vel IS ALREADY switched to navigation");
   }
 
   return true;
@@ -174,11 +174,11 @@ bool CmdVelArbiterNode::switchToTeleop()
     // Subscribe to teleop cmd_vel
     subscribeToTeleop();
 
-    ROS_INFO_STREAM("cmd_vel switched to teleop (topic: " << _teleopTopic << ")");
+    ROS_WARN_STREAM("[CmdVelArbiter] cmd_vel switched to teleop (topic: " << _teleopTopic << ")");
   }
   else
   {
-    ROS_WARN_STREAM("cmd_vel IS ALREADY switched to teleop");
+    ROS_WARN_STREAM("[CmdVelArbiter] cmd_vel IS ALREADY switched to teleop");
   }
 
   return true;
