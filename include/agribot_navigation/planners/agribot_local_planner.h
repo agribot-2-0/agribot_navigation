@@ -70,14 +70,16 @@ private:
   ros::Publisher predicted_path_pub_;
   ros::Publisher path_slice_pub_;
   ros::Publisher obstacles_pub_;
+  ros::Publisher obstacles_left_polygon_pub_;
+  ros::Publisher obstacles_right_polygon_pub_;
   ros::Publisher obstacles_polygon_pub_;
-  ros::Publisher obstacles_rectangle_pub_;
-  ros::Publisher obstacles_polygon_markers_pub_;
-  ros::Publisher obstacles_rectangle_markers_pub_;
+  ros::Publisher obstacles_left_line_pub_;
+  ros::Publisher obstacles_right_line_pub_;
   ros::Publisher rabbit_pubisher_;
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
+  std::vector<geometry_msgs::PoseStamped> trajectory_;
   nav_msgs::Path local_path_;
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;

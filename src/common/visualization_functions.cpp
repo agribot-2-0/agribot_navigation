@@ -94,57 +94,44 @@ void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publis
   publisher.publish(pose);
 }
 
-void visualizeObstaclesRectangles(const std::vector<ObstacleDetection::Obstacle>& obstacles,
-                                  const ros::Publisher& publisher, std::string color)
+void visualizeObstacle(const ObstacleDetection::Obstacle& obstacle, const ros::Publisher& publisher,
+                       std_msgs::ColorRGBA color)
 {
-  std::size_t idx = 0;
-  for (auto const& obstacle : obstacles)
-  {
-    visualization_msgs::Marker marker;
-    marker.header.frame_id = obstacle.getFrameID();
-    marker.header.stamp = ros::Time::now();
-    marker.ns = "RecObstacles";
-    marker.id = idx++;
-    marker.type = visualization_msgs::Marker::LINE_STRIP;
-    marker.action = visualization_msgs::Marker::ADD;
-    marker.lifetime = ros::Duration(1.0);
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = obstacle.getFrameID();
+  marker.header.stamp = ros::Time::now();
+  marker.ns = "RecObstacles";
+  marker.id = 0;
+  marker.type = visualization_msgs::Marker::LINE_STRIP;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.lifetime = ros::Duration(1.0);
+  marker.pose.orientation.w = 1;
 
-    geometry_msgs::Point point;
-    geometry_msgs::PolygonStamped polygon_stamped = obstacle.toRectangle();
-    for (auto const& vertex : polygon_stamped.polygon.points)
-    {
-      point.x = vertex.x;
-      point.y = vertex.y;
-      point.z = 0;
-      marker.points.push_back(point);
-    }
-    point.x = polygon_stamped.polygon.points.at(0).x;
-    point.y = polygon_stamped.polygon.points.at(0).y;
+  geometry_msgs::Point point;
+  geometry_msgs::PolygonStamped polygon_stamped = obstacle.toPolygon();
+  for (auto const& vertex : polygon_stamped.polygon.points)
+  {
+    point.x = vertex.x;
+    point.y = vertex.y;
     point.z = 0;
     marker.points.push_back(point);
-    marker.scale.x = 0.1;
-    marker.scale.y = 0.1;
-    marker.color.a = 1.0;
-
-    if (color == "blue")
-    {
-      marker.color.r = 0.0;
-      marker.color.g = 0.0;
-      marker.color.b = 1.0;
-    }
-    if (color == "green")
-    {
-      marker.color.r = 0.0;
-      marker.color.g = 1.0;
-      marker.color.b = 0.0;
-    }
-
-    publisher.publish(marker);
   }
+  point.x = polygon_stamped.polygon.points.at(0).x;
+  point.y = polygon_stamped.polygon.points.at(0).y;
+  point.z = 0;
+  marker.points.push_back(point);
+  marker.scale.x = 0.1;
+  marker.scale.y = 0.1;
+
+  marker.color.a = color.a;
+  marker.color.r = color.r;
+  marker.color.g = color.g;
+  marker.color.b = color.b;
+
+  publisher.publish(marker);
 }
 
-void visualizeObstaclesPolygons(const std::vector<ObstacleDetection::Obstacle>& obstacles,
-                                const ros::Publisher& publisher)
+void visualizeObstacles(const std::vector<ObstacleDetection::Obstacle>& obstacles, const ros::Publisher& publisher)
 {
   std::size_t idx = 0;
   for (auto const& obstacle : obstacles)
@@ -157,6 +144,7 @@ void visualizeObstaclesPolygons(const std::vector<ObstacleDetection::Obstacle>& 
     marker.type = visualization_msgs::Marker::LINE_STRIP;
     marker.action = visualization_msgs::Marker::ADD;
     marker.lifetime = ros::Duration(1.0);
+    marker.pose.orientation.w = 1;
 
     geometry_msgs::Point point;
     geometry_msgs::PolygonStamped polygon_stamped = obstacle.toPolygon();

@@ -172,10 +172,11 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     predicted_path_pub_ = pnh.advertise<nav_msgs::Path>("predicted_path", 10);
     path_slice_pub_ = pnh.advertise<nav_msgs::Path>("path_slice", 10);
     obstacles_pub_ = pnh.advertise<costmap_converter::ObstacleMsg>("obstacles", 10);
-    obstacles_polygon_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_polygons", 1000);
-    obstacles_rectangle_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_rectangles", 1000);
-    obstacles_polygon_markers_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_poly_markers", 10);
-    obstacles_rectangle_markers_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_rec_markers", 10);
+    obstacles_left_polygon_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_left_polygon", 10);
+    obstacles_right_polygon_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_right_polygon", 10);
+    obstacles_polygon_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_polygon", 10);
+    obstacles_left_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_left_line", 10);
+    obstacles_right_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_right_line", 10);
     rabbit_pubisher_ = pnh.advertise<geometry_msgs::PoseStamped>("rabbit_pose", 10);
 
     try
@@ -316,15 +317,12 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   }
 
   // TODO(lchojnacki) : uncomment when navigation in rows is working
-  // if (detection_.isInRow(obstacles_))
-  // {
-  //   ROS_WARN_STREAM("[DEBUG] Robot is in row");
-  //   checkObstacles();
-  //   std::vector<geometry_msgs::PoseStamped> temp_plan;
-  //   planners_["narrow"]->designPath(temp_plan, robot_center_, robot_center_);
-  //   VisualizationFunctions::pathVisualization(temp_plan, reference_frame_id_, path_slice_pub_);
-  //   publishObstacles();
-  // }
+  checkObstacles();
+  if (detection_.isInRow(obstacles_))
+  {
+    ROS_WARN_STREAM("[DEBUG] Robot is in row");
+    // planners_["narrow"]->designPath(trajectory_, robot_center_, robot_center_);
+  }
 
   truncatePath(path_slice_.poses);
 
@@ -340,7 +338,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   }
 
   // Calculate velocities
-  calculateControls(cmd_vel);
+  // calculateControls(cmd_vel);
 
   // Stop condition
   if (isReachedPathEnd(
@@ -358,16 +356,18 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   }
 
   VisualizationFunctions::pathVisualization(local_plan_, reference_frame_id_, path_pub_);
-  VisualizationFunctions::pathVisualization(path_slice_.poses, reference_frame_id_, path_slice_pub_);
+  // VisualizationFunctions::pathVisualization(path_slice_.poses, reference_frame_id_, path_slice_pub_);
+  VisualizationFunctions::pathVisualization(trajectory_, reference_frame_id_, path_slice_pub_);
   VisualizationFunctions::predictedPathVisualization(
       cmd_vel, CommonFunctions::pCoordinatesFromPoseStamped(robot_center_), param_prediction_points_per_second_,
       param_prediction_time_, reference_frame_id_, predicted_path_pub_);
-  auto pure_pursuit_pointer =
-      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
-  if (pure_pursuit_pointer != nullptr)
-  {
-    VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pubisher_);
-  }
+  // auto pure_pursuit_pointer =
+  //     dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
+  // if (pure_pursuit_pointer != nullptr)
+  // {
+  //   VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pubisher_);
+  // }
+  publishObstacles();
 
   return true;
 }
@@ -407,9 +407,9 @@ void AgribotPlannerROS::processObstacles(const costmap_converter::ObstacleArrayC
       polygon.polygon = obstacle.polygon;
       transformed_polygon = transformPolygon(polygon, reference_frame_id_);
 
-      auto obstacle1 = ObstacleDetection::Obstacle(transformed_polygon);
-      planners_["narrow"]->addObstacle(obstacle1);
-      obstacles_.push_back(obstacle1);
+      auto obstacle_tmp = ObstacleDetection::Obstacle(transformed_polygon);
+      planners_["narrow"]->addObstacle(obstacle_tmp);
+      obstacles_.push_back(obstacle_tmp);
     }
   }
 }
@@ -419,8 +419,20 @@ void AgribotPlannerROS::publishObstacles()
   auto obstacles = planners_["narrow"]->getObstacles();
   obstacles_left_ = obstacles[0];
   obstacles_right_ = obstacles[1];
-  VisualizationFunctions::pathVisualization(obstacles_left_.toPath(), reference_frame_id_, obstacles_polygon_pub_);
-  VisualizationFunctions::pathVisualization(obstacles_right_.toPath(), reference_frame_id_, obstacles_rectangle_pub_);
+  VisualizationFunctions::pathVisualization(obstacles_left_.toPath(), reference_frame_id_, obstacles_left_line_pub_);
+  VisualizationFunctions::pathVisualization(obstacles_right_.toPath(), reference_frame_id_, obstacles_right_line_pub_);
+
+  std_msgs::ColorRGBA green = std_msgs::ColorRGBA();
+  green.a = 1;
+  green.g = 1;
+
+  std_msgs::ColorRGBA blue = std_msgs::ColorRGBA();
+  blue.a = 1;
+  blue.b = 1;
+
+  VisualizationFunctions::visualizeObstacle(obstacles_left_, obstacles_left_polygon_pub_, green);
+  VisualizationFunctions::visualizeObstacle(obstacles_right_, obstacles_right_polygon_pub_, blue);
+  VisualizationFunctions::visualizeObstacles(obstacles_, obstacles_polygon_pub_);
 }
 
 void AgribotPlannerROS::truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path)

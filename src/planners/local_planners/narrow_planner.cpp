@@ -27,28 +27,30 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
   auto line_right = obstacles_right_.toPath();
 
   path.clear();
-  auto end_point = calculateMidpoint(line_left[0], line_right[0]);
-  // straightPath(path, start_pose, end_point, 0.5);
-
-  size_t path_size = line_left.size() < line_right.size() ? line_left.size() : line_right.size();
-
-  for (size_t position = 1; position < path_size; position++)
+  if (line_left.size() && line_right.size())
   {
-    // ROS_WARN_STREAM("in_loop " << position);
+    auto end_point = calculateMidpoint(line_left[0], line_right[0]);
+    // straightPath(path, start_pose, end_point, 0.5);
 
-    auto mid_point = calculateMidpoint(line_left[position], line_right[position]);
-    mid_point.header.seq = position;
-    mid_point.header.frame_id = frame_id;
-    mid_point.header.stamp = ros::Time::now();
+    size_t path_size = line_left.size() < line_right.size() ? line_left.size() : line_right.size();
 
-    // ROS_WARN_STREAM("in_loop " << mid_point);
-    path.push_back(mid_point);
+    for (size_t position = 1; position < path_size; position++)
+    {
+      // ROS_WARN_STREAM("in_loop " << position);
+
+      auto mid_point = calculateMidpoint(line_left[position], line_right[position]);
+      mid_point.header.seq = position;
+      mid_point.header.frame_id = frame_id;
+      mid_point.header.stamp = ros::Time::now();
+
+      // ROS_WARN_STREAM("in_loop " << mid_point);
+      path.push_back(mid_point);
+    }
+
+    // straightPath(path, path[-1], end_pose, 0.5);
+
+    CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
   }
-
-  // straightPath(path, path[-1], end_pose, 0.5);
-
-  CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
-
   return true;
 }
 

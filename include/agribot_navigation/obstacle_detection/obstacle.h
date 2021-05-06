@@ -56,5 +56,21 @@ private:
   bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                     const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
                     const double step_size) const;
+
+  /**
+   * @brief 2D Cross product of two vectors defined by two points and a common origin
+   * @param O Origin
+   * @param A First point
+   * @param B Second point
+   * @tparam P1 2D Point type with x and y member fields
+   * @tparam P2 2D Point type with x and y member fields
+   * @tparam P3 2D Point type with x and y member fields
+   */
+  template <typename P1, typename P2, typename P3>
+  long double cross(P1& O, P2& A, P3& B) const
+  {
+    return (long double)(A.x - O.x) * (long double)(B.y() - O.y) -
+           (long double)(A.y - O.y) * (long double)(B.x() - O.x);
+  }
 };
 }  // namespace ObstacleDetection

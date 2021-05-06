@@ -94,35 +94,74 @@ geometry_msgs::PolygonStamped Obstacle::toRectangle() const
   rectangle.header.stamp = ros::Time::now();
   geometry_msgs::Point32 point;
 
-  point.x = min_x_.x();
+  point.x = min_y_.x();
   point.y = min_y_.y();
   rectangle.polygon.points.push_back(point);
+  point.x = max_x_.x();
+  point.y = max_x_.y();
+  rectangle.polygon.points.push_back(point);
+  point.x = max_y_.x();
+  point.y = max_y_.y();
+  rectangle.polygon.points.push_back(point);
   point.x = min_x_.x();
-  point.y = max_y_.y();
-  rectangle.polygon.points.push_back(point);
-  point.x = max_x_.x();
-  point.y = max_y_.y();
-  rectangle.polygon.points.push_back(point);
-  point.x = max_x_.x();
-  point.y = min_y_.y();
+  point.y = min_x_.y();
   rectangle.polygon.points.push_back(point);
 
   return rectangle;
 }
 
+bool isXCoordinateSmaller(const Eigen::Vector2d& p1, const Eigen::Vector2d& p2)
+{
+  return p1.x() < p2.x() || (p1.x() == p2.x() && p1.y() < p2.y());
+}
+
 geometry_msgs::PolygonStamped Obstacle::toPolygon() const
 {
-  geometry_msgs::PolygonStamped polygon;
-  polygon.header.frame_id = frame_id_;
-  polygon.header.stamp = ros::Time::now();
-  geometry_msgs::Point32 point;
-  for (auto const& vertex : vertices_)
+  geometry_msgs::PolygonStamped polygonStamped;
+  polygonStamped.header.frame_id = frame_id_;
+  polygonStamped.header.stamp = ros::Time::now();
+
+  geometry_msgs::Polygon polygon;
+  auto cluster{ vertices_ };
+
+  int k = 0;
+  int n = cluster.size();
+
+  std::sort(cluster.begin(), cluster.end(), isXCoordinateSmaller);
+
+  polygon.points.resize(2 * n);
+
+  // lower hull
+  for (int i = 0; i < n; ++i)
   {
-    point.x = vertex.x();
-    point.y = vertex.y();
-    polygon.polygon.points.push_back(point);
+    while (k >= 2 && cross(polygon.points[k - 2], polygon.points[k - 1], cluster[i]) <= 0)
+    {
+      --k;
+    }
+    geometry_msgs::Point32 point;
+    point.x = cluster[i].x();
+    point.y = cluster[i].y();
+    polygon.points[k] = point;
+    ++k;
   }
-  return polygon;
+
+  // upper hull
+  for (int i = n - 2, t = k + 1; i >= 0; --i)
+  {
+    while (k >= t && cross(polygon.points[k - 2], polygon.points[k - 1], cluster[i]) <= 0)
+    {
+      --k;
+    }
+    geometry_msgs::Point32 point;
+    point.x = cluster[i].x();
+    point.y = cluster[i].y();
+    polygon.points[k] = point;
+    ++k;
+  }
+
+  polygon.points.resize(k);  // original
+  polygonStamped.polygon = polygon;
+  return polygonStamped;
 }
 
 std::vector<geometry_msgs::PoseStamped> Obstacle::toPath() const
@@ -137,30 +176,18 @@ std::vector<geometry_msgs::PoseStamped> Obstacle::toPath() const
   geometry_msgs::PoseStamped pose_end;
   pose_end.header.frame_id = frame_id_;
   pose_end.header.stamp = ros::Time::now();
-  if (abs(min_y_.y()) < abs(max_y_.y()))
-  {
-    pose_start.pose.position.x = min_x_.x();
-    pose_start.pose.position.y = min_y_.y();
 
-    pose_end.pose.position.x = max_x_.x();
-    pose_end.pose.position.y = min_y_.y();
+  auto polygon = toPolygon();
 
-    line.push_back(pose_start);
-    straightPath(line, pose_start, pose_end, step_size);
-    line.push_back(pose_end);
-  }
-  else
-  {
-    pose_start.pose.position.x = min_x_.x();
-    pose_start.pose.position.y = max_y_.y();
+  pose_start.pose.position.x = min_x_.x();
+  pose_start.pose.position.y = min_x_.y();
 
-    pose_end.pose.position.x = max_x_.x();
-    pose_end.pose.position.y = max_y_.y();
+  pose_end.pose.position.x = max_x_.x();
+  pose_end.pose.position.y = max_x_.y();
 
-    line.push_back(pose_start);
-    straightPath(line, pose_start, pose_end, step_size);
-    line.push_back(pose_start);
-  }
+  line.push_back(pose_start);
+  straightPath(line, pose_start, pose_end, step_size);
+  line.push_back(pose_end);
 
   return line;
 }

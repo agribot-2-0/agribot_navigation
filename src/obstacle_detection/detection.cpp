@@ -23,16 +23,21 @@ bool Detection::isInRow(const std::vector<Obstacle>& obstacles) const
   {
     if (isRowObstacle(obstacle))
     {
+      ROS_WARN("isRowObstacle");
       if (obstacleOnTheLeft(obstacle, minimal_lateral_distance_to_obstacle_))
       {
+        // ROS_WARN("obstacleOnTheLeft");
         row_on_the_left = true;
       }
       if (obstacleOnTheRight(obstacle, minimal_lateral_distance_to_obstacle_))
       {
+        // ROS_WARN("obstacleOnTheRight");
         row_on_the_right = true;
       }
     }
   }
+
+  // ROS_WARN_STREAM("row_on_the_left " << row_on_the_left << " row_on_the_right " << row_on_the_right);
   return row_on_the_left && row_on_the_right;
 }
 

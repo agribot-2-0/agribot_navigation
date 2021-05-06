@@ -2,6 +2,7 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
+#include <agribot_navigation/common/common_functions.h>
 #include <agribot_navigation/kinematics_control/KinematicsControl.h>
 #include <ros/console.h>
 #include <ros/ros.h>
@@ -336,7 +337,19 @@ double KinematicsControl::dVelocitiesToRadius(double linear, double angular)
 
 double KinematicsControl::dRadiusToAngle(const double Radius) const
 {
-  return asin(_dChassisLength / 2 / Radius);
+  double angle{ 0 };
+  if (steering_mode_ == SteeringMode::front_wheel)
+  {
+    angle = atan(_dChassisLength / Radius);
+  }
+  else
+  {
+    angle = asin(_dChassisLength / 2 / Radius);
+  }
+  // ROS_WARN_STREAM("_dChassisLength " << _dChassisLength);
+  // ROS_WARN_STREAM("Radius " << Radius);
+  // ROS_WARN_STREAM("ANGLE " << CommonFunctions::toDegrees(angle));
+  return angle;
 }
 
 double KinematicsControl::dMultiplierLinear(double x)

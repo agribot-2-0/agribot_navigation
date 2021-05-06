@@ -39,6 +39,7 @@ private:
   double rabbit_distance_;
   double look_ahead_distance_;
   double angle_between_poses_;
+  double motion_radius_;
 
   std::size_t rabbit_count_;
   geometry_msgs::PoseStamped rabbit_pose_;
