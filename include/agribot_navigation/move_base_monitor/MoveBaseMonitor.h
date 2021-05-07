@@ -5,6 +5,8 @@
 #pragma once
 
 #include <actionlib/client/simple_action_client.h>
+#include <actionlib/server/simple_action_server.h>
+#include <agribot_msgs/PerformAutonomousPathAction.h>
 #include <agribot_msgs/AgribotMoveBaseCommand.h>
 #include <agribot_msgs/AgribotMoveBaseMonitorResult.h>
 #include <agribot_msgs/NavSatFixOrientation.h>
@@ -20,35 +22,48 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf/tf.h>
 
+#include <memory>
 #include <string>
 #include <vector>
-
-typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 class MoveBaseMonitor
 {
 private:
-  ros::NodeHandle _nh;
-  ros::ServiceClient _client_navigation;
-  ros::ServiceClient _client_stop;
-  std_srvs::Empty _reset_srv;
-  ros::Subscriber _waypointsSub;
-  ros::Subscriber _stateMachineSub;
-  ros::Publisher _stateMachinePub;
-  MoveBaseClient* ac;
-  ros::Publisher waypoint_marker_pub_;
-  ros::Publisher plan_pub_;
-  geometry_msgs::TransformStamped _startingMapUTMTransform;
-  tf2_ros::Buffer _tf2Buffer;
-  tf2_ros::TransformListener _tf2Listener;
+  ros::NodeHandle node_handle_;
+  ros::ServiceClient client_navigation_;
+  ros::ServiceClient client_stop_;
+  std_srvs::Empty reset_srv_;
+  ros::Subscriber waypoints_subscriber_;
+  ros::Subscriber state_machine_subscriber_;
+  ros::Publisher state_machine_publisher_;
+  std::unique_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> move_base_action_client_;
+  std::unique_ptr<actionlib::SimpleActionServer<agribot_msgs::PerformAutonomousPathAction>> path_action_server_;
+  ros::Publisher waypoint_marker_publisher_;
+  ros::Publisher plan_publisher_;
+  geometry_msgs::TransformStamped starting_map_utm_transform_;
+  tf2_ros::Buffer tf_to_buffer_;
+  tf2_ros::TransformListener tf_to_listener_;
   double ray_width_;
+
+  // container for the manually inserted waypoints
+  std::vector<geometry_msgs::PoseStamped> waypoints_;
+  nav_msgs::Path path_;  //!< container for the generated interpolated path
+
+  // flag indicating that the waypoint container must be cleared
+  // to start anew
+  bool clear_waypoints_;
+  bool path_loaded_;
+  bool pause_goal_;
+  bool pause_goal_latch_;
+  bool user_abort_;
+  agribot_msgs::AgribotMoveBaseMonitorResult result_msg_;
 
   void createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT
   void publishWaypointsVisualization(const nav_msgs::Path& path);
-  bool getMapUTMTransform(void);
+  bool getMapUtmTransform(void);
   void waypointCallback(const agribot_msgs::NavSatFixOrientation& msg);
-  geometry_msgs::PoseStamped navSatFixToUTM(const agribot_msgs::NavSatFixOrientation& msg);
-  geometry_msgs::PoseStamped UTMToMap(const geometry_msgs::PoseStamped& msg);
+  geometry_msgs::PoseStamped navSatFixToUtm(const agribot_msgs::NavSatFixOrientation& msg);
+  geometry_msgs::PoseStamped utmToMap(const geometry_msgs::PoseStamped& msg);
   void stateMachineCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg);
   void isPaused();
   void monitorPathWaypoints();
@@ -57,21 +72,6 @@ private:
   double angleBetweenPoses(const geometry_msgs::Pose& target_pose, const geometry_msgs::Pose& current_pose) const;
   double limitAngle(double angle) const;
   double calculateLinesSpan(const double target_line_angle, const double base_line_angle) const;
-
-  // containers
-  //!< container for the manually inserted waypoints
-  std::vector<geometry_msgs::PoseStamped> waypoints_;
-  nav_msgs::Path path_;  //!< container for the generated interpolated path
-
-  // flags
-  // !< flag indicating that the waypoint container must be cleared
-  // to start anew
-  bool clear_waypoints_;
-  bool _pathLoaded;
-  bool _pauseGoal;
-  bool _pauseGoalLatch;
-  bool _userAbort;
-  agribot_msgs::AgribotMoveBaseMonitorResult resultMsg;
 
 public:
   MoveBaseMonitor();
