@@ -101,7 +101,7 @@ void NavigationManager::isPaused()
   }
 }
 
-void NavigationManager::waypointCallback(const agribot_msgs::NavSatFixOrientation& waypoint)
+void NavigationManager::waypointCallback(const sensor_msgs::NavSatFix& waypoint)
 {
   if (clear_waypoints_)
   {
@@ -365,7 +365,7 @@ bool NavigationManager::getMapUtmTransform(void)
   return true;
 }
 
-geometry_msgs::PoseStamped NavigationManager::navSatFixToUtm(const agribot_msgs::NavSatFixOrientation& msg)
+geometry_msgs::PoseStamped NavigationManager::navSatFixToUtm(const sensor_msgs::NavSatFix& msg)
 {
   double utm_x, utm_y;
   std::string utm_zone;
@@ -380,8 +380,7 @@ geometry_msgs::PoseStamped NavigationManager::navSatFixToUtm(const agribot_msgs:
   utm_point.pose.position.x = utm_x;
   utm_point.pose.position.y = utm_y;
   utm_point.pose.position.z = msg.altitude;
-  utm_point.pose.orientation = msg.orientation;
-
+  
   return utm_point;
 }
 

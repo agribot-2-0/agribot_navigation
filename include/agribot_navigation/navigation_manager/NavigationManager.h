@@ -9,7 +9,7 @@
 #include <agribot_msgs/PerformAutonomousPathAction.h>
 #include <agribot_msgs/AgribotMoveBaseCommand.h>
 #include <agribot_msgs/AgribotNavigationManagerResult.h>
-#include <agribot_msgs/NavSatFixOrientation.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <nav_msgs/Path.h>
@@ -61,8 +61,8 @@ private:
   void createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT
   void publishWaypointsVisualization(const nav_msgs::Path& path);
   bool getMapUtmTransform(void);
-  void waypointCallback(const agribot_msgs::NavSatFixOrientation& msg);
-  geometry_msgs::PoseStamped navSatFixToUtm(const agribot_msgs::NavSatFixOrientation& msg);
+  void waypointCallback(const sensor_msgs::NavSatFix& msg);
+  geometry_msgs::PoseStamped navSatFixToUtm(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped utmToMap(const geometry_msgs::PoseStamped& msg);
   void stateMachineCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg);
   void isPaused();
