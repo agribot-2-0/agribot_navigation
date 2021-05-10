@@ -37,13 +37,16 @@ private:
   ros::Subscriber state_machine_subscriber_;
   ros::Publisher state_machine_publisher_;
   std::unique_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> move_base_action_client_;
-  std::unique_ptr<actionlib::SimpleActionServer<agribot_msgs::PerformAutonomousPathAction>> path_action_server_;
   ros::Publisher waypoint_marker_publisher_;
   ros::Publisher plan_publisher_;
   geometry_msgs::TransformStamped starting_map_utm_transform_;
   tf2_ros::Buffer tf_to_buffer_;
   tf2_ros::TransformListener tf_to_listener_;
   double ray_width_;
+
+  std::unique_ptr<actionlib::SimpleActionServer<agribot_msgs::PerformAutonomousPathAction>> path_action_server_;
+  agribot_msgs::PerformAutonomousPathResult path_action_result_;
+  agribot_msgs::PerformAutonomousPathFeedback path_action_feedback_;
 
   // container for the manually inserted waypoints
   std::vector<geometry_msgs::PoseStamped> waypoints_;
@@ -56,15 +59,14 @@ private:
   bool pause_goal_;
   bool pause_goal_latch_;
   bool user_abort_;
-  agribot_msgs::AgribotNavigationManagerResult result_msg_;
 
   void createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT
   void publishWaypointsVisualization(const nav_msgs::Path& path);
   bool getMapUtmTransform(void);
-  void waypointCallback(const sensor_msgs::NavSatFix& msg);
+  void processWaypoint(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped navSatFixToUtm(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped utmToMap(const geometry_msgs::PoseStamped& msg);
-  void stateMachineCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg);
+  void behaviorTreeCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg);
   void isPaused();
   void monitorPathWaypoints();
   void updateOrientations(nav_msgs::Path& path, const double ray_width) const;  // NOLINT(runtime/references)
@@ -72,6 +74,7 @@ private:
   double angleBetweenPoses(const geometry_msgs::Pose& target_pose, const geometry_msgs::Pose& current_pose) const;
   double limitAngle(double angle) const;
   double calculateLinesSpan(const double target_line_angle, const double base_line_angle) const;
+  void performAutonomousPathCallback(const agribot_msgs::PerformAutonomousPathGoalConstPtr& goal);
 
 public:
   NavigationManager();

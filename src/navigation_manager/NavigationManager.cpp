@@ -7,11 +7,8 @@
 
 NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
 {
-  waypoints_subscriber_ = node_handle_.subscribe("agribot/waypoints", 1000, &NavigationManager::waypointCallback, this);
   state_machine_subscriber_ =
-      node_handle_.subscribe("/agribot/navigation_manager/command", 10, &NavigationManager::stateMachineCallback, this);
-  state_machine_publisher_ =
-      node_handle_.advertise<agribot_msgs::AgribotNavigationManagerResult>("/agribot/navigation_manager/result", 10);
+      node_handle_.subscribe("/agribot/navigation_manager/command", 10, &NavigationManager::behaviorTreeCallback, this);
 
   waypoint_marker_publisher_ =
       node_handle_.advertise<visualization_msgs::MarkerArray>("/agribot/navigation_manager/waypoints", 1);
@@ -22,6 +19,12 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
   // tell the action client that we want to spin a thread by default
   move_base_action_client_ =
       std::make_unique<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>>("move_base", true);
+
+  path_action_server_ = std::make_unique<actionlib::SimpleActionServer<agribot_msgs::PerformAutonomousPathAction>>(
+      node_handle_, "/agribot/navigation_manager/path_action",
+      boost::bind(&NavigationManager::performAutonomousPathCallback, this, _1), false);
+  path_action_server_->start();
+
   // wait for the action server to come up
   while (!move_base_action_client_->waitForServer(ros::Duration(5.0)))
   {
@@ -34,9 +37,9 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
   client_navigation_ = node_handle_.serviceClient<std_srvs::Empty>("/cmd_vel_arbiter_node/switch_to_navigation");
   client_stop_ = node_handle_.serviceClient<std_srvs::Empty>("/cmd_vel_arbiter_node/switch_to_stop");
 
-  result_msg_.result = result_msg_.NOACTION;
-  result_msg_.current_waypoint = 0;
-  result_msg_.total_waypoints = 0;
+  path_action_feedback_.feedback.result = path_action_feedback_.feedback.NOACTION;
+  path_action_feedback_.feedback.current_waypoint = 0;
+  path_action_feedback_.feedback.total_waypoints = 0;
   pause_goal_ = false;
   pause_goal_latch_ = false;
   path_loaded_ = false;
@@ -55,7 +58,7 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
   ROS_INFO("[NavigationManager] UTM -> map transform obtained!");
 }
 
-void NavigationManager::stateMachineCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg)
+void NavigationManager::behaviorTreeCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg)
 {
   // if the path is blocked then cancel the current goal and set the pause flag
   if (command_msg.command == command_msg.PAUSE)
@@ -86,8 +89,7 @@ void NavigationManager::isPaused()
       ROS_INFO_STREAM("[NavigationManager] Goal PAUSED");
       cancel_trig = false;
     }
-    result_msg_.result = result_msg_.PAUSED;
-    state_machine_publisher_.publish(result_msg_);
+    path_action_feedback_.feedback.result = path_action_feedback_.feedback.PAUSED;
     ros::Duration(0.1).sleep();  // sleep for half a second
     ros::spinOnce();
     if (user_abort_)
@@ -101,7 +103,7 @@ void NavigationManager::isPaused()
   }
 }
 
-void NavigationManager::waypointCallback(const sensor_msgs::NavSatFix& waypoint)
+void NavigationManager::processWaypoint(const sensor_msgs::NavSatFix& waypoint)
 {
   if (clear_waypoints_)
   {
@@ -247,8 +249,8 @@ void NavigationManager::monitorPathWaypoints()
   while (current_waypoint < path_.poses.size())
   {
     publishWaypointsVisualization(path_);
-    result_msg_.current_waypoint = current_waypoint;
-    result_msg_.total_waypoints = path_.poses.size();
+    path_action_feedback_.feedback.current_waypoint = current_waypoint;
+    path_action_feedback_.feedback.total_waypoints = path_.poses.size();
     // check if the current goal was paused, if so then wait
     isPaused();
     // check if the current path is aborted
@@ -273,13 +275,11 @@ void NavigationManager::monitorPathWaypoints()
       if (goal_result == actionlib::SimpleClientGoalState::ACTIVE ||
           goal_result == actionlib::SimpleClientGoalState::PENDING)
       {
-        result_msg_.result = result_msg_.ACTIVE;
-        state_machine_publisher_.publish(result_msg_);
+        path_action_feedback_.feedback.result = path_action_feedback_.feedback.ACTIVE;
       }
       else if (goal_result == actionlib::SimpleClientGoalState::SUCCEEDED)
       {
-        result_msg_.result = result_msg_.SUCCES;
-        state_machine_publisher_.publish(result_msg_);
+        path_action_feedback_.feedback.result = path_action_feedback_.feedback.SUCCES;
         ROS_INFO_STREAM("[NavigationManager] Goal succeeded, "
                         << "taking the next goal");
         current_waypoint++;
@@ -287,8 +287,7 @@ void NavigationManager::monitorPathWaypoints()
       }
       else if (goal_result == actionlib::SimpleClientGoalState::PREEMPTED)
       {
-        result_msg_.result = result_msg_.PREEMPTED;
-        state_machine_publisher_.publish(result_msg_);
+        path_action_feedback_.feedback.result = path_action_feedback_.feedback.PREEMPTED;
         ROS_INFO_STREAM("[NavigationManager] Goal PREEMPTED, "
                         << "trying next goal");
         current_waypoint++;
@@ -296,8 +295,7 @@ void NavigationManager::monitorPathWaypoints()
       }
       else if (goal_result == actionlib::SimpleClientGoalState::ABORTED)
       {
-        result_msg_.result = result_msg_.ABORTED;
-        state_machine_publisher_.publish(result_msg_);
+        path_action_feedback_.feedback.result = path_action_feedback_.feedback.ABORTED;
         current_waypoint++;
         load_point = true;
         ROS_INFO_STREAM("[NavigationManager] The goal was ABORTED!, "
@@ -305,8 +303,7 @@ void NavigationManager::monitorPathWaypoints()
       }
       else if (goal_result == actionlib::SimpleClientGoalState::REJECTED)
       {
-        result_msg_.result = result_msg_.FAILED;
-        state_machine_publisher_.publish(result_msg_);
+        path_action_feedback_.feedback.result = path_action_feedback_.feedback.FAILED;
         current_waypoint++;
         load_point = true;
         ROS_INFO_STREAM("[NavigationManager] The goal was REJECTED!, "
@@ -314,8 +311,7 @@ void NavigationManager::monitorPathWaypoints()
       }
       else if (goal_result == actionlib::SimpleClientGoalState::RECALLED)
       {
-        result_msg_.result = result_msg_.FAILED;
-        state_machine_publisher_.publish(result_msg_);
+        path_action_feedback_.feedback.result = path_action_feedback_.feedback.FAILED;
         ROS_INFO_STREAM("[NavigationManager] The goal was RECALLED!,"
                         << "trying next goal");
         current_waypoint++;
@@ -323,8 +319,7 @@ void NavigationManager::monitorPathWaypoints()
       }
       else if (goal_result == actionlib::SimpleClientGoalState::LOST)
       {
-        result_msg_.result = result_msg_.FAILED;
-        state_machine_publisher_.publish(result_msg_);
+        path_action_feedback_.feedback.result = path_action_feedback_.feedback.FAILED;
         ROS_INFO_STREAM("[NavigationManager] The goal was LOST!,"
                         << "trying next goal");
         current_waypoint++;
@@ -345,8 +340,7 @@ void NavigationManager::monitorPathWaypoints()
   }
   else
   {
-    result_msg_.result = result_msg_.PATH_COMPLETED;
-    state_machine_publisher_.publish(result_msg_);
+    path_action_feedback_.feedback.result = path_action_feedback_.feedback.PATH_COMPLETED;
     ROS_INFO("[NavigationManager] Path ended");
   }
   node_handle_.setParam("/agribot/navigation_manager/is_ready", true);
@@ -396,6 +390,44 @@ void NavigationManager::publishWaypointsVisualization(const nav_msgs::Path& path
 {
   createAndPublishMarkersFromPath(path.poses);
   plan_publisher_.publish(path);
+}
+
+void NavigationManager::performAutonomousPathCallback(const agribot_msgs::PerformAutonomousPathGoalConstPtr& goal)
+{
+  ros::Rate loop_rate(10);
+  bool success = false;
+
+  for (auto waypoint : goal->path)
+  {
+    processWaypoint(waypoint);
+  }
+
+  while (ros::ok())
+  {
+    path_action_server_->publishFeedback(path_action_feedback_);
+    if (path_action_server_->isPreemptRequested() || !ros::ok())
+    {
+      path_action_server_->setPreempted();
+      success = false;
+      break;
+    }
+    if (path_action_feedback_.feedback.result == path_action_feedback_.feedback.PATH_COMPLETED)
+    {
+      success = true;
+      break;
+    }
+
+    loop_rate.sleep();
+    ros::spinOnce();
+  }
+
+  if (success)
+  {
+    path_action_result_.finished = true;
+    ROS_WARN_STREAM("[NavigationManager] Path finished");
+    // set the action state to succeeded
+    path_action_server_->setSucceeded(path_action_result_);
+  }
 }
 
 void NavigationManager::run()
