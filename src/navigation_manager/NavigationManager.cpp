@@ -380,7 +380,7 @@ geometry_msgs::PoseStamped NavigationManager::navSatFixToUtm(const sensor_msgs::
   utm_point.pose.position.x = utm_x;
   utm_point.pose.position.y = utm_y;
   utm_point.pose.position.z = msg.altitude;
-  
+
   return utm_point;
 }
 
