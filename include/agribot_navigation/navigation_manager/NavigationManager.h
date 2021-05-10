@@ -8,7 +8,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <agribot_msgs/PerformAutonomousPathAction.h>
 #include <agribot_msgs/AgribotMoveBaseCommand.h>
-#include <agribot_msgs/AgribotMoveBaseMonitorResult.h>
+#include <agribot_msgs/AgribotNavigationManagerResult.h>
 #include <agribot_msgs/NavSatFixOrientation.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <move_base_msgs/MoveBaseAction.h>
@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-class MoveBaseMonitor
+class NavigationManager
 {
 private:
   ros::NodeHandle node_handle_;
@@ -56,7 +56,7 @@ private:
   bool pause_goal_;
   bool pause_goal_latch_;
   bool user_abort_;
-  agribot_msgs::AgribotMoveBaseMonitorResult result_msg_;
+  agribot_msgs::AgribotNavigationManagerResult result_msg_;
 
   void createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT
   void publishWaypointsVisualization(const nav_msgs::Path& path);
@@ -74,6 +74,6 @@ private:
   double calculateLinesSpan(const double target_line_angle, const double base_line_angle) const;
 
 public:
-  MoveBaseMonitor();
+  NavigationManager();
   void run();
 };

@@ -3,7 +3,7 @@
   <include file="$(find agribot_navigation)/launch/kinematics_control.launch" />
   <include file="$(find agribot_navigation)/launch/move_base.launch" />
 
-  <node name="move_base_monitor_node" pkg="agribot_navigation" type="move_base_monitor_node" output="screen">
-    <rosparam command="load" file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_monitor_params.yaml" />
+  <node name="navigation_manager_node" pkg="agribot_navigation" type="navigation_manager_node" output="screen">
+    <rosparam command="load" file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/navigation_manager_params.yaml" />
   </node>
 </launch>

@@ -2,20 +2,20 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include <agribot_navigation/move_base_monitor/MoveBaseMonitor.h>
+#include <agribot_navigation/navigation_manager/NavigationManager.h>
 #include <visualization_msgs/MarkerArray.h>
 
-MoveBaseMonitor::MoveBaseMonitor() : tf_to_listener_(tf_to_buffer_)
+NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
 {
-  waypoints_subscriber_ = node_handle_.subscribe("agribot/waypoints", 1000, &MoveBaseMonitor::waypointCallback, this);
+  waypoints_subscriber_ = node_handle_.subscribe("agribot/waypoints", 1000, &NavigationManager::waypointCallback, this);
   state_machine_subscriber_ =
-      node_handle_.subscribe("/agribot/move_base_monitor/command", 10, &MoveBaseMonitor::stateMachineCallback, this);
+      node_handle_.subscribe("/agribot/navigation_manager/command", 10, &NavigationManager::stateMachineCallback, this);
   state_machine_publisher_ =
-      node_handle_.advertise<agribot_msgs::AgribotMoveBaseMonitorResult>("/agribot/move_base_monitor/result", 10);
+      node_handle_.advertise<agribot_msgs::AgribotNavigationManagerResult>("/agribot/navigation_manager/result", 10);
 
   waypoint_marker_publisher_ =
-      node_handle_.advertise<visualization_msgs::MarkerArray>("/agribot/move_base_monitor/waypoints", 1);
-  plan_publisher_ = node_handle_.advertise<nav_msgs::Path>("/agribot/move_base_monitor/path", 1);
+      node_handle_.advertise<visualization_msgs::MarkerArray>("/agribot/navigation_manager/waypoints", 1);
+  plan_publisher_ = node_handle_.advertise<nav_msgs::Path>("/agribot/navigation_manager/path", 1);
 
   node_handle_.param("ray_width", ray_width_, M_PI_2);
 
@@ -25,11 +25,11 @@ MoveBaseMonitor::MoveBaseMonitor() : tf_to_listener_(tf_to_buffer_)
   // wait for the action server to come up
   while (!move_base_action_client_->waitForServer(ros::Duration(5.0)))
   {
-    ROS_INFO_STREAM("[MoveBaseMonitor]Waiting for the move_base"
+    ROS_INFO_STREAM("[NavigationManager]Waiting for the move_base"
                     << "action server to come up");
   }
 
-  node_handle_.setParam("/agribot/move_base_monitor/is_ready", true);
+  node_handle_.setParam("/agribot/navigation_manager/is_ready", true);
 
   client_navigation_ = node_handle_.serviceClient<std_srvs::Empty>("/cmd_vel_arbiter_node/switch_to_navigation");
   client_stop_ = node_handle_.serviceClient<std_srvs::Empty>("/cmd_vel_arbiter_node/switch_to_stop");
@@ -49,13 +49,13 @@ MoveBaseMonitor::MoveBaseMonitor() : tf_to_listener_(tf_to_buffer_)
     transformStatus = getMapUtmTransform();
     if (transformStatus == false)
     {
-      ROS_WARN("UTM -> map transform was not available. Retrying!");
+      ROS_WARN("[NavigationManager] UTM -> map transform was not available. Retrying!");
     }
   }
-  ROS_INFO("UTM -> map transform obtained!");
+  ROS_INFO("[NavigationManager] UTM -> map transform obtained!");
 }
 
-void MoveBaseMonitor::stateMachineCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg)
+void NavigationManager::stateMachineCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg)
 {
   // if the path is blocked then cancel the current goal and set the pause flag
   if (command_msg.command == command_msg.PAUSE)
@@ -74,7 +74,7 @@ void MoveBaseMonitor::stateMachineCallback(const agribot_msgs::AgribotMoveBaseCo
   }
 }
 
-void MoveBaseMonitor::isPaused()
+void NavigationManager::isPaused()
 {
   bool cancel_trig = true;
   while (pause_goal_)
@@ -83,7 +83,7 @@ void MoveBaseMonitor::isPaused()
     {
       ros::service::waitForService("/cmd_vel_arbiter_node/switch_to_stop");
       client_stop_.call(reset_srv_);
-      ROS_INFO_STREAM("[MoveBaseMonitor] Goal PAUSED");
+      ROS_INFO_STREAM("[NavigationManager] Goal PAUSED");
       cancel_trig = false;
     }
     result_msg_.result = result_msg_.PAUSED;
@@ -101,7 +101,7 @@ void MoveBaseMonitor::isPaused()
   }
 }
 
-void MoveBaseMonitor::waypointCallback(const agribot_msgs::NavSatFixOrientation& waypoint)
+void NavigationManager::waypointCallback(const agribot_msgs::NavSatFixOrientation& waypoint)
 {
   if (clear_waypoints_)
   {
@@ -144,7 +144,7 @@ void MoveBaseMonitor::waypointCallback(const agribot_msgs::NavSatFixOrientation&
   }
 }
 
-double MoveBaseMonitor::limitAngle(double angle) const
+double NavigationManager::limitAngle(double angle) const
 {
   while (angle > M_PI)
   {
@@ -157,24 +157,24 @@ double MoveBaseMonitor::limitAngle(double angle) const
   return angle;
 }
 
-double MoveBaseMonitor::angleBetweenPoses(const geometry_msgs::Pose& target_pose,
-                                          const geometry_msgs::Pose& current_pose) const
+double NavigationManager::angleBetweenPoses(const geometry_msgs::Pose& target_pose,
+                                            const geometry_msgs::Pose& current_pose) const
 {
   return std::atan2(target_pose.position.y - current_pose.position.y, target_pose.position.x - current_pose.position.x);
 }
 
-double MoveBaseMonitor::distanceBetweenPoses(const geometry_msgs::Pose& target_pose,
-                                             const geometry_msgs::Pose& current_pose) const
+double NavigationManager::distanceBetweenPoses(const geometry_msgs::Pose& target_pose,
+                                               const geometry_msgs::Pose& current_pose) const
 {
   return hypot(target_pose.position.y - current_pose.position.y, target_pose.position.x - current_pose.position.x);
 }
 
-double MoveBaseMonitor::calculateLinesSpan(const double target_line_angle, const double base_line_angle) const
+double NavigationManager::calculateLinesSpan(const double target_line_angle, const double base_line_angle) const
 {
   return abs(limitAngle(target_line_angle - base_line_angle));
 }
 
-void MoveBaseMonitor::updateOrientations(nav_msgs::Path& path, const double ray_width) const
+void NavigationManager::updateOrientations(nav_msgs::Path& path, const double ray_width) const
 {
   path.poses[0].pose.orientation =
       tf::createQuaternionMsgFromYaw(angleBetweenPoses(path.poses[1].pose, path.poses[0].pose));
@@ -201,13 +201,13 @@ void MoveBaseMonitor::updateOrientations(nav_msgs::Path& path, const double ray_
   return;
 }
 
-void MoveBaseMonitor::createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path)
+void NavigationManager::createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path)
 {
   // clear previous markers
   visualization_msgs::MarkerArray markers;
   visualization_msgs::Marker marker;
   marker.header = path[0].header;
-  marker.ns = "/move_base_monitor/waypoints";
+  marker.ns = "/navigation_manager/waypoints";
   marker.type = visualization_msgs::Marker::ARROW;
   marker.action = visualization_msgs::Marker::DELETEALL;
   marker.scale.x = 0.75;
@@ -234,12 +234,12 @@ void MoveBaseMonitor::createAndPublishMarkersFromPath(const std::vector<geometry
   waypoint_marker_publisher_.publish(markers);
 }
 
-void MoveBaseMonitor::monitorPathWaypoints()
+void NavigationManager::monitorPathWaypoints()
 {
   move_base_msgs::MoveBaseGoal goal;
   actionlib::SimpleClientGoalState::StateEnum goal_result;
-  ROS_INFO_STREAM("[MoveBaseMonitor] Start sending goals");
-  node_handle_.setParam("/agribot/move_base_monitor/is_ready", false);
+  ROS_INFO_STREAM("[NavigationManager] Start sending goals");
+  node_handle_.setParam("/agribot/navigation_manager/is_ready", false);
   int current_waypoint = 0;
   bool load_point = true;
   auto pose = path_.poses[current_waypoint];
@@ -261,8 +261,8 @@ void MoveBaseMonitor::monitorPathWaypoints()
     if (load_point)
     {
       pose = path_.poses[current_waypoint];
-      ROS_INFO_STREAM("[MoveBaseMonitor] Point " << pose.pose.position.x << ", " << pose.pose.position.y << " Index "
-                                                 << current_waypoint);
+      ROS_INFO_STREAM("[NavigationManager] Point " << pose.pose.position.x << ", " << pose.pose.position.y << " Index "
+                                                   << current_waypoint);
       goal.target_pose = pose;
       move_base_action_client_->sendGoal(goal);
       load_point = false;
@@ -280,7 +280,7 @@ void MoveBaseMonitor::monitorPathWaypoints()
       {
         result_msg_.result = result_msg_.SUCCES;
         state_machine_publisher_.publish(result_msg_);
-        ROS_INFO_STREAM("[MoveBaseMonitor] Goal succeeded, "
+        ROS_INFO_STREAM("[NavigationManager] Goal succeeded, "
                         << "taking the next goal");
         current_waypoint++;
         load_point = true;
@@ -289,7 +289,7 @@ void MoveBaseMonitor::monitorPathWaypoints()
       {
         result_msg_.result = result_msg_.PREEMPTED;
         state_machine_publisher_.publish(result_msg_);
-        ROS_INFO_STREAM("[MoveBaseMonitor] Goal PREEMPTED, "
+        ROS_INFO_STREAM("[NavigationManager] Goal PREEMPTED, "
                         << "trying next goal");
         current_waypoint++;
         load_point = true;
@@ -300,7 +300,7 @@ void MoveBaseMonitor::monitorPathWaypoints()
         state_machine_publisher_.publish(result_msg_);
         current_waypoint++;
         load_point = true;
-        ROS_INFO_STREAM("[MoveBaseMonitor] The goal was ABORTED!, "
+        ROS_INFO_STREAM("[NavigationManager] The goal was ABORTED!, "
                         << "trying next goal");
       }
       else if (goal_result == actionlib::SimpleClientGoalState::REJECTED)
@@ -309,14 +309,14 @@ void MoveBaseMonitor::monitorPathWaypoints()
         state_machine_publisher_.publish(result_msg_);
         current_waypoint++;
         load_point = true;
-        ROS_INFO_STREAM("[MoveBaseMonitor] The goal was REJECTED!, "
+        ROS_INFO_STREAM("[NavigationManager] The goal was REJECTED!, "
                         << "trying next goal");
       }
       else if (goal_result == actionlib::SimpleClientGoalState::RECALLED)
       {
         result_msg_.result = result_msg_.FAILED;
         state_machine_publisher_.publish(result_msg_);
-        ROS_INFO_STREAM("[MoveBaseMonitor] The goal was RECALLED!,"
+        ROS_INFO_STREAM("[NavigationManager] The goal was RECALLED!,"
                         << "trying next goal");
         current_waypoint++;
         load_point = true;
@@ -325,7 +325,7 @@ void MoveBaseMonitor::monitorPathWaypoints()
       {
         result_msg_.result = result_msg_.FAILED;
         state_machine_publisher_.publish(result_msg_);
-        ROS_INFO_STREAM("[MoveBaseMonitor] The goal was LOST!,"
+        ROS_INFO_STREAM("[NavigationManager] The goal was LOST!,"
                         << "trying next goal");
         current_waypoint++;
         load_point = true;
@@ -341,18 +341,18 @@ void MoveBaseMonitor::monitorPathWaypoints()
   if (user_abort_ == true)
   {
     user_abort_ = false;
-    ROS_INFO("[MoveBaseMonitor] Path aborted by user");
+    ROS_INFO("[NavigationManager] Path aborted by user");
   }
   else
   {
     result_msg_.result = result_msg_.PATH_COMPLETED;
     state_machine_publisher_.publish(result_msg_);
-    ROS_INFO("[MoveBaseMonitor] Path ended");
+    ROS_INFO("[NavigationManager] Path ended");
   }
-  node_handle_.setParam("/agribot/move_base_monitor/is_ready", true);
+  node_handle_.setParam("/agribot/navigation_manager/is_ready", true);
 }
 
-bool MoveBaseMonitor::getMapUtmTransform(void)
+bool NavigationManager::getMapUtmTransform(void)
 {
   try
   {
@@ -365,7 +365,7 @@ bool MoveBaseMonitor::getMapUtmTransform(void)
   return true;
 }
 
-geometry_msgs::PoseStamped MoveBaseMonitor::navSatFixToUtm(const agribot_msgs::NavSatFixOrientation& msg)
+geometry_msgs::PoseStamped NavigationManager::navSatFixToUtm(const agribot_msgs::NavSatFixOrientation& msg)
 {
   double utm_x, utm_y;
   std::string utm_zone;
@@ -385,7 +385,7 @@ geometry_msgs::PoseStamped MoveBaseMonitor::navSatFixToUtm(const agribot_msgs::N
   return utm_point;
 }
 
-geometry_msgs::PoseStamped MoveBaseMonitor::utmToMap(const geometry_msgs::PoseStamped& msg)
+geometry_msgs::PoseStamped NavigationManager::utmToMap(const geometry_msgs::PoseStamped& msg)
 {
   geometry_msgs::PoseStamped map_point;
   // Use starting_map_utm_transform_ generated in constructor
@@ -393,13 +393,13 @@ geometry_msgs::PoseStamped MoveBaseMonitor::utmToMap(const geometry_msgs::PoseSt
   return map_point;
 }
 
-void MoveBaseMonitor::publishWaypointsVisualization(const nav_msgs::Path& path)
+void NavigationManager::publishWaypointsVisualization(const nav_msgs::Path& path)
 {
   createAndPublishMarkersFromPath(path.poses);
   plan_publisher_.publish(path);
 }
 
-void MoveBaseMonitor::run()
+void NavigationManager::run()
 {
   ros::Rate loop_rate(10);
   while (ros::ok())
