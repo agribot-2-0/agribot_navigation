@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #include <agribot_navigation/navigation_manager/NavigationManager.h>
@@ -28,7 +28,7 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
   // wait for the action server to come up
   while (!move_base_action_client_->waitForServer(ros::Duration(5.0)))
   {
-    ROS_INFO_STREAM("[NavigationManager]Waiting for the move_base"
+    ROS_INFO_STREAM("[NavigationManager] Waiting for the move_base"
                     << "action server to come up");
   }
 
@@ -42,7 +42,6 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
   path_action_feedback_.feedback.total_waypoints = 0;
   pause_goal_ = false;
   pause_goal_latch_ = false;
-  path_loaded_ = false;
   user_abort_ = false;
 
   bool transformStatus = false;
@@ -105,12 +104,6 @@ void NavigationManager::isPaused()
 
 void NavigationManager::processWaypoint(const sensor_msgs::NavSatFix& waypoint)
 {
-  if (clear_waypoints_)
-  {
-    waypoints_.clear();
-    clear_waypoints_ = false;
-  }
-
   // Convert NavSatFix to UTM
   geometry_msgs::PoseStamped utm_point = navSatFixToUtm(waypoint);
 
@@ -119,31 +112,6 @@ void NavigationManager::processWaypoint(const sensor_msgs::NavSatFix& waypoint)
 
   // add waypoint to the waypoint vector
   waypoints_.push_back(map_point);
-
-  if (waypoints_.size() < 2)
-    return;
-
-  geometry_msgs::Pose* p1 = &(waypoints_.end() - 2)->pose;
-  geometry_msgs::Pose* p2 = &(waypoints_.end() - 1)->pose;
-
-  // calculate distance between latest two waypoints
-  // and check if it surpasses the threshold epsilon
-  double dist = hypot(p1->position.x - p2->position.x, p1->position.y - p2->position.y);
-
-  if (dist < 0.01)
-  {
-    p2->orientation = p1->orientation;
-    path_.header = map_point.header;
-    path_.poses.clear();
-    path_.poses.insert(path_.poses.end(), waypoints_.begin(), waypoints_.end());
-    path_.poses.pop_back();
-
-    updateOrientations(path_, ray_width_);
-
-    publishWaypointsVisualization(path_);
-    path_loaded_ = true;
-    user_abort_ = false;
-  }
 }
 
 double NavigationManager::limitAngle(double angle) const
@@ -329,8 +297,6 @@ void NavigationManager::monitorPathWaypoints()
     ros::spinOnce();
     loop_rate.sleep();
   }
-  clear_waypoints_ = true;
-  path_loaded_ = false;
   pause_goal_ = false;
   pause_goal_latch_ = false;
   if (user_abort_ == true)
@@ -396,27 +362,36 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
 {
   ros::Rate loop_rate(10);
   bool success = false;
-
+  waypoints_.clear();
   for (auto waypoint : goal->path)
   {
     processWaypoint(waypoint);
   }
+  path_.header = waypoints_.back().header;
+  path_.poses.clear();
+  path_.poses.insert(path_.poses.end(), waypoints_.begin(), waypoints_.end());
+  // path_.poses.pop_back();
+
+  updateOrientations(path_, ray_width_);
+  publishWaypointsVisualization(path_);
+  user_abort_ = false;
+  ROS_WARN_STREAM("[NavigationManager] Path sent to move_base");
 
   while (ros::ok())
   {
-    path_action_server_->publishFeedback(path_action_feedback_);
     if (path_action_server_->isPreemptRequested() || !ros::ok())
     {
       path_action_server_->setPreempted();
       success = false;
       break;
     }
+    monitorPathWaypoints();
+    path_action_server_->publishFeedback(path_action_feedback_);
     if (path_action_feedback_.feedback.result == path_action_feedback_.feedback.PATH_COMPLETED)
     {
       success = true;
       break;
     }
-
     loop_rate.sleep();
     ros::spinOnce();
   }
@@ -425,8 +400,12 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   {
     path_action_result_.finished = true;
     ROS_WARN_STREAM("[NavigationManager] Path finished");
-    // set the action state to succeeded
     path_action_server_->setSucceeded(path_action_result_);
+  }
+  else
+  {
+    ROS_ERROR("SET ABORT");
+    path_action_server_->setAborted();
   }
 }
 
@@ -435,10 +414,6 @@ void NavigationManager::run()
   ros::Rate loop_rate(10);
   while (ros::ok())
   {
-    if (path_loaded_)
-    {
-      monitorPathWaypoints();
-    }
     loop_rate.sleep();
     ros::spinOnce();
   }

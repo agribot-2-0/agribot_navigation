@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #pragma once
@@ -54,8 +54,6 @@ private:
 
   // flag indicating that the waypoint container must be cleared
   // to start anew
-  bool clear_waypoints_;
-  bool path_loaded_;
   bool pause_goal_;
   bool pause_goal_latch_;
   bool user_abort_;
