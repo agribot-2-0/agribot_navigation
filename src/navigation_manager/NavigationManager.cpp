@@ -29,9 +29,6 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
                     << "action server to come up");
   }
 
-  client_navigation_ = node_handle_.serviceClient<std_srvs::Empty>("/cmd_vel_arbiter_node/switch_to_navigation");
-  client_stop_ = node_handle_.serviceClient<std_srvs::Empty>("/cmd_vel_arbiter_node/switch_to_stop");
-
   path_action_feedback_.feedback.result = path_action_feedback_.feedback.NOACTION;
   path_action_feedback_.feedback.current_waypoint = 0;
   path_action_feedback_.feedback.total_waypoints = 0;
@@ -327,7 +324,7 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   }
   else
   {
-    ROS_ERROR("SET ABORT");
+    ROS_ERROR("[NavigationManager] Path aborted");
     path_action_server_->setAborted();
   }
   move_base_action_client_->cancelAllGoals();

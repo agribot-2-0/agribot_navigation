@@ -7,7 +7,6 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
 #include <agribot_msgs/PerformAutonomousPathAction.h>
-#include <agribot_msgs/AgribotMoveBaseCommand.h>
 #include <agribot_msgs/AgribotNavigationManagerResult.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -30,10 +29,6 @@ class NavigationManager
 {
 private:
   ros::NodeHandle node_handle_;
-  ros::ServiceClient client_navigation_;
-  ros::ServiceClient client_stop_;
-  std_srvs::Empty reset_srv_;
-  ros::Subscriber waypoints_subscriber_;
   std::unique_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> move_base_action_client_;
   ros::Publisher waypoint_marker_publisher_;
   ros::Publisher plan_publisher_;
@@ -48,7 +43,8 @@ private:
 
   // container for the manually inserted waypoints
   std::vector<geometry_msgs::PoseStamped> waypoints_;
-  nav_msgs::Path path_;  //!< container for the generated interpolated path
+  // container for the generated interpolated path
+  nav_msgs::Path path_;
 
   void createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT
   void publishWaypointsVisualization(const nav_msgs::Path& path);
