@@ -34,8 +34,6 @@ private:
   ros::ServiceClient client_stop_;
   std_srvs::Empty reset_srv_;
   ros::Subscriber waypoints_subscriber_;
-  ros::Subscriber state_machine_subscriber_;
-  ros::Publisher state_machine_publisher_;
   std::unique_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> move_base_action_client_;
   ros::Publisher waypoint_marker_publisher_;
   ros::Publisher plan_publisher_;
@@ -52,21 +50,13 @@ private:
   std::vector<geometry_msgs::PoseStamped> waypoints_;
   nav_msgs::Path path_;  //!< container for the generated interpolated path
 
-  // flag indicating that the waypoint container must be cleared
-  // to start anew
-  bool pause_goal_;
-  bool pause_goal_latch_;
-  bool user_abort_;
-
   void createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT
   void publishWaypointsVisualization(const nav_msgs::Path& path);
   bool getMapUtmTransform(void);
   void processWaypoint(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped navSatFixToUtm(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped utmToMap(const geometry_msgs::PoseStamped& msg);
-  void behaviorTreeCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg);
-  void isPaused();
-  void monitorPathWaypoints();
+  bool monitorPathWaypoints();
   void updateOrientations(nav_msgs::Path& path, const double ray_width) const;  // NOLINT(runtime/references)
   double distanceBetweenPoses(const geometry_msgs::Pose& target_pose, const geometry_msgs::Pose& current_pose) const;
   double angleBetweenPoses(const geometry_msgs::Pose& target_pose, const geometry_msgs::Pose& current_pose) const;

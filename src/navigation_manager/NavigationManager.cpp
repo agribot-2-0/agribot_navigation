@@ -7,9 +7,6 @@
 
 NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
 {
-  state_machine_subscriber_ =
-      node_handle_.subscribe("/agribot/navigation_manager/command", 10, &NavigationManager::behaviorTreeCallback, this);
-
   waypoint_marker_publisher_ =
       node_handle_.advertise<visualization_msgs::MarkerArray>("/agribot/navigation_manager/waypoints", 1);
   plan_publisher_ = node_handle_.advertise<nav_msgs::Path>("/agribot/navigation_manager/path", 1);
@@ -32,17 +29,12 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
                     << "action server to come up");
   }
 
-  node_handle_.setParam("/agribot/navigation_manager/is_ready", true);
-
   client_navigation_ = node_handle_.serviceClient<std_srvs::Empty>("/cmd_vel_arbiter_node/switch_to_navigation");
   client_stop_ = node_handle_.serviceClient<std_srvs::Empty>("/cmd_vel_arbiter_node/switch_to_stop");
 
   path_action_feedback_.feedback.result = path_action_feedback_.feedback.NOACTION;
   path_action_feedback_.feedback.current_waypoint = 0;
   path_action_feedback_.feedback.total_waypoints = 0;
-  pause_goal_ = false;
-  pause_goal_latch_ = false;
-  user_abort_ = false;
 
   bool transformStatus = false;
 
@@ -55,51 +47,6 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
     }
   }
   ROS_INFO("[NavigationManager] UTM -> map transform obtained!");
-}
-
-void NavigationManager::behaviorTreeCallback(const agribot_msgs::AgribotMoveBaseCommand& command_msg)
-{
-  // if the path is blocked then cancel the current goal and set the pause flag
-  if (command_msg.command == command_msg.PAUSE)
-  {
-    pause_goal_latch_ = true;
-    pause_goal_ = true;
-  }
-  else if (command_msg.command == command_msg.CONTINUE)
-  {
-    pause_goal_ = false;
-  }
-  // if we want to abort the current task by user request
-  else if (command_msg.command == command_msg.ABORT)
-  {
-    user_abort_ = true;
-  }
-}
-
-void NavigationManager::isPaused()
-{
-  bool cancel_trig = true;
-  while (pause_goal_)
-  {
-    if (cancel_trig)
-    {
-      ros::service::waitForService("/cmd_vel_arbiter_node/switch_to_stop");
-      client_stop_.call(reset_srv_);
-      ROS_INFO_STREAM("[NavigationManager] Goal PAUSED");
-      cancel_trig = false;
-    }
-    path_action_feedback_.feedback.result = path_action_feedback_.feedback.PAUSED;
-    ros::Duration(0.1).sleep();  // sleep for half a second
-    ros::spinOnce();
-    if (user_abort_)
-      break;
-  }
-  if (pause_goal_latch_ && !(user_abort_))
-  {
-    ros::service::waitForService("/cmd_vel_arbiter_node/switch_to_navigation");
-    client_navigation_.call(reset_srv_);
-    pause_goal_latch_ = false;
-  }
 }
 
 void NavigationManager::processWaypoint(const sensor_msgs::NavSatFix& waypoint)
@@ -204,29 +151,27 @@ void NavigationManager::createAndPublishMarkersFromPath(const std::vector<geomet
   waypoint_marker_publisher_.publish(markers);
 }
 
-void NavigationManager::monitorPathWaypoints()
+bool NavigationManager::monitorPathWaypoints()
 {
   move_base_msgs::MoveBaseGoal goal;
   actionlib::SimpleClientGoalState::StateEnum goal_result;
   ROS_INFO_STREAM("[NavigationManager] Start sending goals");
-  node_handle_.setParam("/agribot/navigation_manager/is_ready", false);
   int current_waypoint = 0;
   bool load_point = true;
   auto pose = path_.poses[current_waypoint];
+  bool path_finished = false;
   ros::Rate loop_rate(10);
   while (current_waypoint < path_.poses.size())
   {
+    if (path_action_server_->isPreemptRequested() || !ros::ok())
+    {
+      path_finished = false;
+      path_action_server_->setPreempted();
+      break;
+    }
     publishWaypointsVisualization(path_);
     path_action_feedback_.feedback.current_waypoint = current_waypoint;
     path_action_feedback_.feedback.total_waypoints = path_.poses.size();
-    // check if the current goal was paused, if so then wait
-    isPaused();
-    // check if the current path is aborted
-    if (user_abort_)
-    {
-      move_base_action_client_->cancelAllGoals();
-      break;
-    }
     // check if the next point should be loaded
     if (load_point)
     {
@@ -294,22 +239,22 @@ void NavigationManager::monitorPathWaypoints()
         load_point = true;
       }
     }
+    // Publish feedback to BehaviorTree
+    path_action_server_->publishFeedback(path_action_feedback_);
+    path_finished = true;
     ros::spinOnce();
     loop_rate.sleep();
   }
-  pause_goal_ = false;
-  pause_goal_latch_ = false;
-  if (user_abort_ == true)
+  if (path_finished)
   {
-    user_abort_ = false;
-    ROS_INFO("[NavigationManager] Path aborted by user");
+    path_action_feedback_.feedback.result = path_action_feedback_.feedback.PATH_COMPLETED;
   }
   else
   {
-    path_action_feedback_.feedback.result = path_action_feedback_.feedback.PATH_COMPLETED;
-    ROS_INFO("[NavigationManager] Path ended");
+    path_action_feedback_.feedback.result = path_action_feedback_.feedback.ABORTED;
   }
-  node_handle_.setParam("/agribot/navigation_manager/is_ready", true);
+  path_action_server_->publishFeedback(path_action_feedback_);
+  return path_finished;
 }
 
 bool NavigationManager::getMapUtmTransform(void)
@@ -361,7 +306,6 @@ void NavigationManager::publishWaypointsVisualization(const nav_msgs::Path& path
 void NavigationManager::performAutonomousPathCallback(const agribot_msgs::PerformAutonomousPathGoalConstPtr& goal)
 {
   ros::Rate loop_rate(10);
-  bool success = false;
   waypoints_.clear();
   for (auto waypoint : goal->path)
   {
@@ -370,33 +314,12 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   path_.header = waypoints_.back().header;
   path_.poses.clear();
   path_.poses.insert(path_.poses.end(), waypoints_.begin(), waypoints_.end());
-  // path_.poses.pop_back();
 
   updateOrientations(path_, ray_width_);
   publishWaypointsVisualization(path_);
-  user_abort_ = false;
   ROS_WARN_STREAM("[NavigationManager] Path sent to move_base");
 
-  while (ros::ok())
-  {
-    if (path_action_server_->isPreemptRequested() || !ros::ok())
-    {
-      path_action_server_->setPreempted();
-      success = false;
-      break;
-    }
-    monitorPathWaypoints();
-    path_action_server_->publishFeedback(path_action_feedback_);
-    if (path_action_feedback_.feedback.result == path_action_feedback_.feedback.PATH_COMPLETED)
-    {
-      success = true;
-      break;
-    }
-    loop_rate.sleep();
-    ros::spinOnce();
-  }
-
-  if (success)
+  if (monitorPathWaypoints())
   {
     path_action_result_.finished = true;
     ROS_WARN_STREAM("[NavigationManager] Path finished");
@@ -407,6 +330,7 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
     ROS_ERROR("SET ABORT");
     path_action_server_->setAborted();
   }
+  move_base_action_client_->cancelAllGoals();
 }
 
 void NavigationManager::run()
