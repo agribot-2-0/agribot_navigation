@@ -16,6 +16,7 @@ public:
   Detection();
   bool isInRow(const std::vector<Obstacle>& obstacles) const;
   bool checkColidingObstacle(const std::vector<Obstacle>& obstacles) const;
+  void setRobotPose(const geometry_msgs::PoseStamped& robot_pose);
 
 private:
   bool isRowObstacle(const Obstacle& obstacle) const;
@@ -32,5 +33,6 @@ private:
   double minimal_lateral_distance_to_obstacle_;
   double colison_width_;
   double collision_distance_;
+  geometry_msgs::PoseStamped robot_pose_;
 };
 }  // namespace ObstacleDetection

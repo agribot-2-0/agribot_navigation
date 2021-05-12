@@ -35,14 +35,19 @@ public:
   bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                     const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
                     const double step_size);
+  void setChassisLength(double chassis_length)
+  {
+    chassis_length_ = chassis_length;
+  }
 
 private:
   ObstacleDetection::Obstacle obstacles_left_;
   ObstacleDetection::Obstacle obstacles_right_;
   std::vector<ObstacleDetection::Obstacle> obstacles_;
   ObstacleDetection::Detection detection_;
+  double chassis_length_ = 0;
 
-  geometry_msgs::PoseStamped calculateMidpoint(const geometry_msgs::PoseStamped& point1,
-                                               const geometry_msgs::PoseStamped& point2);
+  geometry_msgs::PoseStamped calculateMidpose(const geometry_msgs::PoseStamped& point1,
+                                              const geometry_msgs::PoseStamped& point2);
 };
 }  // namespace agribot_local_planner

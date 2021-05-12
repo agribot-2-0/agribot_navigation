@@ -164,9 +164,8 @@ geometry_msgs::PolygonStamped Obstacle::toPolygon() const
   return polygonStamped;
 }
 
-std::vector<geometry_msgs::PoseStamped> Obstacle::toPath() const
+std::vector<geometry_msgs::PoseStamped> Obstacle::toPath(const double step_size) const
 {
-  double step_size = 0.5;
   std::vector<geometry_msgs::PoseStamped> line;
 
   geometry_msgs::PoseStamped pose_start;

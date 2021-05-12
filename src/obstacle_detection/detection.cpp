@@ -19,19 +19,17 @@ bool Detection::isInRow(const std::vector<Obstacle>& obstacles) const
 {
   bool row_on_the_left = false;
   bool row_on_the_right = false;
+
   for (const auto& obstacle : obstacles)
   {
     if (isRowObstacle(obstacle))
     {
-      ROS_WARN("isRowObstacle");
       if (obstacleOnTheLeft(obstacle, minimal_lateral_distance_to_obstacle_))
       {
-        // ROS_WARN("obstacleOnTheLeft");
         row_on_the_left = true;
       }
       if (obstacleOnTheRight(obstacle, minimal_lateral_distance_to_obstacle_))
       {
-        // ROS_WARN("obstacleOnTheRight");
         row_on_the_right = true;
       }
     }
@@ -93,6 +91,11 @@ bool Detection::isInFront(const Obstacle& obstacle) const
 {
   return (obstacle.getMinY().y() > -colison_width_ / 2.0 && obstacle.getMinY().y() < colison_width_ / 2.0) ||
          (obstacle.getMaxY().y() > -colison_width_ / 2.0 && obstacle.getMaxY().y() < colison_width_ / 2.0);
+}
+
+void Detection::setRobotPose(const geometry_msgs::PoseStamped& robot_pose)
+{
+  robot_pose_ = robot_pose;
 }
 
 }  // namespace ObstacleDetection

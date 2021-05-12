@@ -86,6 +86,7 @@ private:
   geometry_msgs::PoseStamped robot_center_;  // present robot center frame
   std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
   std::string reference_frame_id_;
+  std::string obstacle_frame_id_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;

@@ -20,7 +20,7 @@ public:
   explicit Obstacle(const geometry_msgs::PolygonStamped& polygon);
   geometry_msgs::PolygonStamped toRectangle() const;
   geometry_msgs::PolygonStamped toPolygon() const;
-  std::vector<geometry_msgs::PoseStamped> toPath() const;
+  std::vector<geometry_msgs::PoseStamped> toPath(const double step_size) const;
   friend std::ostream& operator<<(std::ostream& out, const Obstacle& o);
   Obstacle& operator+=(const Obstacle& obstacle);
   Eigen::Vector2d getCentroid() const;
@@ -67,7 +67,7 @@ private:
    * @tparam P3 2D Point type with x and y member fields
    */
   template <typename P1, typename P2, typename P3>
-  long double cross(P1& O, P2& A, P3& B) const
+  long double cross(const P1& O, const P2& A, const P3& B) const
   {
     return (long double)(A.x - O.x) * (long double)(B.y() - O.y) -
            (long double)(A.y - O.y) * (long double)(B.x() - O.x);
