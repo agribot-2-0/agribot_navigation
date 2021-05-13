@@ -148,12 +148,11 @@ void NavigationManager::createAndPublishMarkersFromPath(const std::vector<geomet
   waypoint_marker_publisher_.publish(markers);
 }
 
-bool NavigationManager::monitorPathWaypoints()
+bool NavigationManager::monitorPathWaypoints(int current_waypoint)
 {
   move_base_msgs::MoveBaseGoal goal;
   actionlib::SimpleClientGoalState::StateEnum goal_result;
   ROS_INFO_STREAM("[NavigationManager] Start sending goals");
-  int current_waypoint = 0;
   bool load_point = true;
   auto pose = path_.poses[current_waypoint];
   bool path_finished = false;
@@ -316,7 +315,7 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   publishWaypointsVisualization(path_);
   ROS_WARN_STREAM("[NavigationManager] Path sent to move_base");
 
-  if (monitorPathWaypoints())
+  if (monitorPathWaypoints(goal->path_progression))
   {
     path_action_result_.finished = true;
     ROS_WARN_STREAM("[NavigationManager] Path finished");
