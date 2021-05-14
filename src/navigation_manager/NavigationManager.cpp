@@ -324,17 +324,11 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   else
   {
     ROS_ERROR("[NavigationManager] Path aborted");
-    path_action_server_->setAborted();
   }
   move_base_action_client_->cancelAllGoals();
 }
 
 void NavigationManager::run()
 {
-  ros::Rate loop_rate(10);
-  while (ros::ok())
-  {
-    loop_rate.sleep();
-    ros::spinOnce();
-  }
+  ros::spin();
 }
