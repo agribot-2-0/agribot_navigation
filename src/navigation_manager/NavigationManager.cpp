@@ -301,7 +301,6 @@ void NavigationManager::publishWaypointsVisualization(const nav_msgs::Path& path
 
 void NavigationManager::performAutonomousPathCallback(const agribot_msgs::PerformAutonomousPathGoalConstPtr& goal)
 {
-  ros::Rate loop_rate(10);
   waypoints_.clear();
   for (auto waypoint : goal->path)
   {
@@ -315,7 +314,9 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   publishWaypointsVisualization(path_);
   ROS_WARN_STREAM("[NavigationManager] Path sent to move_base");
 
-  if (monitorPathWaypoints(goal->path_progression))
+  bool path_finished = monitorPathWaypoints(goal->path_progression);
+
+  if (path_finished)
   {
     path_action_result_.finished = true;
     ROS_WARN_STREAM("[NavigationManager] Path finished");
