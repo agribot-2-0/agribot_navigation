@@ -243,7 +243,7 @@ bool NavigationManager::monitorPathWaypoints(int current_waypoint)
   }
   if (path_finished)
   {
-    path_action_feedback_.feedback.result = path_action_feedback_.feedback.PATH_COMPLETED;
+    path_action_feedback_.feedback.result = path_action_feedback_.feedback.COMPLETED;
   }
   else
   {
