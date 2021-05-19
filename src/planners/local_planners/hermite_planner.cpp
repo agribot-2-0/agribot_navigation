@@ -37,9 +37,6 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
 
   int path_start_index = path.size();
 
-  // double start_magnitude = calculateMagnitude(startPoint, endPoint, base_magnitude_start, true);
-  // double end_magnitude = calculateMagnitude(startPoint, endPoint, base_magnitude_end, false);
-
   if (!hermitePath(path, startPoint, endPoint, base_magnitude_start, base_magnitude_end))
   {
     ROS_ERROR_STREAM("[HermitePlanner] Unable to create proper path");

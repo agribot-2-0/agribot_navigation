@@ -8,9 +8,6 @@ namespace agribot_path_controllers
 {
 StanleyController::StanleyController() : IPathController()
 {
-  // double lin_vel_ = default_max_linear_vel;
-  // double error_gain_ = default_stanley_error_gain;
-  // double theta_limit_ = asin(default_chassis_length / 2 / default_min_radius);
 }
 
 StanleyController::~StanleyController()

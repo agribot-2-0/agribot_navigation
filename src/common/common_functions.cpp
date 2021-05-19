@@ -109,4 +109,27 @@ double dCalculateRadiusFromVelocity(const geometry_msgs::Twist& velocity)
   }
   return 0.0;
 }
+
+void straightPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped& start_point,
+                  const geometry_msgs::PoseStamped& end_point, const std::string& frame_id, const double step_size)
+{
+  int steps = CommonFunctions::distanceBetweenPoses(start_point, end_point) / step_size;
+
+  if (steps <= 0)
+  {
+    throw std::invalid_argument("Could not assemble straight path");
+  }
+
+  for (int i = 0; i < steps; i++)
+  {
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = frame_id;
+    pose.header.seq = path.size() + 1;
+    pose.pose.position.x = start_point.pose.position.x +
+                           static_cast<double>(i) / steps * (end_point.pose.position.x - start_point.pose.position.x);
+    pose.pose.position.y = start_point.pose.position.y +
+                           static_cast<double>(i) / steps * (end_point.pose.position.y - start_point.pose.position.y);
+    path.push_back(pose);
+  }
+}
 }  // namespace CommonFunctions

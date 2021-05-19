@@ -43,5 +43,7 @@ agribot_local_planner::pos pCalculateProjection(const agribot_local_planner::pos
                                                 const agribot_local_planner::pos& nextWaypoint,
                                                 const agribot_local_planner::pos& robotCenter);
 double dCalculateRadiusFromVelocity(const geometry_msgs::Twist& velocity);
+void straightPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped& start_point,
+                  const geometry_msgs::PoseStamped& end_point, const std::string& frame_id, const double step_size);
 
 }  // namespace CommonFunctions

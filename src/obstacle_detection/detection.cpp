@@ -35,7 +35,6 @@ bool Detection::isInRow(const std::vector<Obstacle>& obstacles) const
     }
   }
 
-  // ROS_WARN_STREAM("row_on_the_left " << row_on_the_left << " row_on_the_right " << row_on_the_right);
   return row_on_the_left && row_on_the_right;
 }
 

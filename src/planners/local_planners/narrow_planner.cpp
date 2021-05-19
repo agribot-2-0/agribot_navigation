@@ -24,7 +24,7 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
                                        const geometry_msgs::PoseStamped& end_pose)
 {
   path.push_back(start_pose);
-  double step_size = 0.1;
+  double step_size = 5;
   auto line_left = obstacles_left_.toPath(step_size);
   auto line_right = obstacles_right_.toPath(step_size);
 
@@ -35,32 +35,16 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
 
   auto start_obstacle_pose = calculateMidpose(line_left[0], line_right[0]);
   straightPath(path, start_pose, start_obstacle_pose, step_size);
-  // // size_t path_index = 0;
-  // // while (end_point.pose.position.x - path.at(path_index).pose.position.x > step_size)
-  // // {
-  // //   ++path_index;
-  // // }
-
-  // // ROS_WARN_STREAM(path_index);
-  // // ROS_WARN_STREAM(path.at(path_index));
-  // // ROS_WARN_STREAM(end_point);
-  // // straightPath(path, start_pose, end_point, 0.5);
+  // CommonFunctions::straightPath(path, start_pose, start_obstacle_pose, frame_id, step_size);
 
   size_t path_size = line_left.size() < line_right.size() ? line_left.size() : line_right.size();
 
   for (size_t position = 1; position < path_size; position++)
   {
-    // ROS_WARN_STREAM("in_loop " << position);
-
     auto mid_point = calculateMidpose(line_left[position], line_right[position]);
     mid_point.header.seq = path.size() + 1;
-    // ROS_WARN_STREAM("in_loop " << mid_point);
     path.push_back(mid_point);
-    // path[path_index].pose = mid_point.pose;
-    // ++path_index;
   }
-
-  // straightPath(path, path[-1], end_pose, 0.5);
 
   CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
 

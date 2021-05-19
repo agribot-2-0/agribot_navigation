@@ -69,16 +69,7 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
     angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
   }
 
-  // double chassis_length = 2.1;
   motion_radius_ = look_ahead_distance_ / (2 * sin(angle_between_poses_));
-  // double steering_angle = atan((2 * chassis_length * sin(alpha)) / (look_ahead_distance_));
-  // double steering_angle = atan(chassis_length / motion_radius);
-  // double steering_angle1 = asin(chassis_length / motion_radius);
-
-  // ROS_ERROR_STREAM("alpha " << CommonFunctions::toDegrees(angle_between_poses_));
-  // ROS_ERROR_STREAM("motion_radius " << motion_radius_);
-  // ROS_ERROR_STREAM("steering_angle " << CommonFunctions::toDegrees(steering_angle));
-  // ROS_ERROR_STREAM("steering_angle1 " << CommonFunctions::toDegrees(steering_angle1));
 
   agribot_msgs::AgribotManualControl msg;
   msg.linear_velocity = lin_vel_;
@@ -93,10 +84,9 @@ geometry_msgs::Twist PurePursuitController::teleopToVel(const agribot_msgs::Agri
 {
   geometry_msgs::Twist out_msg;
   double minRadius{ 2.1 };
-  // double cutoffRadius{ 110.0 };
 
   out_msg.linear.x = in_msg.linear_velocity;
-  if (abs(in_msg.circle_radius) > minRadius)  //&& abs(in_msg.circle_radius) < cutoffRadius)
+  if (abs(in_msg.circle_radius) > minRadius)
   {
     out_msg.angular.z = in_msg.linear_velocity / in_msg.circle_radius;
   }

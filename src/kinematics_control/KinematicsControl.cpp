@@ -346,9 +346,6 @@ double KinematicsControl::dRadiusToAngle(const double Radius) const
   {
     angle = asin(_dChassisLength / 2 / Radius);
   }
-  // ROS_WARN_STREAM("_dChassisLength " << _dChassisLength);
-  // ROS_WARN_STREAM("Radius " << Radius);
-  // ROS_WARN_STREAM("ANGLE " << CommonFunctions::toDegrees(angle));
   return angle;
 }
 
