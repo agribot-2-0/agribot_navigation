@@ -148,7 +148,7 @@ void NavigationManager::createAndPublishMarkersFromPath(const std::vector<geomet
   waypoint_marker_publisher_.publish(markers);
 }
 
-bool NavigationManager::monitorPathWaypoints(int current_waypoint)
+bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
 {
   move_base_msgs::MoveBaseGoal goal;
   actionlib::SimpleClientGoalState::StateEnum goal_result;
