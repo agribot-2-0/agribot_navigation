@@ -24,11 +24,10 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
                                        const geometry_msgs::PoseStamped& end_pose)
 {
   path.push_back(start_pose);
-  double step_size = 0.1;
   try
   {
-    auto line_left = obstacles_left_.toPath(step_size);
-    auto line_right = obstacles_right_.toPath(step_size);
+    auto line_left = obstacles_left_.toPath(step_size_);
+    auto line_right = obstacles_right_.toPath(step_size_);
     if (!line_left.size() || !line_right.size() || !path.size())
     {
       return false;

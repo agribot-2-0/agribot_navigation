@@ -20,6 +20,11 @@ bool Detection::isInRow(const std::vector<Obstacle>& obstacles) const
   bool row_on_the_left = false;
   bool row_on_the_right = false;
 
+  if (obstacles.size() == 0)
+  {
+    return false;
+  }
+
   for (const auto& obstacle : obstacles)
   {
     if (isRowObstacle(obstacle))

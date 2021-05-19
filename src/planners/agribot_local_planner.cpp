@@ -38,6 +38,7 @@ void AgribotPlannerROS::createPlanners()
 
   auto narrow_planner = std::make_unique<NarrowCorridorPlanner>(obstacle_frame_id_);
   narrow_planner->setChassisLength(param_chassis_length_);
+  narrow_planner->setStepSize(param_design_step_size_);
   planners_["narrow"] = std::move(narrow_planner);
 }
 
@@ -217,7 +218,6 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     }
 
     ROS_DEBUG_STREAM("[AgribotPlanner] Plugin initialized.");
-    gn.setParam("/agribot/agribot_local_planer/is_inited", true);
   }
   else
   {
@@ -336,18 +336,18 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     }
   }
 
-  truncatePath(path_slice_.poses);
+  // truncatePath(path_slice_.poses);
 
-  if (path_slice_.poses.size() < 2)
-  {
-    cmd_vel = stopRobot();
-    if (!planPath(local_plan_, robot_center_, transformPose(global_plan_.back(), reference_frame_id_), "circles"))
-    {
-      ROS_ERROR_STREAM("[AgribotPlanner] Unable to replan path");
-      abort_executing_ = true;
-    }
-    return true;
-  }
+  // if (path_slice_.poses.size() < 2)
+  // {
+  //   cmd_vel = stopRobot();
+  //   if (!planPath(local_plan_, robot_center_, transformPose(global_plan_.back(), reference_frame_id_), "circles"))
+  //   {
+  //     ROS_ERROR_STREAM("[AgribotPlanner] Unable to replan path");
+  //     abort_executing_ = true;
+  //   }
+  //   return true;
+  // }
 
   // Calculate velocities
   calculateControls(cmd_vel);
@@ -429,31 +429,35 @@ void AgribotPlannerROS::processObstacles(const costmap_converter::ObstacleArrayC
 
 void AgribotPlannerROS::publishObstacles()
 {
-  auto obstacles = planners_["narrow"]->getObstacles();
-  obstacles_left_ = obstacles[0];
-  obstacles_right_ = obstacles[1];
   try
   {
+    auto obstacles = planners_["narrow"]->getObstacles();
+    if (obstacles.size() == 0)
+    {
+      return;
+    }
+    obstacles_left_ = obstacles[0];
+    obstacles_right_ = obstacles[1];
     VisualizationFunctions::pathVisualization(obstacles_left_.toPath(param_design_step_size_), obstacle_frame_id_,
                                               obstacles_left_line_pub_);
     VisualizationFunctions::pathVisualization(obstacles_right_.toPath(param_design_step_size_), obstacle_frame_id_,
                                               obstacles_right_line_pub_);
+    std_msgs::ColorRGBA green = std_msgs::ColorRGBA();
+    green.a = 1;
+    green.g = 1;
+
+    std_msgs::ColorRGBA blue = std_msgs::ColorRGBA();
+    blue.a = 1;
+    blue.b = 1;
+
+    VisualizationFunctions::visualizeObstacle(obstacles_left_, obstacles_left_polygon_pub_, green);
+    VisualizationFunctions::visualizeObstacle(obstacles_right_, obstacles_right_polygon_pub_, blue);
+    VisualizationFunctions::visualizeObstacles(obstacles_, obstacles_polygon_pub_);
   }
   catch (const std::exception& e)
   {
     ROS_ERROR_STREAM("[AgribotPlanner]" << e.what());
   }
-  std_msgs::ColorRGBA green = std_msgs::ColorRGBA();
-  green.a = 1;
-  green.g = 1;
-
-  std_msgs::ColorRGBA blue = std_msgs::ColorRGBA();
-  blue.a = 1;
-  blue.b = 1;
-
-  VisualizationFunctions::visualizeObstacle(obstacles_left_, obstacles_left_polygon_pub_, green);
-  VisualizationFunctions::visualizeObstacle(obstacles_right_, obstacles_right_polygon_pub_, blue);
-  VisualizationFunctions::visualizeObstacles(obstacles_, obstacles_polygon_pub_);
 }
 
 void AgribotPlannerROS::truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path)

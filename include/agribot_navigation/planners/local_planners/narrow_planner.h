@@ -39,6 +39,10 @@ public:
   {
     chassis_length_ = chassis_length;
   }
+  void setStepSize(const double param_step_size)
+  {
+    step_size_ = param_step_size;
+  }
 
 private:
   ObstacleDetection::Obstacle obstacles_left_;
@@ -46,6 +50,7 @@ private:
   std::vector<ObstacleDetection::Obstacle> obstacles_;
   ObstacleDetection::Detection detection_;
   double chassis_length_ = 0;
+  double step_size_ = 0.1;
 
   geometry_msgs::PoseStamped calculateMidpose(const geometry_msgs::PoseStamped& point1,
                                               const geometry_msgs::PoseStamped& point2);
