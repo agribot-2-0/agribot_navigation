@@ -24,29 +24,33 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
                                        const geometry_msgs::PoseStamped& end_pose)
 {
   path.push_back(start_pose);
-  double step_size = 5;
-  auto line_left = obstacles_left_.toPath(step_size);
-  auto line_right = obstacles_right_.toPath(step_size);
-
-  if (!line_left.size() || !line_right.size() || !path.size())
+  double step_size = 0.1;
+  try
   {
-    return false;
+    auto line_left = obstacles_left_.toPath(step_size);
+    auto line_right = obstacles_right_.toPath(step_size);
+    if (!line_left.size() || !line_right.size() || !path.size())
+    {
+      return false;
+    }
+    auto start_obstacle_pose = calculateMidpose(line_left[0], line_right[0]);
+
+    CommonFunctions::straightPath(path, start_pose, start_obstacle_pose, frame_id, 5);
+
+    size_t path_size = line_left.size() < line_right.size() ? line_left.size() : line_right.size();
+
+    for (size_t position = 1; position < path_size; position++)
+    {
+      auto mid_point = calculateMidpose(line_left[position], line_right[position]);
+      mid_point.header.seq = path.size() + 1;
+      path.push_back(mid_point);
+    }
+    CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
   }
-
-  auto start_obstacle_pose = calculateMidpose(line_left[0], line_right[0]);
-  straightPath(path, start_pose, start_obstacle_pose, step_size);
-  // CommonFunctions::straightPath(path, start_pose, start_obstacle_pose, frame_id, step_size);
-
-  size_t path_size = line_left.size() < line_right.size() ? line_left.size() : line_right.size();
-
-  for (size_t position = 1; position < path_size; position++)
+  catch (const std::exception& e)
   {
-    auto mid_point = calculateMidpose(line_left[position], line_right[position]);
-    mid_point.header.seq = path.size() + 1;
-    path.push_back(mid_point);
+    throw std::invalid_argument("[NarrowPlanner]" + std::string(e.what()));
   }
-
-  CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
 
   return true;
 }

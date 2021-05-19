@@ -27,11 +27,11 @@ void AgribotPlannerROS::createPlanners()
   auto circles_planner = std::make_unique<CirclesPlanner>(robot_center_.header.frame_id);
   circles_planner->setArcRadius(default_design_arc_radius);
   circles_planner->setDeadZone(default_design_dead_zone);
-  circles_planner->setStepSize(default_step_size);
+  circles_planner->setStepSize(param_design_step_size_);
   planners_["circles"] = std::move(circles_planner);
 
   auto hermite_planner = std::make_unique<HermitePlanner>(robot_center_.header.frame_id);
-  hermite_planner->setStepSize(default_step_size);
+  hermite_planner->setStepSize(param_design_step_size_);
   hermite_planner->setMagnitudeStart(default_hermite_magnitude);
   hermite_planner->setMagnitudeEnd(default_hermite_magnitude);
   planners_["hermite"] = std::move(hermite_planner);
@@ -133,7 +133,6 @@ void AgribotPlannerROS::getParameters(const ros::NodeHandle& nh)
 
   nh.param("design_dead_zone", param_design_dead_zone_, default_design_dead_zone);
   nh.param("design_arc_radius", param_design_arc_radius_, default_design_arc_radius);
-  nh.param("design_step_size", param_design_step_size_, default_step_size);
   nh.param("hermite_magnitude", param_hermite_magnitude_, default_hermite_magnitude);
 
   nh.param("odom_filter_time", param_odom_filter_time_, default_odom_filter_time);
@@ -144,6 +143,7 @@ void AgribotPlannerROS::getParameters(const ros::NodeHandle& nh)
   nh.param("statistics", param_statistics_, true);
   nh.param("take_front", param_take_front_, false);
 
+  param_design_step_size_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/design_step_size");
   costmap_converter_name_ =
       ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/costmap_converter_plugin");
   costmap_converter_odom_topic_ =
@@ -331,7 +331,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     }
     catch (const std::exception& e)
     {
-      ROS_ERROR_STREAM("[AgribotPlanner]! " << e.what());
+      ROS_ERROR_STREAM("[AgribotPlanner]" << e.what());
       abort_executing_ = true;
     }
   }
