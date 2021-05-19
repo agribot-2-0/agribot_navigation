@@ -110,8 +110,9 @@ double dCalculateRadiusFromVelocity(const geometry_msgs::Twist& velocity)
   return 0.0;
 }
 
-void straightPath(std::vector<geometry_msgs::PoseStamped>& path, const geometry_msgs::PoseStamped& start_point,
-                  const geometry_msgs::PoseStamped& end_point, const std::string& frame_id, const double step_size)
+void straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                  const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
+                  const std::string& frame_id, const double step_size)
 {
   int steps = CommonFunctions::distanceBetweenPoses(start_point, end_point) / step_size;
 
