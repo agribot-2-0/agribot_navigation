@@ -185,7 +185,7 @@ std::vector<geometry_msgs::PoseStamped> Obstacle::toPath(const double step_size)
   pose_end.pose.position.y = max_x_.y();
 
   line.push_back(pose_start);
-  CommonFunctions::straightPath(line, pose_start, pose_end,frame_id_, step_size);
+  CommonFunctions::straightPath(line, pose_start, pose_end, frame_id_, step_size);
   line.push_back(pose_end);
 
   return line;
