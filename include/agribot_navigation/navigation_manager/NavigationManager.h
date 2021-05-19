@@ -6,20 +6,20 @@
 
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
-#include <agribot_msgs/PerformAutonomousPathAction.h>
 #include <agribot_msgs/AgribotNavigationManagerResult.h>
-#include <sensor_msgs/NavSatFix.h>
+#include <agribot_msgs/PerformAutonomousPathAction.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <nav_msgs/Path.h>
 #include <robot_localization/navsat_conversions.h>
 #include <ros/ros.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/Int32.h>
 #include <std_srvs/Empty.h>
+#include <tf/tf.h>
 #include <tf2/utils.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
-#include <tf/tf.h>
 
 #include <memory>
 #include <string>
@@ -52,7 +52,7 @@ private:
   void processWaypoint(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped navSatFixToUtm(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped utmToMap(const geometry_msgs::PoseStamped& msg);
-  bool monitorPathWaypoints(int current_waypoint);
+  bool monitorPathWaypoints(uint current_waypoint);
   void updateOrientations(nav_msgs::Path& path, const double ray_width) const;  // NOLINT(runtime/references)
   double distanceBetweenPoses(const geometry_msgs::Pose& target_pose, const geometry_msgs::Pose& current_pose) const;
   double angleBetweenPoses(const geometry_msgs::Pose& target_pose, const geometry_msgs::Pose& current_pose) const;

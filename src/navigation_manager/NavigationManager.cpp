@@ -148,7 +148,7 @@ void NavigationManager::createAndPublishMarkersFromPath(const std::vector<geomet
   waypoint_marker_publisher_.publish(markers);
 }
 
-bool NavigationManager::monitorPathWaypoints(int current_waypoint)
+bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
 {
   move_base_msgs::MoveBaseGoal goal;
   actionlib::SimpleClientGoalState::StateEnum goal_result;
@@ -207,8 +207,9 @@ bool NavigationManager::monitorPathWaypoints(int current_waypoint)
         path_action_feedback_.feedback.result = path_action_feedback_.feedback.ABORTED;
         current_waypoint++;
         load_point = true;
-        ROS_INFO_STREAM("[NavigationManager] The goal was ABORTED!, "
-                        << "trying next goal");
+        path_finished = false;
+        ROS_INFO_STREAM("[NavigationManager] The goal was ABORTED!");
+        break;
       }
       else if (goal_result == actionlib::SimpleClientGoalState::REJECTED)
       {
@@ -320,12 +321,13 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   {
     path_action_result_.finished = true;
     ROS_WARN_STREAM("[NavigationManager] Path finished");
-    path_action_server_->setSucceeded(path_action_result_);
   }
   else
   {
+    path_action_result_.finished = false;
     ROS_ERROR("[NavigationManager] Path aborted");
   }
+  path_action_server_->setSucceeded(path_action_result_);
   move_base_action_client_->cancelAllGoals();
 }
 
