@@ -4,7 +4,10 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <costmap_converter/costmap_converter_interface.h>
+#pragma GCC diagnostic pop
 
 #include <string>
 #include <vector>

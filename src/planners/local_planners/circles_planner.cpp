@@ -69,6 +69,7 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
 
 void CirclesPlanner::addObstacle(const ObstacleDetection::Obstacle& obstacle)
 {
+  (void)obstacle;
 }
 
 void CirclesPlanner::setArcRadius(const double param_arc_radius)

@@ -5,7 +5,10 @@
 #pragma once
 
 #include <base_local_planner/goal_functions.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <costmap_2d/costmap_2d_ros.h>
+#pragma GCC diagnostic pop
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>

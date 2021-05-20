@@ -247,6 +247,7 @@ bool PID::bAntiWindup(double Error, double ControlValue, double dt)
       control error and the control variable have the same sign (i.e., when u · e >
       0).
   */
+  (void)dt;
   return ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) && (ControlValue * Error > 0));
 }
 

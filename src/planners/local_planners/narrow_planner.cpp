@@ -23,6 +23,7 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
                                        const geometry_msgs::PoseStamped& start_pose,
                                        const geometry_msgs::PoseStamped& end_pose)
 {
+  (void)end_pose;
   path.push_back(start_pose);
   try
   {

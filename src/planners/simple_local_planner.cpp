@@ -307,6 +307,7 @@ bool SimplePlannerROS::bCenterOutOfGoalRange(pos robotCenter, pos nextWaypoint)
 
 void SimplePlannerROS::vTakeNextGoal(pos currentGoal, pos robotCenter)
 {
+  (void)robotCenter;
   _iWaypointCount++;
 
   pos nextWaypoint = pGetFrame(_iWaypointCount);

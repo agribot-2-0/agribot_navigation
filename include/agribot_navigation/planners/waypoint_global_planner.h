@@ -4,13 +4,16 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <base_local_planner/costmap_model.h>
 #include <base_local_planner/world_model.h>
 #include <costmap_2d/costmap_2d.h>
 #include <costmap_2d/costmap_2d_ros.h>
+#include <nav_core/base_global_planner.h>
+#pragma GCC diagnostic pop
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <nav_core/base_global_planner.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>

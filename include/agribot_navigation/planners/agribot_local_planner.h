@@ -4,8 +4,11 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <base_local_planner/goal_functions.h>
 #include <costmap_2d/costmap_2d_ros.h>
+#pragma GCC diagnostic pop
 #include <geometry_msgs/Polygon.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseStamped.h>
