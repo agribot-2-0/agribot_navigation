@@ -341,18 +341,18 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     }
   }
 
-  // truncatePath(path_slice_.poses);
+  truncatePath(path_slice_.poses);
 
-  // if (path_slice_.poses.size() < 2)
-  // {
-  //   cmd_vel = stopRobot();
-  //   if (!planPath(local_plan_, robot_center_, transformPose(global_plan_.back(), reference_frame_id_), "circles"))
-  //   {
-  //     ROS_ERROR_STREAM("[AgribotPlanner] Unable to replan path");
-  //     abort_executing_ = true;
-  //   }
-  //   return true;
-  // }
+  if (path_slice_.poses.size() < 2)
+  {
+    cmd_vel = stopRobot();
+    if (!planPath(local_plan_, robot_center_, transformPose(global_plan_.back(), reference_frame_id_), "circles"))
+    {
+      ROS_ERROR_STREAM("[AgribotPlanner] Unable to replan path");
+      abort_executing_ = true;
+    }
+    return true;
+  }
 
   // Calculate velocities
   calculateControls(cmd_vel);
