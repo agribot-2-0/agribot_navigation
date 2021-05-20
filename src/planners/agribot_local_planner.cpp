@@ -227,6 +227,8 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
 
 bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan)
 {
+  ROS_INFO_STREAM("[AgribotPlanner] Plan received from Global Planner. Initialization.");
+
   if (!initialized_)
   {
     ROS_ERROR_STREAM("[AgribotPlanner] Planner not initialized, call initialize() before planner");
@@ -254,12 +256,15 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   goal_reached_ = false;
   traveled_points_ = visualization_msgs::Marker();
   traveled_distance_ = 0;
+  planners_["narrow"]->clearObstacles();
 
   if (param_statistics_)
   {
     start_time_ = ros::Time::now().toSec();
     last_time_ = 0;
   }
+
+  ROS_INFO_STREAM("[AgribotPlanner] Plan received from Global Planner. Finish Initialization.");
 
   return true;
 }
@@ -360,13 +365,6 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     cmd_vel = finishedPathBehaviour();
   }
 
-  if (abort_executing_)
-  {
-    cmd_vel = stopRobot();
-    ROS_ERROR("[AgribotPlanner] Abort plan");
-    return false;
-  }
-
   VisualizationFunctions::pathVisualization(local_plan_, reference_frame_id_, path_pub_);
   VisualizationFunctions::pathVisualization(path_slice_.poses, reference_frame_id_, path_slice_pub_);
   VisualizationFunctions::pathVisualization(trajectory_, reference_frame_id_, path_slice_pub_);
@@ -379,7 +377,15 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   {
     VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pubisher_);
   }
-  publishObstacles();
+  // publishObstacles();
+
+  if (abort_executing_)
+  {
+    cmd_vel = stopRobot();
+    local_path_.poses.clear();
+    ROS_ERROR("[AgribotPlanner] Abort plan");
+    return false;
+  }
 
   return true;
 }
