@@ -52,7 +52,7 @@ private:
   void processWaypoint(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped navSatFixToUtm(const sensor_msgs::NavSatFix& msg);
   geometry_msgs::PoseStamped utmToMap(const geometry_msgs::PoseStamped& msg);
-  bool monitorPathWaypoints(int current_waypoint);
+  bool monitorPathWaypoints(uint current_waypoint);
   void updateOrientations(nav_msgs::Path& path, const double ray_width) const;  // NOLINT(runtime/references)
   double distanceBetweenPoses(const geometry_msgs::Pose& target_pose, const geometry_msgs::Pose& current_pose) const;
   double angleBetweenPoses(const geometry_msgs::Pose& target_pose, const geometry_msgs::Pose& current_pose) const;
