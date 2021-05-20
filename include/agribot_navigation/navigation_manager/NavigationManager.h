@@ -33,8 +33,8 @@ private:
   ros::Publisher waypoint_marker_publisher_;
   ros::Publisher plan_publisher_;
   geometry_msgs::TransformStamped starting_map_utm_transform_;
-  tf2_ros::Buffer tf_to_buffer_;
-  tf2_ros::TransformListener tf_to_listener_;
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
   double ray_width_;
 
   std::unique_ptr<actionlib::SimpleActionServer<agribot_msgs::PerformAutonomousPathAction>> path_action_server_;

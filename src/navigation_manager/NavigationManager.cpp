@@ -5,7 +5,7 @@
 #include <agribot_navigation/navigation_manager/NavigationManager.h>
 #include <visualization_msgs/MarkerArray.h>
 
-NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
+NavigationManager::NavigationManager() : tf_listener_(tf_buffer_)
 {
   waypoint_marker_publisher_ =
       node_handle_.advertise<visualization_msgs::MarkerArray>("/agribot/navigation_manager/waypoints", 1);
@@ -33,12 +33,12 @@ NavigationManager::NavigationManager() : tf_to_listener_(tf_to_buffer_)
   path_action_feedback_.feedback.current_waypoint = 0;
   path_action_feedback_.feedback.total_waypoints = 0;
 
-  bool transformStatus = false;
+  bool transform_status = false;
 
-  while (!transformStatus)
+  while (!transform_status)
   {
-    transformStatus = getMapUtmTransform();
-    if (transformStatus == false)
+    transform_status = getMapUtmTransform();
+    if (transform_status == false)
     {
       ROS_WARN("[NavigationManager] UTM -> map transform was not available. Retrying!");
     }
@@ -265,7 +265,7 @@ bool NavigationManager::getMapUtmTransform(void)
 {
   try
   {
-    starting_map_utm_transform_ = tf_to_buffer_.lookupTransform("map", "utm", ros::Time(0), ros::Duration(1.0));
+    starting_map_utm_transform_ = tf_buffer_.lookupTransform("map", "utm", ros::Time(0), ros::Duration(1.0));
   }
   catch (tf2::TransformException& ex)
   {
