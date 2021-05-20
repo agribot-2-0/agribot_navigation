@@ -205,12 +205,12 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
       else if (goal_result == actionlib::SimpleClientGoalState::ABORTED)
       {
         path_action_feedback_.feedback.result = path_action_feedback_.feedback.ABORTED;
-        current_waypoint++;
         load_point = true;
         path_finished = false;
         path_action_server_->setAborted();
         ROS_ERROR_STREAM("[NavigationManager] The goal was ABORTED!");
-        break;
+        path_action_server_->publishFeedback(path_action_feedback_);
+        return false;
       }
       else if (goal_result == actionlib::SimpleClientGoalState::REJECTED)
       {
@@ -236,9 +236,8 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
         current_waypoint++;
         load_point = true;
       }
+      path_action_server_->publishFeedback(path_action_feedback_);
     }
-    // Publish feedback to BehaviorTree
-    path_action_server_->publishFeedback(path_action_feedback_);
     path_finished = true;
     ros::spinOnce();
     loop_rate.sleep();
@@ -249,12 +248,15 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
     path_action_server_->publishFeedback(path_action_feedback_);
     path_action_result_.finished = true;
     ROS_WARN_STREAM("[NavigationManager] Path finished");
+    path_action_server_->setSucceeded([this] {
+      agribot_msgs::PerformAutonomousPathResult path_action_result;
+      path_action_result.finished = true;
+      return path_action_result;
+    }());
   }
   else
   {
-    path_action_feedback_.feedback.result = path_action_feedback_.feedback.ABORTED;
-    path_action_result_.finished = false;
-    ROS_ERROR("[NavigationManager] Path aborted");
+    ROS_WARN_STREAM("[NavigationManager] Path aborted");
   }
   return path_finished;
 }
