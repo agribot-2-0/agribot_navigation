@@ -15,6 +15,7 @@ pipelines:
           - cpplint --recursive .
     - step:
         name: "ROS build"
+        size: 2x
         services:
           - docker
         script:
@@ -27,4 +28,4 @@ pipelines:
 definitions:
   services:
     docker:
-      memory: 3072
+      memory: 7128

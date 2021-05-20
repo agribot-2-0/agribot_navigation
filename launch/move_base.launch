@@ -14,9 +14,6 @@
     <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/local_planner_agribot_params.yaml" command="load" />
     <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_params.yaml" command="load" />
 
-    <param name="base_local_planner" value="agribot_navigation/AgribotPlannerROS" />
-    <param name="base_global_planner" value="agribot_navigation/WaypointGlobalPlanner" />
-
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
     <remap from="odom" to="$(arg odom_topic)" />
     <remap from="/lidar_scan" to="$(arg lidar_topic)"/>
