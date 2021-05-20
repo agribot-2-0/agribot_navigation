@@ -208,7 +208,8 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
         current_waypoint++;
         load_point = true;
         path_finished = false;
-        ROS_INFO_STREAM("[NavigationManager] The goal was ABORTED!");
+        path_action_server_->setAborted();
+        ROS_ERROR_STREAM("[NavigationManager] The goal was ABORTED!");
         break;
       }
       else if (goal_result == actionlib::SimpleClientGoalState::REJECTED)
@@ -245,12 +246,16 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
   if (path_finished)
   {
     path_action_feedback_.feedback.result = path_action_feedback_.feedback.COMPLETED;
+    path_action_server_->publishFeedback(path_action_feedback_);
+    path_action_result_.finished = true;
+    ROS_WARN_STREAM("[NavigationManager] Path finished");
   }
   else
   {
     path_action_feedback_.feedback.result = path_action_feedback_.feedback.ABORTED;
+    path_action_result_.finished = false;
+    ROS_ERROR("[NavigationManager] Path aborted");
   }
-  path_action_server_->publishFeedback(path_action_feedback_);
   return path_finished;
 }
 
@@ -314,20 +319,7 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   updateOrientations(path_, ray_width_);
   publishWaypointsVisualization(path_);
   ROS_WARN_STREAM("[NavigationManager] Path sent to move_base");
-
-  bool path_finished = monitorPathWaypoints(goal->path_progression);
-
-  if (path_finished)
-  {
-    path_action_result_.finished = true;
-    ROS_WARN_STREAM("[NavigationManager] Path finished");
-  }
-  else
-  {
-    path_action_result_.finished = false;
-    ROS_ERROR("[NavigationManager] Path aborted");
-  }
-  path_action_server_->setSucceeded(path_action_result_);
+  monitorPathWaypoints(goal->path_progression);
   move_base_action_client_->cancelAllGoals();
 }
 
