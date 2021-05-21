@@ -35,7 +35,7 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
     }
     auto start_obstacle_pose = calculateMidpose(line_left[0], line_right[0]);
 
-    CommonFunctions::straightPath(path, start_pose, start_obstacle_pose, frame_id, 5);
+    CommonFunctions::straightPath(path, start_pose, start_obstacle_pose, frame_id, step_size_);
 
     size_t path_size = line_left.size() < line_right.size() ? line_left.size() : line_right.size();
 
