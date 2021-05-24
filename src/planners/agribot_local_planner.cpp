@@ -112,37 +112,44 @@ void AgribotPlannerROS::createCostmapConverter(const ros::NodeHandle& nh)
 
 void AgribotPlannerROS::getParameters(const ros::NodeHandle& nh)
 {
-  nh.param("goal_distance_tolerance", param_goal_distance_tolerance_, default_goal_distance_tolerance);
-  nh.param("goal_range", param_goal_range_, default_goal_range);
-  nh.param("missed_points_tolerance", param_missed_points_tolerance_, default_missed_points_tolerance);
+  param_goal_distance_tolerance_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance");
+  param_goal_range_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_range");
+  param_missed_points_tolerance_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/missed_points_tolerance");
 
-  nh.param("chassis_length", param_chassis_length_, default_chassis_length);
-  nh.param("min_radius", param_min_radius_, default_min_radius);
+  param_chassis_length_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/chassis_length");
+  param_min_radius_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/min_radius");
 
-  nh.param("prediction_time", param_prediction_time_, default_prediction_time);
-  nh.param("prediction_points_per_second", param_prediction_points_per_second_, default_prediction_points_per_second);
+  param_prediction_time_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/prediction_time");
+  param_prediction_points_per_second_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/prediction_points_per_second");
 
-  nh.param("dead_zone", param_dead_zone_, default_dead_zone);
-  nh.param("max_linear_vel", param_max_linear_vel_, default_max_linear_vel);
-  nh.param("min_linear_vel", param_min_linear_vel_, default_min_linear_vel);
+  param_dead_zone_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/dead_zone");
+  param_max_linear_vel_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/max_linear_vel");
+  param_min_linear_vel_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/min_linear_vel");
 
-  nh.param("deviation_weight_straight", param_deviation_weight_straight_, default_deviation_weight_straight);
-  nh.param("parallelness_weight_straight", param_parallelness_weight_straight_, default_parallelness_weight_straight);
-  nh.param("deviation_weight_arc", param_deviation_weight_arc_, default_deviation_weight_arc);
-  nh.param("parallelness_weight_arc", param_parallelness_weight_arc_, default_parallelness_weight_arc);
-  nh.param("epsilon", param_epsilon_, default_epsilon);
+  param_deviation_weight_straight_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/deviation_weight_straight");
+  param_parallelness_weight_straight_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/parallelness_weight_straight");
+  param_deviation_weight_arc_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/deviation_weight_arc");
+  param_parallelness_weight_arc_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/parallelness_weight_arc");
+  param_epsilon_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/epsilon");
 
-  nh.param("design_dead_zone", param_design_dead_zone_, default_design_dead_zone);
-  nh.param("design_arc_radius", param_design_arc_radius_, default_design_arc_radius);
-  nh.param("hermite_magnitude", param_hermite_magnitude_, default_hermite_magnitude);
+  param_design_dead_zone_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/design_dead_zone");
+  param_design_arc_radius_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/design_arc_radius");
+  param_hermite_magnitude_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/hermite_magnitude");
 
-  nh.param("odom_filter_time", param_odom_filter_time_, default_odom_filter_time);
-  nh.param("missed_distance_coefficient", param_missed_distance_coefficient_, default_missed_distance_coefficient);
+  param_odom_filter_time_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/odom_filter_time");
+  param_missed_distance_coefficient_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/missed_distance_coefficient");
 
-  nh.param("speed_limit", param_speed_limit_, true);
-  nh.param("debug", param_debug_, false);
-  nh.param("statistics", param_statistics_, true);
-  nh.param("take_front", param_take_front_, false);
+  param_speed_limit_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/speed_limit");
+  param_debug_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/debug");
+  param_statistics_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/statistics");
+  param_take_front_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/take_front");
 
   param_design_step_size_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/design_step_size");
   costmap_converter_name_ =
@@ -150,24 +157,34 @@ void AgribotPlannerROS::getParameters(const ros::NodeHandle& nh)
   costmap_converter_odom_topic_ =
       ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/costmap_converter_odom_topic");
   costmap_converter_rate_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/costmap_converter_rate");
+
+  reference_frame_id_ = ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/reference_frame_id");
+  obstacle_frame_id_ = ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/obstacle_frame_id");
 }
 
 void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, costmap_2d::Costmap2DROS* costmapROS)
 {
   if (!initialized_)
   {
+    ros::NodeHandle gn;
+    ros::NodeHandle pnh("~" + name);
+
+    try
+    {
+      getParameters(pnh);
+    }
+    catch (const std::exception& ex)
+    {
+      ROS_ERROR_STREAM("[AgribotPlanner] " << ex.what());
+    }
+
     costmap_ros_ = costmapROS;
     local_costmap_ = costmapROS->getCostmap();
     tf_buffer_ = tfBuffer;
 
-    reference_frame_id_ = "base_footprint";
-    obstacle_frame_id_ = "base_footprint";
     local_path_.header.frame_id = reference_frame_id_;
     path_slice_.header.frame_id = reference_frame_id_;
     robot_center_.header.frame_id = reference_frame_id_;
-
-    ros::NodeHandle gn;
-    ros::NodeHandle pnh("~" + name);
 
     odom_sub_ = gn.subscribe("odom", 100, &AgribotPlannerROS::odomCallback, this);
 
@@ -180,16 +197,7 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     obstacles_polygon_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_polygon", 10);
     obstacles_left_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_left_line", 10);
     obstacles_right_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_right_line", 10);
-    rabbit_pubisher_ = pnh.advertise<geometry_msgs::PoseStamped>("rabbit_pose", 10);
-
-    try
-    {
-      getParameters(pnh);
-    }
-    catch (const std::exception& ex)
-    {
-      ROS_ERROR_STREAM("[AgribotPlanner] " << ex.what());
-    }
+    rabbit_pub_ = pnh.advertise<geometry_msgs::PoseStamped>("rabbit_pose", 10);
 
     // be sure that path planning arc radius is greater or equal to minimum turning radius
     if (param_design_arc_radius_ < param_min_radius_)
@@ -373,7 +381,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
   if (pure_pursuit_pointer != nullptr)
   {
-    VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pubisher_);
+    VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pub_);
   }
   publishObstacles();
 

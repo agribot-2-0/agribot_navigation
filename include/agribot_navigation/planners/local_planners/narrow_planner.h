@@ -29,23 +29,9 @@ public:
                   const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) override;
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
   std::vector<ObstacleDetection::Obstacle> getObstacles(void) override;
-  void clearObstacles(void)
-  {
-    obstacles_left_.initializeEmpty();
-    obstacles_right_.initializeEmpty();
-    obstacles_.clear();
-  }
-  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                    const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
-                    const double step_size);
-  void setChassisLength(double chassis_length)
-  {
-    chassis_length_ = chassis_length;
-  }
-  void setStepSize(const double param_step_size)
-  {
-    step_size_ = param_step_size;
-  }
+  void clearObstacles(void);
+  void setChassisLength(double chassis_length);
+  void setStepSize(const double param_step_size);
 
 private:
   ObstacleDetection::Obstacle obstacles_left_;

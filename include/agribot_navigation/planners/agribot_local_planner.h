@@ -78,7 +78,7 @@ private:
   ros::Publisher obstacles_polygon_pub_;
   ros::Publisher obstacles_left_line_pub_;
   ros::Publisher obstacles_right_line_pub_;
-  ros::Publisher rabbit_pubisher_;
+  ros::Publisher rabbit_pub_;
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;

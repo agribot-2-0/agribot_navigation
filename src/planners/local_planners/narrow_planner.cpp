@@ -55,32 +55,6 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
   return true;
 }
 
-bool NarrowCorridorPlanner::straightPath(std::vector<geometry_msgs::PoseStamped>& path,
-                                         const geometry_msgs::PoseStamped& start_point,
-                                         const geometry_msgs::PoseStamped& end_point, const double step_size)
-{
-  int steps = CommonFunctions::distanceBetweenPoses(start_point, end_point) / step_size;
-
-  if (steps <= 0)
-  {
-    ROS_ERROR_STREAM("[NarrowCorridorPlanner] Could not assemble straight path");
-    return false;
-  }
-
-  for (int i = 0; i < steps; i++)
-  {
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = frame_id;
-    pose.header.seq = path.size() + 1;
-    pose.pose.position.x = start_point.pose.position.x +
-                           static_cast<double>(i) / steps * (end_point.pose.position.x - start_point.pose.position.x);
-    pose.pose.position.y = start_point.pose.position.y +
-                           static_cast<double>(i) / steps * (end_point.pose.position.y - start_point.pose.position.y);
-    path.push_back(pose);
-  }
-  return true;
-}
-
 void NarrowCorridorPlanner::addObstacle(const ObstacleDetection::Obstacle& obstacle)
 {
   if (obstacle.getMinX().x() < (chassis_length_ / 2))
@@ -133,6 +107,22 @@ geometry_msgs::PoseStamped NarrowCorridorPlanner::calculateMidpose(const geometr
   midpose.pose.orientation.w = 1;
 
   return midpose;
+}
+
+void NarrowCorridorPlanner::clearObstacles(void)
+{
+  obstacles_left_.initializeEmpty();
+  obstacles_right_.initializeEmpty();
+  obstacles_.clear();
+}
+
+void NarrowCorridorPlanner::setChassisLength(double chassis_length)
+{
+  chassis_length_ = chassis_length;
+}
+void NarrowCorridorPlanner::setStepSize(const double param_step_size)
+{
+  step_size_ = param_step_size;
 }
 
 }  // namespace agribot_local_planner

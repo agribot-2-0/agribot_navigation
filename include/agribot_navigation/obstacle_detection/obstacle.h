@@ -53,9 +53,6 @@ private:
   double computeArea() const;
   double computePerimeter() const;
   Eigen::Vector2d findCentroid() const;
-  bool straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                    const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
-                    const double step_size) const;
 
   /**
    * @brief 2D Cross product of two vectors defined by two points and a common origin

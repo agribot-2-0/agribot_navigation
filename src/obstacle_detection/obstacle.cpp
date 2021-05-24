@@ -197,32 +197,6 @@ std::vector<geometry_msgs::PoseStamped> Obstacle::toPath(const double step_size)
   return line;
 }
 
-bool Obstacle::straightPath(std::vector<geometry_msgs::PoseStamped>& path,
-                            const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
-                            const double step_size) const
-{
-  int steps = CommonFunctions::distanceBetweenPoses(start_point, end_point) / step_size;
-
-  if (steps <= 0)
-  {
-    ROS_ERROR_STREAM("[Obstacle] Could not assemble straight path");
-    return false;
-  }
-
-  for (int i = 0; i < steps; i++)
-  {
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = frame_id_;
-    pose.header.seq = path.size() + 1;
-    pose.pose.position.x = start_point.pose.position.x +
-                           static_cast<double>(i) / steps * (end_point.pose.position.x - start_point.pose.position.x);
-    pose.pose.position.y = start_point.pose.position.y +
-                           static_cast<double>(i) / steps * (end_point.pose.position.y - start_point.pose.position.y);
-    path.push_back(pose);
-  }
-  return true;
-}
-
 Eigen::Vector2d Obstacle::getCentroid() const
 {
   return centroid_;
