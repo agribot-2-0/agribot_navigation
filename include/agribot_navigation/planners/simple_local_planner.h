@@ -4,17 +4,19 @@
 
 #pragma once
 
-#include <base_local_planner/goal_functions.h>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wformat"
+#include <base_local_planner/goal_functions.h>
 #include <costmap_2d/costmap_2d_ros.h>
+#include <nav_core/base_local_planner.h>
+#include <ros/ros.h>
 #pragma GCC diagnostic pop
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
-#include <nav_core/base_local_planner.h>
 #include <nav_msgs/Odometry.h>
-#include <ros/ros.h>
 #include <tf/tf.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -137,4 +139,4 @@ private:
   void vGoalRangeVisualization(pos goal, pos range);
   void vVisualizations(pos lastWaypoint, pos goal, pos nextWaypoint, pos robotCenter, geometry_msgs::Twist velocity);
 };
-};  // namespace simple_local_planner
+}  // namespace simple_local_planner

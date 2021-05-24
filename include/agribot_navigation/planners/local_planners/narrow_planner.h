@@ -6,6 +6,8 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wformat"
 #include <costmap_converter/costmap_converter_interface.h>
 #pragma GCC diagnostic pop
 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(agribot_navigation)
 
 ## Compilation options
-add_compile_options(-std=c++17 -Wall -Wextra -Werror)
+add_compile_options(-std=c++17 -Wall -Wextra -pedantic -Werror)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)

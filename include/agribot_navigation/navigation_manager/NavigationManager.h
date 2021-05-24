@@ -4,8 +4,12 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
+#include <tf2/utils.h>
+#pragma GCC diagnostic pop
 #include <agribot_msgs/AgribotNavigationManagerResult.h>
 #include <agribot_msgs/PerformAutonomousPathAction.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -17,7 +21,6 @@
 #include <std_msgs/Int32.h>
 #include <std_srvs/Empty.h>
 #include <tf/tf.h>
-#include <tf2/utils.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
 
