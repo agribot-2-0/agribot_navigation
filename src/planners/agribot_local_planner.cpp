@@ -85,7 +85,7 @@ void AgribotPlannerROS::createControllers()
   auto stanley_controller = std::make_unique<agribot_path_controllers::StanleyController>();
   stanley_controller->setVelocityLinear(default_max_linear_vel);
   stanley_controller->setErrorGain(default_stanley_error_gain);
-  stanley_controller->setThetaLimit(asin(param_chassis_length_ / 2 / default_min_radius));
+  stanley_controller->setThetaLimit(asin(param_chassis_length_ / 2.0 / default_min_radius));
   controllers_["stanley"] = std::move(stanley_controller);
 
   auto deviation_parallelness_controller =

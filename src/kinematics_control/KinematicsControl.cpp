@@ -344,7 +344,7 @@ double KinematicsControl::dRadiusToAngle(const double Radius) const
   }
   else
   {
-    angle = asin(_dChassisLength / 2 / Radius);
+    angle = asin(_dChassisLength / 2.0 / Radius);
   }
   return angle;
 }
