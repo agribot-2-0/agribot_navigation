@@ -295,14 +295,14 @@ bool AgribotPlannerROS::planPath(std::vector<geometry_msgs::PoseStamped>& local_
   // reset trackers
   for (auto const& [tracker_id, tracker] : trackers_)
   {
-    (void)tracker_id;
+    static_cast<void>(tracker_id);
     tracker->reset();
   }
 
   // reset controllers
   for (auto const& [controller_id, controller] : controllers_)
   {
-    (void)controller_id;
+    static_cast<void>(controller_id);
     controller->reset();
   }
 
@@ -326,9 +326,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   checkObstacles();
   if (detection_.isInRow(planners_["narrow"]->getObstacles()))
   {
-    ROS_WARN_STREAM("[AgribotPlanner] In row");
     local_plan_.clear();
-
     try
     {
       planners_["narrow"]->designPath(local_plan_, robot_center_,
@@ -377,7 +375,7 @@ bool AgribotPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   {
     VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pubisher_);
   }
-  // publishObstacles();
+  publishObstacles();
 
   if (abort_executing_)
   {
@@ -416,7 +414,7 @@ void AgribotPlannerROS::processObstacles(const costmap_converter::ObstacleArrayC
   obstacles_right_.initializeEmpty();
   planners_["narrow"]->clearObstacles();
   obstacles_.clear();
-  for (auto const& obstacle : obstacles->obstacles)
+  for (const auto& obstacle : obstacles->obstacles)
   {
     if (obstacle.polygon.points.size() > 2)
     {
@@ -456,9 +454,9 @@ void AgribotPlannerROS::publishObstacles()
     blue.a = 1;
     blue.b = 1;
 
-    VisualizationFunctions::visualizeObstacle(obstacles_left_, obstacles_left_polygon_pub_, green);
-    VisualizationFunctions::visualizeObstacle(obstacles_right_, obstacles_right_polygon_pub_, blue);
-    VisualizationFunctions::visualizeObstacles(obstacles_, obstacles_polygon_pub_);
+    VisualizationFunctions::obstacleVisualization(obstacles_left_, obstacles_left_polygon_pub_, green);
+    VisualizationFunctions::obstacleVisualization(obstacles_right_, obstacles_right_polygon_pub_, blue);
+    VisualizationFunctions::obstaclesVisualization(obstacles_, obstacles_polygon_pub_);
   }
   catch (const std::exception& e)
   {
@@ -579,33 +577,33 @@ geometry_msgs::Twist AgribotPlannerROS::stopRobot()
 geometry_msgs::PoseStamped AgribotPlannerROS::transformPose(const geometry_msgs::PoseStamped& pose,
                                                             const std::string& frame_id)
 {
-  geometry_msgs::PoseStamped poseTransformed;
-  poseTransformed.header.frame_id = frame_id;
+  geometry_msgs::PoseStamped pose_transformed;
+  pose_transformed.header.frame_id = frame_id;
 
   try
   {
-    poseTransformed.header.stamp = ros::Time::now();
-    tf_buffer_->transform(pose, poseTransformed, frame_id, ros::Duration(0.2));
+    pose_transformed.header.stamp = ros::Time::now();
+    tf_buffer_->transform(pose, pose_transformed, frame_id, ros::Duration(0.2));
   }
   catch (tf2::ExtrapolationException e)
   {
     ROS_ERROR_STREAM("[AgribotPlanner] ExtrapolationException occur");
     abort_executing_ = true;
   }
-  return poseTransformed;
+  return pose_transformed;
 }
 
 geometry_msgs::PolygonStamped AgribotPlannerROS::transformPolygon(const geometry_msgs::PolygonStamped& pose,
                                                                   const std::string& frame_id)
 {
-  geometry_msgs::PolygonStamped polygonTransformed;
-  polygonTransformed.header.frame_id = frame_id;
-  polygonTransformed.header.stamp = ros::Time::now();
-  polygonTransformed.polygon.points.clear();
+  geometry_msgs::PolygonStamped polygon_transformed;
+  polygon_transformed.header.frame_id = frame_id;
+  polygon_transformed.header.stamp = ros::Time::now();
+  polygon_transformed.polygon.points.clear();
 
   geometry_msgs::PoseStamped pose_stamped;
   pose_stamped.header = pose.header;
-  for (auto const& point : pose.polygon.points)
+  for (const auto& point : pose.polygon.points)
   {
     pose_stamped.pose.position.x = point.x;
     pose_stamped.pose.position.y = point.y;
@@ -613,9 +611,9 @@ geometry_msgs::PolygonStamped AgribotPlannerROS::transformPolygon(const geometry
     geometry_msgs::Point32 point_transformed;
     point_transformed.x = pose_transformed.pose.position.x;
     point_transformed.y = pose_transformed.pose.position.y;
-    polygonTransformed.polygon.points.push_back(point_transformed);
+    polygon_transformed.polygon.points.push_back(point_transformed);
   }
-  return polygonTransformed;
+  return polygon_transformed;
 }
 
 }  // namespace agribot_local_planner

@@ -50,7 +50,7 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
 
 void HermitePlanner::addObstacle(const ObstacleDetection::Obstacle& obstacle)
 {
-  (void)obstacle;
+  static_cast<void>(obstacle);
 }
 
 /**

@@ -20,11 +20,10 @@ Obstacle::Obstacle(const geometry_msgs::PolygonStamped& polygon)
   {
     frame_id_ = polygon.header.frame_id;
     // append vertices and edges length
-    for (auto& point : polygon.polygon.points)
+    for (const auto& point : polygon.polygon.points)
     {
       Eigen::Vector2d vertex(point.x, point.y);
-
-      //   append vertex
+      // append vertex
       addVertex(vertex);
     }
     // append last edge
@@ -261,7 +260,7 @@ std::vector<double> Obstacle::getEdgesLength() const
   return edges_length_;
 }
 
-std::string Obstacle::getFrameID() const
+std::string Obstacle::getFrameId() const
 {
   return frame_id_;
 }
@@ -291,7 +290,7 @@ void Obstacle::addVertex(Eigen::Vector2d vertex)
 std::ostream& operator<<(std::ostream& out, const Obstacle& obstacle)
 {
   out << "Vertices: " << obstacle.vertices_number_;
-  for (auto const& v : obstacle.vertices_)
+  for (const auto& v : obstacle.vertices_)
   {
     out << std::endl << "x: " << v.x() << "\t y: " << v.y();
   }

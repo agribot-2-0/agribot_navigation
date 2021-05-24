@@ -25,9 +25,9 @@ void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agri
 void goalVisualization(const agribot_local_planner::pos& last_waypoint, const agribot_local_planner::pos& goal,
                        const std::string& frame_id, const ros::Publisher& publisher);
 void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
-                       const ros::Publisher& publisher);  // NOLINT(runtime/references)
+                       const ros::Publisher& publisher);
 void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publisher& publisher);
-void visualizeObstacle(const ObstacleDetection::Obstacle& obstacle, const ros::Publisher& publisher,
-                       std_msgs::ColorRGBA color);
-void visualizeObstacles(const std::vector<ObstacleDetection::Obstacle>& obstacles, const ros::Publisher& publisher);
+void obstacleVisualization(const ObstacleDetection::Obstacle& obstacle, const ros::Publisher& publisher,
+                           const std_msgs::ColorRGBA& color);
+void obstaclesVisualization(const std::vector<ObstacleDetection::Obstacle>& obstacles, const ros::Publisher& publisher);
 }  // namespace VisualizationFunctions

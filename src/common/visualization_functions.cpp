@@ -94,11 +94,11 @@ void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publis
   publisher.publish(pose);
 }
 
-void visualizeObstacle(const ObstacleDetection::Obstacle& obstacle, const ros::Publisher& publisher,
-                       std_msgs::ColorRGBA color)
+void obstacleVisualization(const ObstacleDetection::Obstacle& obstacle, const ros::Publisher& publisher,
+                           const std_msgs::ColorRGBA& color)
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = obstacle.getFrameID();
+  marker.header.frame_id = obstacle.getFrameId();
   marker.header.stamp = ros::Time::now();
   marker.ns = "RecObstacles";
   marker.id = 0;
@@ -123,21 +123,18 @@ void visualizeObstacle(const ObstacleDetection::Obstacle& obstacle, const ros::P
   marker.scale.x = 0.1;
   marker.scale.y = 0.1;
 
-  marker.color.a = color.a;
-  marker.color.r = color.r;
-  marker.color.g = color.g;
-  marker.color.b = color.b;
+  marker.color = color;
 
   publisher.publish(marker);
 }
 
-void visualizeObstacles(const std::vector<ObstacleDetection::Obstacle>& obstacles, const ros::Publisher& publisher)
+void obstaclesVisualization(const std::vector<ObstacleDetection::Obstacle>& obstacles, const ros::Publisher& publisher)
 {
   std::size_t idx = 0;
   for (auto const& obstacle : obstacles)
   {
     visualization_msgs::Marker marker;
-    marker.header.frame_id = obstacle.getFrameID();
+    marker.header.frame_id = obstacle.getFrameId();
     marker.header.stamp = ros::Time::now();
     marker.ns = "PolyObstacles";
     marker.id = idx++;

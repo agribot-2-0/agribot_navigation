@@ -23,7 +23,7 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
                                        const geometry_msgs::PoseStamped& start_pose,
                                        const geometry_msgs::PoseStamped& end_pose)
 {
-  (void)end_pose;
+  static_cast<void>(end_pose);
   path.push_back(start_pose);
   try
   {
@@ -41,9 +41,9 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
 
     for (size_t position = 1; position < path_size; position++)
     {
-      auto mid_point = calculateMidpose(line_left[position], line_right[position]);
-      mid_point.header.seq = path.size() + 1;
-      path.push_back(mid_point);
+      auto midpose = calculateMidpose(line_left[position], line_right[position]);
+      midpose.header.seq = path.size() + 1;
+      path.push_back(midpose);
     }
     CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
   }
@@ -123,16 +123,16 @@ std::vector<ObstacleDetection::Obstacle> NarrowCorridorPlanner::getObstacles(voi
 geometry_msgs::PoseStamped NarrowCorridorPlanner::calculateMidpose(const geometry_msgs::PoseStamped& point1,
                                                                    const geometry_msgs::PoseStamped& point2)
 {
-  geometry_msgs::PoseStamped midpoint;
-  midpoint.header.frame_id = frame_id;
-  midpoint.header.stamp = ros::Time::now();
+  geometry_msgs::PoseStamped midpose;
+  midpose.header.frame_id = frame_id;
+  midpose.header.stamp = ros::Time::now();
 
-  midpoint.pose.position.x = (point1.pose.position.x + point2.pose.position.x) / 2;
-  midpoint.pose.position.y = (point1.pose.position.y + point2.pose.position.y) / 2;
+  midpose.pose.position.x = (point1.pose.position.x + point2.pose.position.x) / 2;
+  midpose.pose.position.y = (point1.pose.position.y + point2.pose.position.y) / 2;
 
-  midpoint.pose.orientation.w = 1;
+  midpose.pose.orientation.w = 1;
 
-  return midpoint;
+  return midpose;
 }
 
 }  // namespace agribot_local_planner

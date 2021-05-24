@@ -11,7 +11,7 @@ Detection::Detection()
   minimal_obstacle_length_ = 0.0;
   minimal_longitudinal_distance_to_obstacle_ = 5.0;
   minimal_lateral_distance_to_obstacle_ = 0.0;
-  colison_width_ = 1.0;
+  collision_width_ = 1.0;
   collision_distance_ = 4.0;
 }
 
@@ -68,7 +68,7 @@ bool Detection::isColiding(const Obstacle& obstacle) const
 
 bool Detection::checkObstacleLength(const Obstacle& obstacle, const double minimal_length) const
 {
-  return obstacle.getMaxX().x() - obstacle.getMinX().x() >= minimal_length;
+  return (obstacle.getMaxX().x() - obstacle.getMinX().x()) >= minimal_length;
 }
 
 bool Detection::checkLongitudinalDistanceToObstacle(const Obstacle& obstacle, const double minimal_distance) const
@@ -93,8 +93,8 @@ bool Detection::obstacleOnTheLeft(const Obstacle& obstacle, const double lateral
 
 bool Detection::isInFront(const Obstacle& obstacle) const
 {
-  return (obstacle.getMinY().y() > -colison_width_ / 2.0 && obstacle.getMinY().y() < colison_width_ / 2.0) ||
-         (obstacle.getMaxY().y() > -colison_width_ / 2.0 && obstacle.getMaxY().y() < colison_width_ / 2.0);
+  return (obstacle.getMinY().y() > -collision_width_ / 2.0 && obstacle.getMinY().y() < collision_width_ / 2.0) ||
+         (obstacle.getMaxY().y() > -collision_width_ / 2.0 && obstacle.getMaxY().y() < collision_width_ / 2.0);
 }
 
 void Detection::setRobotPose(const geometry_msgs::PoseStamped& robot_pose)

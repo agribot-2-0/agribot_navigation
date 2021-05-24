@@ -207,22 +207,22 @@ void CmdVelArbiterNode::restartTimeoutTimer()
 
 bool CmdVelArbiterNode::switchToStopSrvCb(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-  (void)req;
-  (void)res;
+  static_cast<void>(req);
+  static_cast<void>(res);
   return switchToStop();
 }
 
 bool CmdVelArbiterNode::switchToNavigationSrvCb(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-  (void)req;
-  (void)res;
+  static_cast<void>(req);
+  static_cast<void>(res);
   return switchToNavigation();
 }
 
 bool CmdVelArbiterNode::switchToTeleopSrvCb(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-  (void)req;
-  (void)res;
+  static_cast<void>(req);
+  static_cast<void>(res);
   return switchToTeleop();
 }
 
@@ -265,7 +265,7 @@ geometry_msgs::Twist CmdVelArbiterNode::teleopToVel(const agribot_msgs::AgribotM
 
 void CmdVelArbiterNode::timeoutCallback(const ros::TimerEvent& event)
 {
-  (void)event;
+  static_cast<void>(event);
   ROS_ERROR_STREAM("cmd_vel timeout exceeded " << timeout << "s...");
 
   switchToStop();

@@ -31,7 +31,7 @@ private:
   double minimal_obstacle_length_;
   double minimal_longitudinal_distance_to_obstacle_;
   double minimal_lateral_distance_to_obstacle_;
-  double colison_width_;
+  double collision_width_;
   double collision_distance_;
   geometry_msgs::PoseStamped robot_pose_;
 };

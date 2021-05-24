@@ -32,7 +32,7 @@ public:
   std::vector<Eigen::Vector2d> getVertices() const;
   std::vector<Eigen::Vector2d> getEdges() const;
   std::vector<double> getEdgesLength() const;
-  std::string getFrameID() const;
+  std::string getFrameId() const;
   void addVertex(Eigen::Vector2d vertex);
   void initializeEmpty();
 
@@ -69,8 +69,8 @@ private:
   template <typename P1, typename P2, typename P3>
   long double cross(const P1& O, const P2& A, const P3& B) const
   {
-    return (long double)(A.x - O.x) * (long double)(B.y() - O.y) -
-           (long double)(A.y - O.y) * (long double)(B.x() - O.x);
+    return static_cast<long double>(A.x - O.x) * static_cast<long double>(B.y() - O.y) -
+           static_cast<long double>(A.y - O.y) * static_cast<long double>(B.x() - O.x);
   }
 };
 }  // namespace ObstacleDetection
