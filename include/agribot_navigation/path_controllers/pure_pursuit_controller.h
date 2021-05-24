@@ -31,6 +31,7 @@ public:
   void setRabbitDistance(const double distance);
   geometry_msgs::PoseStamped getRabbitPose();
   void setRabbitPose(const geometry_msgs::PoseStamped& rabbit);
+  void setMinMotionRadius(const double min_motion_radius);
 
 private:
   bool computeRabbit(double look_ahead_distance, const std::size_t& path_size);
@@ -40,6 +41,7 @@ private:
   double look_ahead_distance_;
   double angle_between_poses_;
   double motion_radius_;
+  double min_motion_radius_;
 
   std::size_t rabbit_count_;
   geometry_msgs::PoseStamped rabbit_pose_;

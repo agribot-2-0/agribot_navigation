@@ -49,7 +49,7 @@ void AgribotPlannerROS::createValidators()
   validators_["curvature"] = std::move(curvature_validator);
 
   auto distance_validator = std::make_unique<agribot_path_validators::DistanceValidator>();
-  distance_validator->setMinDistance(default_chassis_length);
+  distance_validator->setMinDistance(param_chassis_length_);
   validators_["distance"] = std::move(distance_validator);
 }
 
@@ -77,14 +77,15 @@ void AgribotPlannerROS::createControllers()
 {
   auto pure_pursuit_controller = std::make_unique<agribot_path_controllers::PurePursuitController>();
   pure_pursuit_controller->setVelocityLinear(param_max_linear_vel_);
-  pure_pursuit_controller->setRobotLength(default_chassis_length);
+  pure_pursuit_controller->setRobotLength(param_chassis_length_);
   pure_pursuit_controller->setRabbitDistance(default_pure_pursuit_rabbit_distance);
+  pure_pursuit_controller->setMinMotionRadius(param_min_radius_);
   controllers_["pure_pursuit"] = std::move(pure_pursuit_controller);
 
   auto stanley_controller = std::make_unique<agribot_path_controllers::StanleyController>();
   stanley_controller->setVelocityLinear(default_max_linear_vel);
   stanley_controller->setErrorGain(default_stanley_error_gain);
-  stanley_controller->setThetaLimit(asin(default_chassis_length / 2 / default_min_radius));
+  stanley_controller->setThetaLimit(asin(param_chassis_length_ / 2 / default_min_radius));
   controllers_["stanley"] = std::move(stanley_controller);
 
   auto deviation_parallelness_controller =

@@ -83,20 +83,19 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 geometry_msgs::Twist PurePursuitController::teleopToVel(const agribot_msgs::AgribotManualControl& in_msg)
 {
   geometry_msgs::Twist out_msg;
-  double min_radius{ 2.1 };
 
   out_msg.linear.x = in_msg.linear_velocity;
-  if (abs(in_msg.circle_radius) > min_radius)
+  if (abs(in_msg.circle_radius) > min_motion_radius_)
   {
     out_msg.angular.z = in_msg.linear_velocity / in_msg.circle_radius;
   }
-  else if (abs(in_msg.circle_radius) < min_radius && in_msg.circle_radius > 0)
+  else if (abs(in_msg.circle_radius) < min_motion_radius_ && in_msg.circle_radius > 0)
   {
-    out_msg.angular.z = in_msg.linear_velocity / min_radius;
+    out_msg.angular.z = in_msg.linear_velocity / min_motion_radius_;
   }
-  else if (abs(in_msg.circle_radius) < min_radius && in_msg.circle_radius < 0)
+  else if (abs(in_msg.circle_radius) < min_motion_radius_ && in_msg.circle_radius < 0)
   {
-    out_msg.angular.z = -in_msg.linear_velocity / min_radius;
+    out_msg.angular.z = -in_msg.linear_velocity / min_motion_radius_;
   }
   return out_msg;
 }
@@ -115,4 +114,10 @@ bool PurePursuitController::computeRabbit(double look_ahead_distance, const std:
   }
   return false;
 }
+
+void PurePursuitController::setMinMotionRadius(const double min_motion_radius)
+{
+  min_motion_radius_ = min_motion_radius;
+}
+
 }  // namespace agribot_path_controllers
