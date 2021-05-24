@@ -18,13 +18,13 @@ double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat)
 /**
  * Limit angles to range <-180, 180> degrees
  */
-double dLimitAngle(double angle)
+double limitAngle(double angle)
 {
-  if (angle > toRadians(180))
+  while (angle > toRadians(180))
   {
     angle -= toRadians(360);
   }
-  if (angle < toRadians(-180))
+  while (angle < toRadians(-180))
   {
     angle += toRadians(360);
   }
@@ -41,6 +41,19 @@ double dDistanceBetweenCoordinates(const agribot_local_planner::pos& targetFrame
                                    const agribot_local_planner::pos& currentFrame)
 {
   return std::sqrt(std::pow(targetFrame.y - currentFrame.y, 2) + std::pow(targetFrame.x - currentFrame.x, 2));
+}
+
+double angleBetweenPoses(const geometry_msgs::PoseStamped& target_frame,
+                         const geometry_msgs::PoseStamped& current_frame)
+{
+  return std::atan2(target_frame.pose.position.y - current_frame.pose.position.y,
+                    target_frame.pose.position.x - current_frame.pose.position.x);
+}
+double distanceBetweenPoses(const geometry_msgs::PoseStamped& target_frame,
+                            const geometry_msgs::PoseStamped& current_frame)
+{
+  return std::sqrt(std::pow(target_frame.pose.position.y - current_frame.pose.position.y, 2) +
+                   std::pow(target_frame.pose.position.x - current_frame.pose.position.x, 2));
 }
 
 agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::PoseStamped& ps)
@@ -95,5 +108,29 @@ double dCalculateRadiusFromVelocity(const geometry_msgs::Twist& velocity)
     return velocity.linear.x / velocity.angular.z;
   }
   return 0.0;
+}
+
+void straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                  const geometry_msgs::PoseStamped& start_point, const geometry_msgs::PoseStamped& end_point,
+                  const std::string& frame_id, const double step_size)
+{
+  int steps = CommonFunctions::distanceBetweenPoses(start_point, end_point) / step_size;
+
+  if (steps <= 0)
+  {
+    throw std::invalid_argument("Could not assemble straight path");
+  }
+
+  for (int i = 0; i < steps; i++)
+  {
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = frame_id;
+    pose.header.seq = path.size() + 1;
+    pose.pose.position.x = start_point.pose.position.x +
+                           static_cast<double>(i) / steps * (end_point.pose.position.x - start_point.pose.position.x);
+    pose.pose.position.y = start_point.pose.position.y +
+                           static_cast<double>(i) / steps * (end_point.pose.position.y - start_point.pose.position.y);
+    path.push_back(pose);
+  }
 }
 }  // namespace CommonFunctions

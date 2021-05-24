@@ -5,6 +5,7 @@
 #include "agribot_navigation/planners/simple_local_planner.h"
 
 #include <pluginlib/class_list_macros.h>
+
 #include <cmath>
 
 PLUGINLIB_EXPORT_CLASS(simple_local_planner::SimplePlannerROS, nav_core::BaseLocalPlanner)
@@ -306,6 +307,7 @@ bool SimplePlannerROS::bCenterOutOfGoalRange(pos robotCenter, pos nextWaypoint)
 
 void SimplePlannerROS::vTakeNextGoal(pos currentGoal, pos robotCenter)
 {
+  static_cast<void>(robotCenter);
   _iWaypointCount++;
 
   pos nextWaypoint = pGetFrame(_iWaypointCount);
@@ -456,11 +458,11 @@ geometry_msgs::Twist SimplePlannerROS::xDeviationApproach(pos goal, pos lastWayp
   double factorDeviation = param_current_deviation_weight * deviation / (1 + deviation);
   double factorParallelness =
       param_current_parallelness_weight * (1 - fabs(cos(dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az)));
-  if (dLimitAngle(dAngleBetweenFrames(goal, robotCenter) - dAngleBetweenFrames(goal, lastWaypoint)) < 0)
+  if (limitAngle(dAngleBetweenFrames(goal, robotCenter) - dAngleBetweenFrames(goal, lastWaypoint)) < 0)
   {
     factorDeviation *= -1;
   }
-  if (dLimitAngle(dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az) < 0)
+  if (limitAngle(dAngleBetweenFrames(goal, lastWaypoint) - robotCenter.az) < 0)
   {
     factorParallelness *= -1;
   }
@@ -491,7 +493,7 @@ geometry_msgs::Twist SimplePlannerROS::xLinearSpeedLimitedApproach(pos goal, pos
 
 geometry_msgs::Twist SimplePlannerROS::xArchApproach(pos goal, pos robotCenter, geometry_msgs::Twist velocity)
 {
-  double angleRobotGoal = dLimitAngle(dAngleBetweenFrames(goal, robotCenter) - robotCenter.az);
+  double angleRobotGoal = limitAngle(dAngleBetweenFrames(goal, robotCenter) - robotCenter.az);
   double distanceRobotGoal = dDistanceBetweenFrames(goal, robotCenter);
   if (fabs(angleRobotGoal) > param_dead_zone * DEG_TO_RAD)
   {
@@ -589,7 +591,7 @@ pos SimplePlannerROS::pFrameFromPoseStamped(geometry_msgs::PoseStamped ps)
   return frame;
 }
 
-double SimplePlannerROS::dLimitAngle(double angle)
+double SimplePlannerROS::limitAngle(double angle)
 {
   if (angle > 180 * DEG_TO_RAD)
   {
@@ -686,7 +688,7 @@ pos SimplePlannerROS::pCalculateGoal(pos nextWaypoint, pos robotCenter)
       goal = goal_max;
     }
 
-    goal.az = dLimitAngle(dAngleBetweenFrames(nextWaypoint, goal));
+    goal.az = limitAngle(dAngleBetweenFrames(nextWaypoint, goal));
 
     return goal;
   }
@@ -700,7 +702,7 @@ pos SimplePlannerROS::pCalculateGoalRange(pos nextWaypoint, pos robotCenter, dou
 {
   pos goalRange;
   double deltaX, deltaY;
-  double angleRobotNextWaypoint = dLimitAngle(dAngleBetweenFrames(nextWaypoint, robotCenter));
+  double angleRobotNextWaypoint = limitAngle(dAngleBetweenFrames(nextWaypoint, robotCenter));
 
   if (!bIsLastWaypointInPath(_iWaypointCount))
   {
@@ -715,7 +717,7 @@ pos SimplePlannerROS::pCalculateGoalRange(pos nextWaypoint, pos robotCenter, dou
   }
   goalRange.x = deltaX * range;
   goalRange.y = deltaY * range;
-  goalRange.az = dLimitAngle(dAngleBetweenFrames(nextWaypoint, goalRange));
+  goalRange.az = limitAngle(dAngleBetweenFrames(nextWaypoint, goalRange));
 
   return goalRange;
 }

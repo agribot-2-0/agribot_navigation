@@ -8,9 +8,6 @@ namespace agribot_path_controllers
 {
 StanleyController::StanleyController() : IPathController()
 {
-  double lin_vel_ = default_max_linear_vel;
-  double error_gain_ = default_stanley_error_gain;
-  double theta_limit_ = asin(default_chassis_length / 2 / default_min_radius);
 }
 
 StanleyController::~StanleyController()
@@ -33,8 +30,8 @@ void StanleyController::setThetaLimit(const double limit)
 }
 
 bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
-                                    const std::vector<geometry_msgs::PoseStamped>& path_to_track,
-                                    const geometry_msgs::PoseStamped& robot_pose)
+                                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                                       const geometry_msgs::PoseStamped& robot_pose)
 {
   agribot_local_planner::pos next_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track[-1]);
   agribot_local_planner::pos last_waypoint = CommonFunctions::pCoordinatesFromPoseStamped(path_to_track[0]);

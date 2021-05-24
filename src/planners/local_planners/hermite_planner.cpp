@@ -18,7 +18,9 @@ HermitePlanner::HermitePlanner() : ILocalPlanner()
 
 HermitePlanner::HermitePlanner(const std::string& frame) : ILocalPlanner()
 {
-  HermitePlanner();
+  step_size = default_step_size;
+  base_magnitude_start = default_hermite_magnitude;
+  base_magnitude_end = default_hermite_magnitude;
   setFrameId(frame);
 }
 
@@ -28,15 +30,12 @@ HermitePlanner::~HermitePlanner()
 
 bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
                                 const geometry_msgs::PoseStamped& start_pose,
-                                const geometry_msgs::PoseStamped& end_pose) const
+                                const geometry_msgs::PoseStamped& end_pose)
 {
   pos startPoint = CommonFunctions::pCoordinatesFromPoseStamped(start_pose);
   pos endPoint = CommonFunctions::pCoordinatesFromPoseStamped(end_pose);
 
   int path_start_index = path.size();
-
-  double start_magnitude = calculateMagnitude(startPoint, endPoint, base_magnitude_start, true);
-  double end_magnitude = calculateMagnitude(startPoint, endPoint, base_magnitude_end, false);
 
   if (!hermitePath(path, startPoint, endPoint, base_magnitude_start, base_magnitude_end))
   {
@@ -47,6 +46,11 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   path.push_back(end_pose);
   CommonFunctions::updateOrientationInPath(path, path_start_index, path.size() - 1);
   return true;
+}
+
+void HermitePlanner::addObstacle(const ObstacleDetection::Obstacle& obstacle)
+{
+  static_cast<void>(obstacle);
 }
 
 /**
@@ -65,11 +69,11 @@ double HermitePlanner::calculateMagnitude(const pos& start, const pos& end, cons
   double angle_difference;
   if (calculate_start)
   {
-    angle_difference = CommonFunctions::dLimitAngle((path_angle - start.az));
+    angle_difference = CommonFunctions::limitAngle((path_angle - start.az));
   }
   else
   {
-    angle_difference = CommonFunctions::dLimitAngle((end.az - path_angle));
+    angle_difference = CommonFunctions::limitAngle((end.az - path_angle));
   }
   magnitude *= (M_PI - tangent_coefficient * atan(M_PI - angle_difference));
   return magnitude;

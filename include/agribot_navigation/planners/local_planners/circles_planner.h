@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
+#include "agribot_navigation/common/default_values.h"
 #include "agribot_navigation/common/structures.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
-#include "agribot_navigation/common/default_values.h"
 
 namespace agribot_local_planner
 {
@@ -19,9 +19,18 @@ public:
   CirclesPlanner();
   explicit CirclesPlanner(const std::string& frame);
   ~CirclesPlanner();
-  virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                          const geometry_msgs::PoseStamped& start_pose,
-                          const geometry_msgs::PoseStamped& end_pose) const;
+  bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
+                  const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) override;
+  void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
+  std::vector<ObstacleDetection::Obstacle> getObstacles(void)
+  {
+    return obstacles_;
+  }
+  void clearObstacles(void)
+  {
+    obstacles_.clear();
+  }
+
   void setArcRadius(const double param_arc_radius);
   void setDeadZone(const double param_dead_zone);
   void setStepSize(const double param_step_size);
@@ -57,5 +66,6 @@ protected:
   double arc_step;    // degrees
   double dead_zone;   // degrees
   double step_size;   // metres
+  std::vector<ObstacleDetection::Obstacle> obstacles_;
 };
 }  // namespace agribot_local_planner

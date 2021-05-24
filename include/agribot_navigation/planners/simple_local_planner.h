@@ -4,21 +4,27 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <nav_core/base_local_planner.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wformat"
 #include <base_local_planner/goal_functions.h>
+#include <costmap_2d/costmap_2d_ros.h>
+#include <nav_core/base_local_planner.h>
+#include <ros/ros.h>
+#pragma GCC diagnostic pop
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <visualization_msgs/Marker.h>
 #include <tf/tf.h>
-#include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
-#include <costmap_2d/costmap_2d_ros.h>
-#include <vector>
+#include <tf2_ros/transform_listener.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
+
 #include <string>
+#include <vector>
 #define PI 3.14159265
 #define DEG_TO_RAD (PI / 180)
 #define RAD_TO_DEG (180 / PI)
@@ -113,7 +119,7 @@ private:
   void vChooseDeviationParallelnessParameters(int waypointNumber);
   double dCloseToZero(double value);
   double dGetYawFromQuaternion(geometry_msgs::Quaternion quat);
-  double dLimitAngle(double angle);
+  double limitAngle(double angle);
   double dAngleBetweenFrames(pos targetFrame, pos currentFrame);
   double dDistanceBetweenFrames(pos targetFrame, pos currentFrame);
   double dCalculateRadius(double distanceRobotWaypoint, double angleRobotWaypoint);
@@ -133,4 +139,4 @@ private:
   void vGoalRangeVisualization(pos goal, pos range);
   void vVisualizations(pos lastWaypoint, pos goal, pos nextWaypoint, pos robotCenter, geometry_msgs::Twist velocity);
 };
-};  // namespace simple_local_planner
+}  // namespace simple_local_planner

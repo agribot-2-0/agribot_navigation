@@ -3,8 +3,9 @@
  */
 
 #include <agribot_navigation/kinematics_control/PID.h>
-#include <ros/ros.h>
 #include <ros/console.h>
+#include <ros/ros.h>
+
 #include <cmath>
 #include <sstream>
 
@@ -246,6 +247,7 @@ bool PID::bAntiWindup(double Error, double ControlValue, double dt)
       control error and the control variable have the same sign (i.e., when u · e >
       0).
   */
+  static_cast<void>(dt);
   return ((ControlValue > this->_dHighLimit || ControlValue < this->_dLowLimit) && (ControlValue * Error > 0));
 }
 

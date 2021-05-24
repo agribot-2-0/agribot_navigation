@@ -132,6 +132,7 @@ bool FollowingTracker::centerTraveledBeyondGoal(const agribot_local_planner::pos
                                                 const agribot_local_planner::pos& last_waypoint,
                                                 const agribot_local_planner::pos& next_waypoint)
 {
+  static_cast<void>(robot_center);
   double distance_waypoints = CommonFunctions::dDistanceBetweenCoordinates(next_waypoint, last_waypoint);
   double traveled_distance = traveled_distance_ - last_traveled_distance_;
   return (traveled_distance >= distance_waypoints * param_missed_distance_coefficient_);

@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(agribot_navigation)
 
-add_compile_options(-std=c++17)
+## Compilation options
+add_compile_options(-std=c++17 -Wall -Wextra -pedantic -Werror)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -23,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   tf2_geometry_msgs
   dynamic_reconfigure
+  costmap_converter
   robot_localization
 )
 
@@ -167,6 +169,11 @@ add_library(visualization_functions
   src/common/visualization_functions.cpp
 )
 
+add_library(obstacle_detection
+  src/obstacle_detection/obstacle.cpp
+  src/obstacle_detection/detection.cpp
+)
+
 add_library(i_local_planner
   src/planners/local_planners/i_local_planner.cpp
 )
@@ -186,6 +193,7 @@ add_library(agribot_local_planner
   src/planners/local_planners/i_local_planner.cpp
   src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp
+  src/planners/local_planners/narrow_planner.cpp
   src/path_trackers/following_tracker.cpp
   src/path_trackers/ray_tracker.cpp
   src/path_controllers/pure_pursuit_controller.cpp
@@ -193,6 +201,8 @@ add_library(agribot_local_planner
   src/path_controllers/deviation_parallelness_controller.cpp
   src/path_validators/distance_validator.cpp
   src/path_validators/curvature_validator.cpp
+  src/obstacle_detection/obstacle.cpp
+  src/obstacle_detection/detection.cpp
 )
 
 add_library(following_tracker
@@ -268,6 +278,10 @@ target_link_libraries(common_functions
 )
 
 target_link_libraries(visualization_functions
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(obstacle_detection
   ${catkin_LIBRARIES}
 )
 
@@ -398,7 +412,7 @@ install(
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY launch param
+install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
   PATTERN ".svn" EXCLUDE
 )

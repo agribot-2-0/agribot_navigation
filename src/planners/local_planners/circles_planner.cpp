@@ -16,7 +16,10 @@ CirclesPlanner::CirclesPlanner() : ILocalPlanner()
 
 CirclesPlanner::CirclesPlanner(const std::string& frame) : ILocalPlanner()
 {
-  CirclesPlanner();
+  dead_zone = default_design_dead_zone;
+  arc_radius = default_design_arc_radius;
+  step_size = default_step_size;
+  arc_step = calculateArcStep(arc_radius, step_size);
   setFrameId(frame);
 }
 
@@ -26,7 +29,7 @@ CirclesPlanner::~CirclesPlanner()
 
 bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
                                 const geometry_msgs::PoseStamped& start_pose,
-                                const geometry_msgs::PoseStamped& end_pose) const
+                                const geometry_msgs::PoseStamped& end_pose)
 {
   pos start_point = CommonFunctions::pCoordinatesFromPoseStamped(start_pose);
   pos end_point = CommonFunctions::pCoordinatesFromPoseStamped(end_pose);
@@ -36,8 +39,8 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   double reverse_path_angle = CommonFunctions::dAngleBetweenCoordinates(start_point, end_point);
   double end_orientation = end_point.az;
   double reverse_robot_orientation = start_point.az - M_PI;
-  double end_angle_difference = CommonFunctions::dLimitAngle((end_orientation - path_angle));
-  double start_angle_difference = CommonFunctions::dLimitAngle((reverse_robot_orientation - reverse_path_angle));
+  double end_angle_difference = CommonFunctions::limitAngle((end_orientation - path_angle));
+  double start_angle_difference = CommonFunctions::limitAngle((reverse_robot_orientation - reverse_path_angle));
 
   pos end_c2_center = pCircleTangentToVector(end_point, end_orientation, end_angle_difference, arc_radius, dead_zone);
   pos end_c1_center =
@@ -62,6 +65,11 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   path.push_back(end_pose);
   CommonFunctions::updateOrientationInPath(path, path_start_index, path.size() - 1);
   return true;
+}
+
+void CirclesPlanner::addObstacle(const ObstacleDetection::Obstacle& obstacle)
+{
+  static_cast<void>(obstacle);
 }
 
 void CirclesPlanner::setArcRadius(const double param_arc_radius)
@@ -92,7 +100,7 @@ pos CirclesPlanner::pCircleTangentToPathAndCircle(const pos& circle_center, cons
 {
   pos c1_center;
   pos point_on_parallel;
-  double dx, dy, a, b, c, discriminant, t1, t2, diameter;
+  double dx, dy, a, b, c, discriminant, t2, diameter;
   diameter = arc_radius * 2.0;
 
   // angle of vector perpendicular to path
@@ -253,7 +261,7 @@ double CirclesPlanner::calculateSpanC1(const pos& tangent_point, const pos& c1_c
   }
   double a_p1_ps = CommonFunctions::dAngleBetweenCoordinates(tangent_point, c1_center);
   double a_p1_p2 = CommonFunctions::dAngleBetweenCoordinates(c2_center, c1_center);
-  return CommonFunctions::dLimitAngle(direction * (a_p1_p2 - a_p1_ps));
+  return CommonFunctions::limitAngle(direction * (a_p1_p2 - a_p1_ps));
 }
 
 double CirclesPlanner::calculateSpanC2(const pos& end_point, const pos& c1_center, const pos& c2_center,
@@ -295,9 +303,9 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
 {
   // end_angle_difference = end_orientation - path_angle;
   double end_angle_difference =
-      CommonFunctions::dLimitAngle((end_point.az - CommonFunctions::dAngleBetweenCoordinates(end_point, start_point)));
+      CommonFunctions::limitAngle((end_point.az - CommonFunctions::dAngleBetweenCoordinates(end_point, start_point)));
   // start_angle_difference = reverse_robot_orientation - reverse_path_angle;
-  double start_angle_difference = CommonFunctions::dLimitAngle(
+  double start_angle_difference = CommonFunctions::limitAngle(
       ((start_point.az - M_PI) - CommonFunctions::dAngleBetweenCoordinates(start_point, end_point)));
 
   // spans for end arcs

@@ -3,9 +3,10 @@
  */
 
 #include "agribot_navigation/planners/waypoint_global_planner.h"
+
+#include <nav_msgs/Path.h>
 #include <pluginlib/class_list_macros.h>
 #include <tf/tf.h>
-#include <nav_msgs/Path.h>
 
 PLUGINLIB_EXPORT_CLASS(waypoint_global_planner::WaypointGlobalPlanner, nav_core::BaseGlobalPlanner)
 
@@ -47,7 +48,6 @@ void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DRO
 
     initialized_ = true;
     ROS_INFO("[GlobalPlanner] Planner has been initialized");
-    nh.setParam("/agribot/waypoint_global_planer/is_inited", true);
   }
   else
   {

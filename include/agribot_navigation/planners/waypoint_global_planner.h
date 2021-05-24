@@ -4,16 +4,21 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <costmap_2d/costmap_2d_ros.h>
-#include <costmap_2d/costmap_2d.h>
-#include <nav_core/base_global_planner.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/PointStamped.h>
-#include <base_local_planner/world_model.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wformat"
 #include <base_local_planner/costmap_model.h>
-#include <visualization_msgs/MarkerArray.h>
+#include <base_local_planner/world_model.h>
+#include <costmap_2d/costmap_2d.h>
+#include <costmap_2d/costmap_2d_ros.h>
+#include <nav_core/base_global_planner.h>
+#include <ros/ros.h>
+#pragma GCC diagnostic pop
+#include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Path.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <string>
 #include <vector>
@@ -75,10 +80,10 @@ public:
   void interpolatePath(nav_msgs::Path& path);  // NOLINT(runtime/references)
 
 private:
-  bool initialized_;                             //!< flag indicating the planner has been initialized
   costmap_2d::Costmap2DROS* costmap_ros_;        //!< costmap ros wrapper
   costmap_2d::Costmap2D* costmap_;               //!< costmap container
   base_local_planner::WorldModel* world_model_;  //!< world model
+  bool initialized_;                             //!< flag indicating the planner has been initialized
 
   //!< publisher of waypoint visualization markers
   ros::Publisher waypoint_marker_pub_;
