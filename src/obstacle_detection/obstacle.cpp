@@ -114,6 +114,11 @@ bool isXCoordinateSmaller(const Eigen::Vector2d& p1, const Eigen::Vector2d& p2)
   return p1.x() < p2.x() || (p1.x() == p2.x() && p1.y() < p2.y());
 }
 
+//  monotone chain algorithm aka Andrew's algorithm is used to add convex polygons
+//     C++ implementation example: http://www.algorithmist.com/index.php/Monotone_Chain_Convex_Hull ( GNU Free
+//  Documentation License 1.2 )
+//     Reference:  A. M. Andrew, "Another Efficient Algorithm for Convex Hulls in Two Dimensions", Info. Proc. Letters
+//  9, 216-219 (1979).
 geometry_msgs::PolygonStamped Obstacle::toPolygon() const
 {
   geometry_msgs::PolygonStamped polygonStamped;
