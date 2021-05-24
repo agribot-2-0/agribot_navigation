@@ -177,5 +177,9 @@ private:
   bool isReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
 
   void getParameters(const ros::NodeHandle& nh);
+
+  const std_msgs::ColorRGBA COLOR_RED = VisualizationFunctions::ColorRGBA(1, 0, 0, 1).color;
+  const std_msgs::ColorRGBA COLOR_GREEN = VisualizationFunctions::ColorRGBA(0, 1, 0, 1).color;
+  const std_msgs::ColorRGBA COLOR_BLUE = VisualizationFunctions::ColorRGBA(0, 0, 1, 1).color;
 };
 }  // namespace agribot_local_planner

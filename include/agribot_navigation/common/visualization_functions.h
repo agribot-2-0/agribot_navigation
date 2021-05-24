@@ -30,4 +30,18 @@ void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publis
 void obstacleVisualization(const ObstacleDetection::Obstacle& obstacle, const ros::Publisher& publisher,
                            const std_msgs::ColorRGBA& color);
 void obstaclesVisualization(const std::vector<ObstacleDetection::Obstacle>& obstacles, const ros::Publisher& publisher);
+
+struct ColorRGBA
+{
+  std_msgs::ColorRGBA color = std_msgs::ColorRGBA();
+
+  ColorRGBA(const float r, const float g, const float b, const float a)
+  {
+    color.a = a;
+    color.r = r;
+    color.g = g;
+    color.b = b;
+  }
+};
+
 }  // namespace VisualizationFunctions

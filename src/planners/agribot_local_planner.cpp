@@ -454,16 +454,9 @@ void AgribotPlannerROS::publishObstacles()
                                               obstacles_left_line_pub_);
     VisualizationFunctions::pathVisualization(obstacles_right_.toPath(param_design_step_size_), obstacle_frame_id_,
                                               obstacles_right_line_pub_);
-    std_msgs::ColorRGBA green = std_msgs::ColorRGBA();
-    green.a = 1;
-    green.g = 1;
 
-    std_msgs::ColorRGBA blue = std_msgs::ColorRGBA();
-    blue.a = 1;
-    blue.b = 1;
-
-    VisualizationFunctions::obstacleVisualization(obstacles_left_, obstacles_left_polygon_pub_, green);
-    VisualizationFunctions::obstacleVisualization(obstacles_right_, obstacles_right_polygon_pub_, blue);
+    VisualizationFunctions::obstacleVisualization(obstacles_left_, obstacles_left_polygon_pub_, COLOR_GREEN);
+    VisualizationFunctions::obstacleVisualization(obstacles_right_, obstacles_right_polygon_pub_, COLOR_BLUE);
     VisualizationFunctions::obstaclesVisualization(obstacles_, obstacles_polygon_pub_);
   }
   catch (const std::exception& e)
