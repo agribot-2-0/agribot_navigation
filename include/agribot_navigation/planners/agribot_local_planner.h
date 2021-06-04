@@ -85,7 +85,6 @@ private:
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
   std::vector<geometry_msgs::PoseStamped> trajectory_;
-  nav_msgs::Path local_path_;
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
   geometry_msgs::PoseStamped robot_center_;  // present robot center frame
@@ -175,6 +174,7 @@ private:
   geometry_msgs::Twist finishedPathBehaviour();
   double closeToZero(const double value);
   bool isReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
+  bool isGoalInRange(const geometry_msgs::PoseStamped& goal);
 
   void getParameters(const ros::NodeHandle& nh);
 
