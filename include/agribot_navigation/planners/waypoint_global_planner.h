@@ -15,6 +15,7 @@
 #include <nav_core/base_global_planner.h>
 #include <ros/ros.h>
 #pragma GCC diagnostic pop
+#include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Path.h>

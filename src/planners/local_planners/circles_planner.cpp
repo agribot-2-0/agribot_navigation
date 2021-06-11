@@ -181,13 +181,13 @@ double CirclesPlanner::calculatePerpendicular(const double angle_difference, con
     direction = 1.0;
   }
 
-  if (angle_difference < CommonFunctions::toRadians(-dead_zone))
+  if (angle_difference < common_functions::radians(-dead_zone))
   {
-    perpendicular = vector_orientation - direction * CommonFunctions::toRadians(90);
+    perpendicular = vector_orientation - direction * common_functions::radians(90);
   }
-  else if (angle_difference > CommonFunctions::toRadians(dead_zone))
+  else if (angle_difference > common_functions::radians(dead_zone))
   {
-    perpendicular = vector_orientation + direction * CommonFunctions::toRadians(90);
+    perpendicular = vector_orientation + direction * common_functions::radians(90);
   }
   else
   {
@@ -207,7 +207,7 @@ bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, cons
 {
   double angle_start_center = CommonFunctions::dAngleBetweenCoordinates(circle_start, circle_center);
 
-  int steps = abs(CommonFunctions::toDegrees(angle_span)) / arc_step;
+  int steps = abs(common_functions::degrees(angle_span)) / arc_step;
   double step_size = angle_span / steps;
 
   if (steps <= 0)
@@ -283,14 +283,14 @@ double CirclesPlanner::calculateSpanC2(const pos& end_point, const pos& c1_cente
   {
     if (c2_span > 0)
     {
-      c2_span = fmod(c2_span - CommonFunctions::toRadians(360), CommonFunctions::toRadians(360));
+      c2_span = fmod(c2_span - common_functions::radians(360), common_functions::radians(360));
     }
   }
   else
   {
     if (c2_span < 0)
     {
-      c2_span = fmod(c2_span + CommonFunctions::toRadians(360), CommonFunctions::toRadians(360));
+      c2_span = fmod(c2_span + common_functions::radians(360), common_functions::radians(360));
     }
   }
   return c2_span;

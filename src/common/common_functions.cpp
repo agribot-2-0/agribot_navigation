@@ -20,13 +20,13 @@ double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat)
  */
 double limitAngle(double angle)
 {
-  while (angle > toRadians(180))
+  while (angle > common_functions::radians(180))
   {
-    angle -= toRadians(360);
+    angle -= common_functions::radians(360);
   }
-  while (angle < toRadians(-180))
+  while (angle < common_functions::radians(-180))
   {
-    angle += toRadians(360);
+    angle += common_functions::radians(360);
   }
   return angle;
 }

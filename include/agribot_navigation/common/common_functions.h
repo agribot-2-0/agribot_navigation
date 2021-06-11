@@ -3,6 +3,7 @@
  */
 
 #pragma once
+#include <agribot_common/CommonFunctions/common_functions.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <tf/tf.h>
 
@@ -19,14 +20,7 @@ constexpr double cot(double alfa)
 {
   return 1.0 / tan(alfa);
 }
-constexpr double toRadians(double degrees)
-{
-  return degrees * (M_PI / 180);
-}
-constexpr double toDegrees(double radians)
-{
-  return radians * (180 / M_PI);
-}
+
 double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat);
 double limitAngle(double angle);
 double dAngleBetweenCoordinates(const agribot_local_planner::pos& targetFrame,

@@ -13,6 +13,7 @@
 #include <nav_core/base_local_planner.h>
 #include <ros/ros.h>
 #pragma GCC diagnostic pop
+#include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <geometry_msgs/Polygon.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -81,19 +82,23 @@ private:
   ros::Publisher obstacles_left_line_pub_;
   ros::Publisher obstacles_right_line_pub_;
   ros::Publisher rabbit_pub_;
+  ros::Publisher goal_pub_;
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
   std::vector<geometry_msgs::PoseStamped> trajectory_;
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
-  geometry_msgs::PoseStamped robot_center_;  // present robot center frame
-  std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
+  geometry_msgs::PoseStamped robot_center_;   // present robot center frame
+  geometry_msgs::PoseStamped goal_previous_;  // present robot center frame
   std::string reference_frame_id_;
   std::string obstacle_frame_id_;
+
+  std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;
+  std::vector<std::string> planners_fallback_strategy_;
 
   pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> costmap_converter_loader_;
   boost::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_;
@@ -117,12 +122,14 @@ private:
   // deviation measuring for statistics
   double traveled_distance_;
   bool abort_executing_;
+  int out_of_path_counter_;
+
   // params
+  int param_max_missed_waypoints_;             // n
   int param_missed_points_tolerance_;          // n
   int param_prediction_time_;                  // seconds
   int param_prediction_points_per_second_;     // n/second
   double param_goal_distance_tolerance_;       // metres
-  double param_goal_range_;                    // factor
   double param_chassis_length_;                // metres
   double param_min_radius_;                    // metres
   double param_dead_zone_;                     // degrees
@@ -143,6 +150,8 @@ private:
   double param_odom_filter_time_;             // seconds
   double param_missed_distance_coefficient_;  // factor >1
 
+  double param_pure_pursuit_rabbit_distance_;  // metres
+
   bool param_speed_limit_;
   bool param_debug_;
   bool param_statistics_;
@@ -159,11 +168,12 @@ private:
   void publishObstacles();
   void odomCallback(const nav_msgs::Odometry& odometry_msg);
 
-  bool planPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
-                const std::string& planner_id);
+  bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
+                const geometry_msgs::PoseStamped& end_pose);
   void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);  // NOLINT(runtime/references)
   void calculateControls(geometry_msgs::Twist& cmd_vel);                       // NOLINT(runtime/references)
+  void visualizationPath(void);
+  void visualizationObstacles(void);
 
   geometry_msgs::PoseStamped transformPose(const geometry_msgs::PoseStamped& pose,
                                            const std::string& frame_id);  // NOLINT(runtime/references)
@@ -174,7 +184,8 @@ private:
   geometry_msgs::Twist finishedPathBehaviour();
   double closeToZero(const double value);
   bool isReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
-  bool isGoalInRange(const geometry_msgs::PoseStamped& goal);
+  bool isTheSameGoalAsPrevious(const geometry_msgs::PoseStamped& goal);
+  bool isOutOfPath();
 
   void getParameters(const ros::NodeHandle& nh);
 

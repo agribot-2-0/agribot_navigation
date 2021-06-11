@@ -59,21 +59,24 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
-  if (look_ahead_distance_ < rabbit_distance_)
-  {
-    angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
-                           CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
-  }
-  else
-  {
-    angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
-  }
+  // if (look_ahead_distance_ < rabbit_distance_)
+  // {
+  //   angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
+  //                          CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
+  // }
+  // else
+  // {
+  angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
+  // }
 
   motion_radius_ = look_ahead_distance_ / (2 * sin(angle_between_poses_));
 
   agribot_msgs::AgribotManualControl msg;
   msg.linear_velocity = lin_vel_;
   msg.circle_radius = motion_radius_;
+
+  // ROS_WARN_STREAM("angle_between_poses_ : " << angle_between_poses_);
+  // ROS_WARN_STREAM("motion_radius_ radius : " << motion_radius_);
 
   cmd_vel = teleopToVel(msg);
 

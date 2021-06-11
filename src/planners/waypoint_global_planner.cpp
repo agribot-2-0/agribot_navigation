@@ -38,8 +38,16 @@ void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DRO
     ros::NodeHandle pnh("~" + name);
 
     // load parameters
-    pnh.param("waypoints_per_meter", waypoints_per_meter_, 20.0);
-    pnh.param("goal_distance_tolerance", param_goal_distance_tolerance, 0.75);
+    try
+    {
+      waypoints_per_meter_ = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/waypoints_per_meter");
+      param_goal_distance_tolerance =
+          ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/goal_distance_tolerance");
+    }
+    catch (const std::exception& ex)
+    {
+      ROS_ERROR_STREAM("[GlobalPlanner] " << ex.what());
+    }
 
     waypoint_marker_pub_ = pnh.advertise<visualization_msgs::MarkerArray>("waypoints", 1);
     plan_pub_ = pnh.advertise<nav_msgs::Path>("global_plan", 1);
@@ -66,7 +74,7 @@ bool WaypointGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start_pos
   path_.poses.insert(path_.poses.end(), goal);
   interpolatePath(path_);
   plan_pub_.publish(path_);
-  createAndPublishMarkersFromPath(path_.poses);
+  // createAndPublishMarkersFromPath(path_.poses);
   plan = path_.poses;
   ROS_INFO("[GlobalPlanner] Make plan finish");
   return true;

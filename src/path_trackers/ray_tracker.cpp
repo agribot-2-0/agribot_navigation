@@ -124,6 +124,6 @@ bool RayTracker::withinFrontRayAngle(const agribot_local_planner::pos& robot_cen
 
 double RayTracker::calculateLinesSpan(const double target_line_angle, const double base_line_angle) const
 {
-  return CommonFunctions::toDegrees(abs(CommonFunctions::limitAngle(target_line_angle - base_line_angle)));
+  return common_functions::degrees(abs(CommonFunctions::limitAngle(target_line_angle - base_line_angle)));
 }
 }  // namespace agribot_path_trackers
