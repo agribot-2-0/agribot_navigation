@@ -143,14 +143,18 @@ private:
   double param_parallelness_weight_arc_;       // factor
   double param_epsilon_;                       // unitless
 
-  double param_design_dead_zone_;             // degrees
-  double param_design_arc_radius_;            // metres
-  double param_design_step_size_;             // metres
-  double param_hermite_magnitude_;            // factor
-  double param_odom_filter_time_;             // seconds
-  double param_missed_distance_coefficient_;  // factor >1
+  double param_design_dead_zone_;                    // degrees
+  double param_design_arc_radius_;                   // metres
+  double param_design_step_size_;                    // metres
+  double param_hermite_magnitude_;                   // factor
+  double param_odom_filter_time_;                    // seconds
+  double param_missed_distance_coefficient_;         // factor >1
+  double param_maximum_distance_to_path_tolerance_;  // factor >1
 
   double param_pure_pursuit_rabbit_distance_;  // metres
+  double param_stanley_error_gain_;            // metres
+
+  std::string param_agribot_controller_name_;
 
   bool param_speed_limit_;
   bool param_debug_;

@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <agribot_msgs/AgribotManualControl.h>
+#include <geometry_msgs/PoseStamped.h>
+
 #include <string>
 #include <vector>
 
@@ -25,11 +28,25 @@ public:
   void reset() override{};
   void setVelocityLinear(const double velocity);
   void setErrorGain(const double gain);
-  void setThetaLimit(const double limit);
+  void setMinMotionRadius(const double min_motion_radius);
+  void setRobotLength(const double robot_length);
+
+  geometry_msgs::PoseStamped getProjectionPose(void);
 
 private:
   double lin_vel_;
   double error_gain_;
-  double theta_limit_;
+  double min_motion_radius_;
+  double robot_length_;
+  geometry_msgs::PoseStamped projection_pose_;
+
+  double error_crosstrack_;
+  double error_heading_;
+  double error_crosstrack_factor_;
+  double theta_;
+  double motion_radius_;
+
+  double calculateCrosstrackError(const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                                  const geometry_msgs::PoseStamped& robot_pose);
 };
 }  // namespace agribot_path_controllers

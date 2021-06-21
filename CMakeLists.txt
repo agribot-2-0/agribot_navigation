@@ -250,6 +250,7 @@ add_executable(kinematics_control
 add_executable(cmd_vel_arbiter_node
   src/cmd_vel_arbiter/cmd_vel_arbiter_node.cpp
   src/cmd_vel_arbiter/CmdVelArbiterNode.cpp
+  src/common/common_functions.cpp
 )
 
 add_executable(navigation_manager_node src/navigation_manager/navigation_manager_node.cpp src/navigation_manager/NavigationManager.cpp)

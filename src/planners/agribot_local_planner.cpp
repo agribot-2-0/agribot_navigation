@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #include "agribot_navigation/planners/agribot_local_planner.h"
@@ -15,7 +15,6 @@ AgribotPlannerROS::AgribotPlannerROS()
   , costmap_converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons")
   , initialized_(false)
 {
-  out_of_path_counter_ = 0;
 }
 
 AgribotPlannerROS::~AgribotPlannerROS()
@@ -83,24 +82,23 @@ void AgribotPlannerROS::createControllers()
   pure_pursuit_controller->setRobotLength(param_chassis_length_);
   pure_pursuit_controller->setRabbitDistance(param_pure_pursuit_rabbit_distance_);
   pure_pursuit_controller->setMinMotionRadius(param_min_radius_);
-  controllers_["pure_pursuit"] = std::move(pure_pursuit_controller);
+  controllers_["PurePursuitController"] = std::move(pure_pursuit_controller);
 
   auto stanley_controller = std::make_unique<agribot_path_controllers::StanleyController>();
   stanley_controller->setVelocityLinear(param_max_linear_vel_);
-  stanley_controller->setErrorGain(default_stanley_error_gain);
-  stanley_controller->setThetaLimit(asin(param_chassis_length_ / 2.0 / param_min_radius_));
-  controllers_["stanley"] = std::move(stanley_controller);
+  stanley_controller->setErrorGain(param_stanley_error_gain_);
+  stanley_controller->setMinMotionRadius(param_min_radius_);
+  stanley_controller->setRobotLength(param_chassis_length_);
+  controllers_["StanleyController"] = std::move(stanley_controller);
 
-  auto deviation_parallelness_controller =
-      std::make_unique<agribot_path_controllers::DeviationParallelnessController>();
-  deviation_parallelness_controller->setSpeedLimiting(true);
-  deviation_parallelness_controller->setParallelnessWeight(param_parallelness_weight_straight_);
-  deviation_parallelness_controller->setDeviationWeight(param_deviation_weight_straight_);
-  deviation_parallelness_controller->setMinRadius(param_min_radius_);
-  deviation_parallelness_controller->setMaxLinearVelocity(param_max_linear_vel_);
-  deviation_parallelness_controller->setMinLinearVelocity(param_min_linear_vel_);
-  deviation_parallelness_controller->setEpsilon(param_epsilon_);
-  controllers_["deviation_parallelness"] = std::move(deviation_parallelness_controller);
+  if (controllers_.find(param_agribot_controller_name_) == controllers_.end())
+  {
+    throw std::invalid_argument("Contoller not found");
+  }
+  else
+  {
+    ROS_INFO_STREAM("[AgribotPlanner] Contoller " << param_agribot_controller_name_ << " loaded");
+  }
 }
 
 void AgribotPlannerROS::createCostmapConverter(const ros::NodeHandle& nh)
@@ -121,6 +119,9 @@ void AgribotPlannerROS::getParameters(const ros::NodeHandle& nh)
   param_missed_points_tolerance_ =
       ros_common_functions::getRosParam<double>(nh.getNamespace() + "/missed_points_tolerance");
   param_max_missed_waypoints_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/max_missed_waypoints");
+
+  param_maximum_distance_to_path_tolerance_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/maximum_distance_to_path_tolerance");
 
   param_chassis_length_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/chassis_length");
   param_min_radius_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/min_radius");
@@ -164,7 +165,10 @@ void AgribotPlannerROS::getParameters(const ros::NodeHandle& nh)
 
   param_pure_pursuit_rabbit_distance_ =
       ros_common_functions::getRosParam<double>(nh.getNamespace() + "/pure_pursuit_rabbit_distance");
+  param_stanley_error_gain_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/stanley_error_gain");
 
+  param_agribot_controller_name_ =
+      ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/agribot_controller_plugin");
   reference_frame_id_ = ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/reference_frame_id");
   obstacle_frame_id_ = ros_common_functions::getRosParam<std::string>(nh.getNamespace() + "/obstacle_frame_id");
 }
@@ -183,6 +187,7 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
     catch (const std::exception& ex)
     {
       ROS_ERROR_STREAM("[AgribotPlanner] " << ex.what());
+      return;
     }
 
     costmap_ros_ = costmapROS;
@@ -214,11 +219,18 @@ void AgribotPlannerROS::initialize(std::string name, tf2_ros::Buffer* tfBuffer, 
       param_design_arc_radius_ = param_min_radius_;
     }
 
-    createPlanners();
-    createTrackers();
-    createValidators();
-    createControllers();
-    createCostmapConverter(pnh);
+    try
+    {
+      createPlanners();
+      createValidators();
+      createControllers();
+      createCostmapConverter(pnh);
+    }
+    catch (const std::exception& ex)
+    {
+      ROS_ERROR_STREAM("[AgribotPlanner] " << ex.what());
+      return;
+    }
 
     last_odom_stamp_ = 0;
     ros::topic::waitForMessage<nav_msgs::Odometry>("odom");
@@ -272,8 +284,8 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
     }
     else
     {
-      ROS_ERROR_STREAM("[AgribotPlanner] Planner " << planner_name
-                                                   << " is not able to create valid path. Taking the next planner.");
+      ROS_WARN_STREAM("[AgribotPlanner] Planner " << planner_name
+                                                  << " is not able to create valid path. Taking the next planner.");
       if (planner_name == planners_fallback_strategy_.back())
       {
         ROS_ERROR_STREAM("[AgribotPlanner] Unable to create valid path. Abort planning.");
@@ -287,6 +299,7 @@ bool AgribotPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& o
   goal_reached_ = false;
   traveled_points_ = visualization_msgs::Marker();
   traveled_distance_ = 0;
+  out_of_path_counter_ = 0;
   planners_["narrow"]->clearObstacles();
 
   if (param_statistics_)
@@ -307,7 +320,7 @@ bool AgribotPlannerROS::planPath(const std::string& planner_id, const geometry_m
   local_plan_.clear();
   if (!planners_[planner_id]->designPath(local_plan_, start_pose, end_pose))
   {
-    ROS_ERROR_STREAM("[AgribotPlanner][" << planner_id << "_planner] Local planner is not able to create path ");
+    ROS_WARN_STREAM("[AgribotPlanner][" << planner_id << "_planner] Local planner is not able to create path ");
     return false;
   }
 
@@ -316,21 +329,14 @@ bool AgribotPlannerROS::planPath(const std::string& planner_id, const geometry_m
   {
     if (!validator->validatePath(local_plan_))
     {
-      ROS_ERROR_STREAM("[AgribotPlanner][" << planner_id << "_planner] Local path not passed " << validator_id
-                                           << " validation");
+      ROS_WARN_STREAM("[AgribotPlanner][" << planner_id << "_planner] Local path not passed " << validator_id
+                                          << " validation");
       return false;
     }
   }
 
   ROS_INFO_STREAM("[AgribotPlanner][" << planner_id
                                       << "_planner] Local plan created, path length = " << local_plan_.size());
-  // reset trackers
-  for (auto const& [tracker_id, tracker] : trackers_)
-  {
-    static_cast<void>(tracker_id);
-    tracker->reset();
-  }
-
   // reset controllers
   for (auto const& [controller_id, controller] : controllers_)
   {
@@ -492,7 +498,7 @@ void AgribotPlannerROS::truncatePath(std::vector<geometry_msgs::PoseStamped>& tr
 
 void AgribotPlannerROS::calculateControls(geometry_msgs::Twist& cmd_vel)
 {
-  controllers_["pure_pursuit"]->computeControl(cmd_vel, local_plan_, robot_center_);
+  controllers_[param_agribot_controller_name_]->computeControl(cmd_vel, local_plan_, robot_center_);
   cmd_vel = limitVelocities(cmd_vel);
 }
 
@@ -646,11 +652,18 @@ void AgribotPlannerROS::visualizationPath(void)
   // VisualizationFunctions::predictedPathVisualization(
   //     cmd_vel, CommonFunctions::pCoordinatesFromPoseStamped(robot_center_), param_prediction_points_per_second_,
   //     param_prediction_time_, reference_frame_id_, predicted_path_pub_);
-  auto pure_pursuit_pointer =
-      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
-  if (pure_pursuit_pointer != nullptr)
+  // auto pure_pursuit_pointer =
+  //     dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
+  // if (pure_pursuit_pointer != nullptr)
+  // {
+  //   VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pub_);
+  // }
+
+  auto stanley_pointer =
+      dynamic_cast<agribot_path_controllers::StanleyController*>(controllers_["StanleyController"].get());
+  if (stanley_pointer != nullptr)
   {
-    VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pub_);
+    VisualizationFunctions::poseVisualization(stanley_pointer->getProjectionPose(), rabbit_pub_);
   }
 
   // try
@@ -677,13 +690,8 @@ void AgribotPlannerROS::visualizationObstacles(void)
 
 bool AgribotPlannerROS::isOutOfPath(void)
 {
-  double distance_waypoints = CommonFunctions::distanceBetweenPoses(local_plan_.back(), local_plan_.front());
-  bool centerTraveledBeyondGoal = (traveled_distance_ >= distance_waypoints * param_missed_distance_coefficient_);
-
-  double distance_to_goal = CommonFunctions::distanceBetweenPoses(local_plan_.front(), robot_center_);
-  bool withinGoalRange = (distance_to_goal <= param_goal_distance_tolerance_);
-
-  return centerTraveledBeyondGoal && !withinGoalRange;
+  return CommonFunctions::calculateCrosstrackError(local_plan_, robot_center_) >
+         param_maximum_distance_to_path_tolerance_;
 }
 
 }  // namespace agribot_local_planner

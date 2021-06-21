@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #include "agribot_navigation/common/common_functions.h"
 
 namespace CommonFunctions
 {
-double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat)
+double getYawFromQuaternion(const geometry_msgs::Quaternion& quat)
 {
   tf::Quaternion q(quat.x, quat.y, quat.z, quat.w);
   tf::Matrix3x3 m(q);
@@ -15,6 +15,12 @@ double dGetYawFromQuaternion(const geometry_msgs::Quaternion& quat)
   return yaw;
 }
 
+geometry_msgs::Quaternion getQuaternionFromYaw(const double yaw)
+{
+  tf2::Quaternion quaterion_tf;
+  quaterion_tf.setRPY(0, 0, yaw);
+  return tf2::toMsg(quaterion_tf);
+}
 /**
  * Limit angles to range <-180, 180> degrees
  */
@@ -27,6 +33,19 @@ double limitAngle(double angle)
   while (angle < common_functions::radians(-180))
   {
     angle += common_functions::radians(360);
+  }
+  return angle;
+}
+
+double limitAngle(double angle, double range)
+{
+  while (angle > range)
+  {
+    angle -= 2 * range;
+  }
+  while (angle < -range)
+  {
+    angle += 2 * range;
   }
   return angle;
 }
@@ -61,7 +80,7 @@ agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::Pose
   agribot_local_planner::pos coordinates;
   coordinates.x = ps.pose.position.x;
   coordinates.y = ps.pose.position.y;
-  coordinates.az = dGetYawFromQuaternion(ps.pose.orientation);
+  coordinates.az = getYawFromQuaternion(ps.pose.orientation);
   return coordinates;
 }
 
@@ -101,6 +120,28 @@ agribot_local_planner::pos pCalculateProjection(const agribot_local_planner::pos
   return projection;
 }
 
+geometry_msgs::PoseStamped calculateProjection(const geometry_msgs::PoseStamped& lastWaypoint,
+                                               const geometry_msgs::PoseStamped& nextWaypoint,
+                                               const geometry_msgs::PoseStamped& robotCenter)
+{
+  geometry_msgs::PoseStamped projection;
+  projection.header = robotCenter.header;
+  double a = distanceBetweenPoses(nextWaypoint, lastWaypoint);
+  double b = distanceBetweenPoses(lastWaypoint, robotCenter);
+  double c = distanceBetweenPoses(nextWaypoint, robotCenter);
+  double dx = nextWaypoint.pose.position.x - lastWaypoint.pose.position.x;
+  double dy = nextWaypoint.pose.position.y - lastWaypoint.pose.position.y;
+  // taken from cosine law
+  // cosine = (a*a + b*b - c*c) / (2*a*b)
+  // a1 = b * cosine
+  // ratio = a1 / a
+  double ratio = (a * a + b * b - c * c) / (2 * a * a);
+  projection.pose.position.x = lastWaypoint.pose.position.x + ratio * dx;
+  projection.pose.position.y = lastWaypoint.pose.position.y + ratio * dy;
+  projection.pose.orientation = getQuaternionFromYaw(angleBetweenPoses(nextWaypoint, lastWaypoint));
+  return projection;
+}
+
 double dCalculateRadiusFromVelocity(const geometry_msgs::Twist& velocity)
 {
   if (velocity.angular.z != 0)
@@ -133,4 +174,58 @@ void straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runt
     path.push_back(pose);
   }
 }
+
+double calculateCrosstrackError(const std::vector<geometry_msgs::PoseStamped>& path_to_track,
+                                const geometry_msgs::PoseStamped& robot_pose)
+{
+  double shortest_distance = std::numeric_limits<double>::max();
+  for (const auto& pose : path_to_track)
+  {
+    if (CommonFunctions::distanceBetweenPoses(pose, robot_pose) < shortest_distance)
+    {
+      shortest_distance = CommonFunctions::distanceBetweenPoses(pose, robot_pose);
+    }
+  }
+  return shortest_distance;
+}
+
+geometry_msgs::Quaternion orientationBetweenQuaternions(const geometry_msgs::Quaternion& quaterion1,
+                                                        const geometry_msgs::Quaternion& quaterion2)
+{
+  tf2::Quaternion q_1, q_rot, q_2;
+  tf2::convert(quaterion1, q_1);
+  tf2::convert(quaterion2, q_2);
+
+  q_1[3] = -q_1[3];
+
+  q_rot = q_2 * q_1;
+  return tf2::toMsg(q_rot);
+}
+
+geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg, const double min_motion_radius,
+                                 const double cutoff_radius)
+{
+  geometry_msgs::Twist out_msg;
+
+  out_msg.linear.x = in_msg.linear_velocity;
+  if (abs(in_msg.circle_radius) > min_motion_radius && abs(in_msg.circle_radius) < cutoff_radius)
+  {
+    out_msg.angular.z = in_msg.linear_velocity / in_msg.circle_radius;
+  }
+  else if (abs(in_msg.circle_radius) < min_motion_radius && in_msg.circle_radius > 0)
+  {
+    out_msg.angular.z = in_msg.linear_velocity / min_motion_radius;
+  }
+  else if (abs(in_msg.circle_radius) < min_motion_radius && in_msg.circle_radius < 0)
+  {
+    out_msg.angular.z = -in_msg.linear_velocity / min_motion_radius;
+  }
+  return out_msg;
+}
+
+geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg, const double min_motion_radius)
+{
+  return teleopToVel(in_msg, min_motion_radius, std::numeric_limits<double>::max());
+}
+
 }  // namespace CommonFunctions

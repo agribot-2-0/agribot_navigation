@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #pragma once
@@ -45,6 +45,5 @@ private:
 
   std::size_t rabbit_count_;
   geometry_msgs::PoseStamped rabbit_pose_;
-  geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg);
 };
 }  // namespace agribot_path_controllers
