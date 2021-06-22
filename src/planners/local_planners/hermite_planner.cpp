@@ -153,4 +153,14 @@ pos HermitePlanner::calculateDerivatives(const double angle, const double magnit
   }
   return derivative;
 }
+
+std::vector<ObstacleDetection::Obstacle> HermitePlanner::getObstacles(void)
+{
+  return obstacles_;
+}
+void HermitePlanner::clearObstacles(void)
+{
+  obstacles_.clear();
+}
+
 }  // namespace agribot_local_planner

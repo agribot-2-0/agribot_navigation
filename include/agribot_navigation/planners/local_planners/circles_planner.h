@@ -22,14 +22,8 @@ public:
   bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                   const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) override;
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
-  std::vector<ObstacleDetection::Obstacle> getObstacles(void)
-  {
-    return obstacles_;
-  }
-  void clearObstacles(void)
-  {
-    obstacles_.clear();
-  }
+  std::vector<ObstacleDetection::Obstacle> getObstacles(void) override;
+  void clearObstacles(void) override;
 
   void setArcRadius(const double param_arc_radius);
   void setDeadZone(const double param_dead_zone);

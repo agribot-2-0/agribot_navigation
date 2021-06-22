@@ -354,4 +354,13 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
 
   return true;
 }
+
+  std::vector<ObstacleDetection::Obstacle> CirclesPlanner::getObstacles(void)
+  {
+    return obstacles_;
+  }
+  void CirclesPlanner::clearObstacles(void)
+  {
+    obstacles_.clear();
+  }
 }  // namespace agribot_local_planner

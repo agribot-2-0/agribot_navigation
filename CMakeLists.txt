@@ -185,6 +185,9 @@ add_library(circles_planner
 add_library(hermite_planner
   src/planners/local_planners/hermite_planner.cpp
 )
+add_library(straight_path_planner
+  src/planners/local_planners/straight_path_planner.cpp
+)
 
 add_library(agribot_local_planner
   src/planners/agribot_local_planner.cpp
@@ -194,6 +197,7 @@ add_library(agribot_local_planner
   src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp
   src/planners/local_planners/narrow_planner.cpp
+  src/planners/local_planners/straight_path_planner.cpp
   src/path_trackers/following_tracker.cpp
   src/path_trackers/ray_tracker.cpp
   src/path_controllers/pure_pursuit_controller.cpp

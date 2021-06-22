@@ -53,6 +53,7 @@
 #include "agribot_navigation/planners/local_planners/hermite_planner.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
 #include "agribot_navigation/planners/local_planners/narrow_planner.h"
+#include "agribot_navigation/planners/local_planners/straight_path_planner.h"
 
 namespace agribot_local_planner
 {

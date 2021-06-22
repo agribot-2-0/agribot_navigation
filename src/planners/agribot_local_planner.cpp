@@ -23,13 +23,13 @@ AgribotPlannerROS::~AgribotPlannerROS()
 
 void AgribotPlannerROS::createPlanners()
 {
-  auto circles_planner = std::make_unique<CirclesPlanner>(robot_center_.header.frame_id);
+  auto circles_planner = std::make_unique<CirclesPlanner>(reference_frame_id_);
   circles_planner->setArcRadius(param_design_arc_radius_);
   circles_planner->setDeadZone(param_design_dead_zone_);
   circles_planner->setStepSize(param_design_step_size_);
   planners_["circles"] = std::move(circles_planner);
 
-  auto hermite_planner = std::make_unique<HermitePlanner>(robot_center_.header.frame_id);
+  auto hermite_planner = std::make_unique<HermitePlanner>(reference_frame_id_);
   hermite_planner->setStepSize(param_design_step_size_);
   hermite_planner->setMagnitudeStart(param_hermite_magnitude_);
   hermite_planner->setMagnitudeEnd(param_hermite_magnitude_);
@@ -40,15 +40,20 @@ void AgribotPlannerROS::createPlanners()
   narrow_planner->setStepSize(param_design_step_size_);
   planners_["narrow"] = std::move(narrow_planner);
 
+  auto straight_path = std::make_unique<StraightPathPlanner>(reference_frame_id_);
+  straight_path->setStepSize(param_design_step_size_);
+  planners_["straight_path"] = std::move(straight_path);
+
   planners_fallback_strategy_.push_back("circles");
   planners_fallback_strategy_.push_back("hermite");
+  planners_fallback_strategy_.push_back("straight_path");
 }
 
 void AgribotPlannerROS::createValidators()
 {
-  // auto curvature_validator = std::make_unique<agribot_path_validators::CurvatureValidator>();
-  // curvature_validator->setMaxCurvature(1.0 / param_min_radius_);
-  // validators_["curvature"] = std::move(curvature_validator);
+  auto curvature_validator = std::make_unique<agribot_path_validators::CurvatureValidator>();
+  curvature_validator->setMaxCurvature(1.0 / param_min_radius_);
+  validators_["curvature"] = std::move(curvature_validator);
 
   auto distance_validator = std::make_unique<agribot_path_validators::DistanceValidator>();
   distance_validator->setMinDistance(param_chassis_length_);
@@ -324,7 +329,10 @@ bool AgribotPlannerROS::planPath(const std::string& planner_id, const geometry_m
     return false;
   }
 
+  visualizationPath();
+
   // validate
+  ROS_INFO_STREAM("[AgribotPlanner] Validating path");
   for (auto const& [validator_id, validator] : validators_)
   {
     if (!validator->validatePath(local_plan_))
@@ -334,6 +342,7 @@ bool AgribotPlannerROS::planPath(const std::string& planner_id, const geometry_m
       return false;
     }
   }
+  ROS_INFO_STREAM("[AgribotPlanner] Validating path completed");
 
   ROS_INFO_STREAM("[AgribotPlanner][" << planner_id
                                       << "_planner] Local plan created, path length = " << local_plan_.size());

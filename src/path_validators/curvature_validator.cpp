@@ -36,22 +36,19 @@ void CurvatureValidator::setSearchWidth(const std::size_t width)
   search_width_ = width;
 }
 
-bool CurvatureValidator::calculateMengerCurvature(const geometry_msgs::PoseStamped& previous_waypoint,
-                                                  const geometry_msgs::PoseStamped& current_waypoint,
-                                                  const geometry_msgs::PoseStamped& next_waypoint) const
+double CurvatureValidator::calculateMengerCurvature(const geometry_msgs::PoseStamped& previous_waypoint,
+                                                    const geometry_msgs::PoseStamped& current_waypoint,
+                                                    const geometry_msgs::PoseStamped& next_waypoint) const
 {
   //   https://en.wikipedia.org/wiki/Menger_curvature
-  agribot_local_planner::pos previous_point = CommonFunctions::pCoordinatesFromPoseStamped(previous_waypoint);
-  agribot_local_planner::pos current_point = CommonFunctions::pCoordinatesFromPoseStamped(current_waypoint);
-  agribot_local_planner::pos next_point = CommonFunctions::pCoordinatesFromPoseStamped(next_waypoint);
-  double a = CommonFunctions::dDistanceBetweenCoordinates(previous_point, current_point);
-  double b = CommonFunctions::dDistanceBetweenCoordinates(current_point, next_point);
-  double c = CommonFunctions::dDistanceBetweenCoordinates(next_point, previous_point);
+  double a = CommonFunctions::distanceBetweenPoses(previous_waypoint, current_waypoint);
+  double b = CommonFunctions::distanceBetweenPoses(next_waypoint, previous_waypoint);
+  double c = CommonFunctions::distanceBetweenPoses(current_waypoint, next_waypoint);
 
   // https://en.wikipedia.org/wiki/Heron%27s_formula
   double s = (a + b + c) / 2.0;
   double area = sqrt(s * (s - a) * (s - b) * (s - c));
 
-  return (4 * area) / (a * b * c);
+  return (4.0 * area) / (a * b * c);
 }
 }  // namespace agribot_path_validators
