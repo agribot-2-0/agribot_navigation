@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
 
 namespace agribot_local_planner
