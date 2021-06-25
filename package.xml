@@ -29,7 +29,7 @@
   <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>costmap_converter</build_depend>
   <build_depend>robot_localization</build_depend>
-  <build_depend>geographiclib-tools</build_depend>
+  <build_depend>geographiclib</build_depend>
 
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>nav_msgs</build_export_depend>

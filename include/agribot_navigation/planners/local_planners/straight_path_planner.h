@@ -21,7 +21,7 @@ public:
                   const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) override;
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
   std::vector<ObstacleDetection::Obstacle> getObstacles(void) override;
-  void clearObstacles(void);
+  void clearObstacles(void) override;
   void setChassisLength(double chassis_length);
   void setStepSize(const double param_step_size);
 
