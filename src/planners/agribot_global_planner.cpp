@@ -2,30 +2,30 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include "agribot_navigation/planners/waypoint_global_planner.h"
+#include "agribot_navigation/planners/agribot_global_planner.h"
 
 #include <nav_msgs/Path.h>
 #include <pluginlib/class_list_macros.h>
 #include <tf/tf.h>
 
-PLUGINLIB_EXPORT_CLASS(waypoint_global_planner::WaypointGlobalPlanner, nav_core::BaseGlobalPlanner)
+PLUGINLIB_EXPORT_CLASS(agribot_global_planner::AgribotGlobalPlanner, nav_core::BaseGlobalPlanner)
 
-namespace waypoint_global_planner
+namespace agribot_global_planner
 {
-WaypointGlobalPlanner::WaypointGlobalPlanner() : costmap_ros_(NULL), initialized_(false)
+AgribotGlobalPlanner::AgribotGlobalPlanner() : costmap_ros_(NULL), initialized_(false)
 {
 }
 
-WaypointGlobalPlanner::WaypointGlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros)
+AgribotGlobalPlanner::AgribotGlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros)
 {
   initialize(name, costmap_ros);
 }
 
-WaypointGlobalPlanner::~WaypointGlobalPlanner()
+AgribotGlobalPlanner::~AgribotGlobalPlanner()
 {
 }
 
-void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros)
+void AgribotGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros)
 {
   if (!initialized_)
   {
@@ -46,7 +46,7 @@ void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DRO
     }
     catch (const std::exception& ex)
     {
-      ROS_ERROR_STREAM("[GlobalPlanner] " << ex.what());
+      ROS_ERROR_STREAM("[AgribotGlobalPlanner] " << ex.what());
     }
 
     waypoint_marker_pub_ = pnh.advertise<visualization_msgs::MarkerArray>("waypoints", 1);
@@ -55,19 +55,19 @@ void WaypointGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DRO
     path_.header.frame_id = "map";
 
     initialized_ = true;
-    ROS_INFO("[GlobalPlanner] Planner has been initialized");
+    ROS_INFO("[AgribotGlobalPlanner] Planner has been initialized");
   }
   else
   {
-    ROS_WARN("[GlobalPlanner] This planner has already been initialized");
+    ROS_WARN("[AgribotGlobalPlanner] This planner has already been initialized");
   }
 }
 
-bool WaypointGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start_pose,
-                                     const geometry_msgs::PoseStamped& goal,
-                                     std::vector<geometry_msgs::PoseStamped>& plan)
+bool AgribotGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start_pose,
+                                    const geometry_msgs::PoseStamped& goal,
+                                    std::vector<geometry_msgs::PoseStamped>& plan)
 {
-  ROS_INFO("[GlobalPlanner] Make plan start");
+  ROS_INFO("[AgribotGlobalPlanner] Make plan start");
   path_.header.stamp = ros::Time::now();
   path_.poses.clear();
   path_.poses.insert(path_.poses.begin(), start_pose);
@@ -76,11 +76,11 @@ bool WaypointGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start_pos
   plan_pub_.publish(path_);
   // createAndPublishMarkersFromPath(path_.poses);
   plan = path_.poses;
-  ROS_INFO("[GlobalPlanner] Make plan finish");
+  ROS_INFO("[AgribotGlobalPlanner] Make plan finish");
   return true;
 }
 
-void WaypointGlobalPlanner::interpolatePath(nav_msgs::Path& path)
+void AgribotGlobalPlanner::interpolatePath(nav_msgs::Path& path)
 {
   std::vector<geometry_msgs::PoseStamped> temp_path;
   for (int i = 0; i < static_cast<int>(path.poses.size() - 1); i++)
@@ -112,13 +112,13 @@ void WaypointGlobalPlanner::interpolatePath(nav_msgs::Path& path)
   path.poses = temp_path;
 }
 
-void WaypointGlobalPlanner::createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path)
+void AgribotGlobalPlanner::createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path)
 {
   // clear previous markers
   visualization_msgs::MarkerArray markers;
   visualization_msgs::Marker marker;
   marker.header = path[0].header;
-  marker.ns = "/move_base/waypoint_global_planner";
+  marker.ns = "/move_base/agribot_global_planner";
   marker.type = visualization_msgs::Marker::SPHERE;
   marker.action = visualization_msgs::Marker::DELETEALL;
   marker.scale.x = 2 * param_goal_distance_tolerance;
@@ -143,4 +143,4 @@ void WaypointGlobalPlanner::createAndPublishMarkersFromPath(const std::vector<ge
   waypoint_marker_pub_.publish(markers);
 }
 
-}  // namespace waypoint_global_planner
+}  // namespace agribot_global_planner

@@ -57,11 +57,11 @@
 
 namespace agribot_local_planner
 {
-class AgribotPlannerROS : public nav_core::BaseLocalPlanner
+class AgribotLocalPlanner : public nav_core::BaseLocalPlanner
 {
 public:
-  AgribotPlannerROS();
-  ~AgribotPlannerROS();
+  AgribotLocalPlanner();
+  ~AgribotLocalPlanner();
   void initialize(std::string name, tf2_ros::Buffer* tfBuffer, costmap_2d::Costmap2DROS* costmapROS);
   bool setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan);
   bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);  // NOLINT(runtime/references)
@@ -85,13 +85,13 @@ private:
   ros::Publisher rabbit_pub_;
   ros::Publisher goal_pub_;
   // contains the global plan
-  std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
   std::vector<geometry_msgs::PoseStamped> trajectory_;
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
-  geometry_msgs::PoseStamped robot_center_;   // present robot center frame
-  geometry_msgs::PoseStamped goal_previous_;  // present robot center frame
+  geometry_msgs::PoseStamped robot_center_;
+  geometry_msgs::PoseStamped goal_;
+  geometry_msgs::PoseStamped goal_previous_;
   std::string reference_frame_id_;
   std::string obstacle_frame_id_;
 

@@ -24,31 +24,31 @@
 #include <string>
 #include <vector>
 
-namespace waypoint_global_planner
+namespace agribot_global_planner
 {
 /**
  * @class CarrotPlanner
  * @brief Provides a simple global planner for producing boustrophedon paths without taking into account obstacles
  */
-class WaypointGlobalPlanner : public nav_core::BaseGlobalPlanner
+class AgribotGlobalPlanner : public nav_core::BaseGlobalPlanner
 {
 public:
   /**
    * @brief Default Constructor
    */
-  WaypointGlobalPlanner();
+  AgribotGlobalPlanner();
 
   /**
    * @brief Constructor for the planner
    * @param name The name of this planner
    * @param costmap_ros A pointer to the ROS wrapper of the costmap to use for planning
    */
-  WaypointGlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
+  AgribotGlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
 
   /**
    * @brief Default destructor
    */
-  ~WaypointGlobalPlanner();
+  ~AgribotGlobalPlanner();
 
   /**
    * @brief Initialization function for the planner
@@ -102,4 +102,4 @@ private:
   nav_msgs::Path path_;  //!< container for the generated interpolated path
 };
 
-}  // namespace waypoint_global_planner
+}  // namespace agribot_global_planner

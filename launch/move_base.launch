@@ -10,7 +10,7 @@
     <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/costmap_global_params.yaml" command="load" />
     <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/costmap_local_params.yaml" command="load" />
-    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/global_planner_params.yaml" command="load" />
+    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/global_planner_agribot_params.yaml" command="load" />
     <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/local_planner_agribot_params.yaml" command="load" />
     <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_params.yaml" command="load" />
 

@@ -160,10 +160,6 @@ link_directories(
   ${PROJECT_SOURCE_DIR}
 )
 
-add_library(simple_local_planner
-  src/planners/simple_local_planner.cpp
-)
-
 add_library(common_functions
   src/common/common_functions.cpp
 )
@@ -220,8 +216,8 @@ add_library(ray_tracker
   src/path_trackers/ray_tracker.cpp
 )
 
-add_library(waypoint_global_planner
-  src/planners/waypoint_global_planner.cpp
+add_library(agribot_global_planner
+  src/planners/agribot_global_planner.cpp
 )
 
 add_library(pure_pursuit_controller
@@ -277,10 +273,6 @@ target_link_libraries(kinematics_control
   ${Boost_LIBRARIES}
 )
 
-target_link_libraries(simple_local_planner
-  ${catkin_LIBRARIES}
-)
-
 target_link_libraries(common_functions
   ${catkin_LIBRARIES}
 )
@@ -309,7 +301,7 @@ target_link_libraries(agribot_local_planner
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(waypoint_global_planner
+target_link_libraries(agribot_global_planner
   ${catkin_LIBRARIES}
 )
 
@@ -366,30 +358,19 @@ install(TARGETS
 )
 
 install(
-  TARGETS simple_local_planner
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-)
-
-install(
   TARGETS agribot_local_planner
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
 install(
-  TARGETS waypoint_global_planner
+  TARGETS agribot_global_planner
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
 install(
   FILES bgp_plugin.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
-install(
-  FILES SP_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
