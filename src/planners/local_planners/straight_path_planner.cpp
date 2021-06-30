@@ -30,7 +30,7 @@ bool StraightPathPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& pa
   }
   catch (const std::exception& e)
   {
-    throw std::invalid_argument("[Obstacle] " + std::string(e.what()));
+    throw std::invalid_argument("[StraightPathPlanner] " + std::string(e.what()));
   }
   return true;
 }

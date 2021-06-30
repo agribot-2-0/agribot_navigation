@@ -6,12 +6,12 @@
 
   <node pkg="move_base" type="move_base" name="move_base" respawn="false" output="screen">
 
-    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/costmap_common_params.yaml" command="load" ns="global_costmap" />
-    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/costmap_common_params.yaml" command="load" ns="local_costmap" />
-    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/costmap_global_params.yaml" command="load" />
-    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/costmap_local_params.yaml" command="load" />
-    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/global_planner_agribot_params.yaml" command="load" />
-    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/local_planner_agribot_params.yaml" command="load" />
+    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_costmap_global_params.yaml" command="load" />
+    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_costmap_local_params.yaml" command="load" />
+    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_planner_global_params.yaml" command="load" />
+    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_planner_local_params.yaml" command="load" />
     <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/move_base_params.yaml" command="load" />
 
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />

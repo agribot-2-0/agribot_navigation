@@ -126,23 +126,13 @@ private:
   int out_of_path_counter_;
 
   // params
-  int param_max_missed_waypoints_;             // n
-  int param_missed_points_tolerance_;          // n
-  int param_prediction_time_;                  // seconds
-  int param_prediction_points_per_second_;     // n/second
-  double param_goal_distance_tolerance_;       // metres
-  double param_chassis_length_;                // metres
-  double param_min_radius_;                    // metres
-  double param_dead_zone_;                     // degrees
-  double param_max_linear_vel_;                // m/s
-  double param_min_linear_vel_;                // m/s
-  double param_current_deviation_weight_;      // factor
-  double param_current_parallelness_weight_;   // factor
-  double param_deviation_weight_straight_;     // factor
-  double param_parallelness_weight_straight_;  // factor
-  double param_deviation_weight_arc_;          // factor
-  double param_parallelness_weight_arc_;       // factor
-  double param_epsilon_;                       // unitless
+  int param_max_missed_waypoints_;        // n
+  double param_goal_distance_tolerance_;  // metres
+  double param_chassis_length_;           // metres
+  double param_min_radius_;               // metres
+  double param_max_linear_vel_;           // m/s
+  double param_min_linear_vel_;           // m/s
+  double param_epsilon_;                  // unitless
 
   double param_design_dead_zone_;                    // degrees
   double param_design_arc_radius_;                   // metres
@@ -157,10 +147,7 @@ private:
 
   std::string param_agribot_controller_name_;
 
-  bool param_speed_limit_;
-  bool param_debug_;
   bool param_statistics_;
-  bool param_take_front_;
 
   void createPlanners();
   void createTrackers();
@@ -188,7 +175,8 @@ private:
   geometry_msgs::Twist stopRobot();
   geometry_msgs::Twist finishedPathBehaviour();
   double closeToZero(const double value);
-  bool isReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
+  bool isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
+                        const geometry_msgs::PoseStamped& path_end_waypoint);
   bool isTheSameGoalAsPrevious(const geometry_msgs::PoseStamped& goal);
   bool isOutOfPath();
 
