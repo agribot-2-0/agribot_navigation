@@ -16,6 +16,7 @@
 #include <ros/ros.h>
 #pragma GCC diagnostic pop
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
+#include <agribot_navigation/common/common_functions.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Path.h>
@@ -26,59 +27,19 @@
 
 namespace agribot_global_planner
 {
-/**
- * @class CarrotPlanner
- * @brief Provides a simple global planner for producing boustrophedon paths without taking into account obstacles
- */
 class AgribotGlobalPlanner : public nav_core::BaseGlobalPlanner
 {
 public:
-  /**
-   * @brief Default Constructor
-   */
   AgribotGlobalPlanner();
 
-  /**
-   * @brief Constructor for the planner
-   * @param name The name of this planner
-   * @param costmap_ros A pointer to the ROS wrapper of the costmap to use for planning
-   */
   AgribotGlobalPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
 
-  /**
-   * @brief Default destructor
-   */
   ~AgribotGlobalPlanner();
 
-  /**
-   * @brief Initialization function for the planner
-   * @param name The name of this planner
-   * @param costmap_ros A pointer to the ROS wrapper of the costmap to use for planning
-   */
   void initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
 
-  /**
-   * @brief Given a goal pose in the world, compute a plan
-   * @param start_pose The starting pose of the robot
-   * @param goal The goal pose
-   * @param plan The plan filled by the planner
-   * @return True if a valid plan was found, false otherwise
-   */
   bool makePlan(const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& goal,
                 std::vector<geometry_msgs::PoseStamped>& plan);  // NOLINT(runtime/references)
-
-  /**
-   * @brief Creates and publishes visualization markers from an input path
-   * @param path The input path to be used for the creation of visualization markers
-   */
-  void
-  createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path);  // NOLINT(runtime/references)
-
-  /**
-   * @brief Interpolates a path (position and orientation) using a fixed number of points per meter
-   * @param path The input path to be interpolated
-   */
-  void interpolatePath(nav_msgs::Path& path);  // NOLINT(runtime/references)
 
 private:
   costmap_2d::Costmap2DROS* costmap_ros_;        //!< costmap ros wrapper
@@ -86,19 +47,11 @@ private:
   base_local_planner::WorldModel* world_model_;  //!< world model
   bool initialized_;                             //!< flag indicating the planner has been initialized
 
-  //!< publisher of waypoint visualization markers
-  ros::Publisher waypoint_marker_pub_;
-  //!< publisher of goal corresponding to the final waypoint
-  ros::Publisher goal_pub_;
-  ros::Publisher plan_pub_;  //!< publisher of the global plan
+  ros::Publisher plan_pub_;
 
-  // !< number of waypoints per meter of generated path used for interpolation
-  double waypoints_per_meter_;
-  double param_goal_distance_tolerance;
+  double param_step_size_;
+  std::string param_frame_id_;
 
-  // containers
-  //!< container for the manually inserted waypoints
-  std::vector<geometry_msgs::PoseStamped> waypoints_;
   nav_msgs::Path path_;  //!< container for the generated interpolated path
 };
 
