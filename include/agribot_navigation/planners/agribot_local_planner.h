@@ -123,6 +123,7 @@ private:
   // deviation measuring for statistics
   double traveled_distance_;
   bool abort_executing_;
+  bool is_out_of_path_;
   int out_of_path_counter_;
 
   // params

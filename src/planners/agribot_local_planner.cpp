@@ -220,6 +220,8 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
     }
 
     last_odom_stamp_ = 0;
+    is_out_of_path_ = false;
+
     ros::topic::waitForMessage<nav_msgs::Odometry>("odom");
 
     initialized_ = true;
@@ -256,11 +258,12 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
   last_odom_stamp_ = 0;
   ros::topic::waitForMessage<nav_msgs::Odometry>("odom");
 
-  // if (isTheSameGoalAsPrevious(goal_))
-  // {
-  //   ROS_ERROR_STREAM("[AgribotLocalPlanner] The current goal is the same as previous. Abort planning.");
-  //   return false;
-  // }
+  if (is_out_of_path_)
+  {
+    ROS_ERROR_STREAM("[AgribotLocalPlanner] Prevent replanning. Abort planning.");
+    is_out_of_path_ = false;
+    return false;
+  }
 
   // make local plan
   for (auto const& planner_name : planners_fallback_strategy_)
@@ -406,6 +409,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   if (out_of_path_counter_ > param_max_missed_waypoints_)
   {
     out_of_path_counter_ = 0;
+    is_out_of_path_ = true;
     cmd_vel = stopRobot();
     local_plan_.clear();
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Out of path. Abort plan");
@@ -539,13 +543,6 @@ double AgribotLocalPlanner::closeToZero(const double value)
   {
     return value;
   }
-}
-
-bool AgribotLocalPlanner::isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
-                                           const geometry_msgs::PoseStamped& path_end_waypoint)
-{
-  double distanceToGoal = CommonFunctions::distanceBetweenPoses(path_end_waypoint, robot_coordinates);
-  return (distanceToGoal <= param_goal_distance_tolerance_);
 }
 
 geometry_msgs::Twist AgribotLocalPlanner::finishedPathBehaviour()
@@ -692,6 +689,13 @@ bool AgribotLocalPlanner::isOutOfPath(void)
 {
   return CommonFunctions::calculateCrosstrackError(local_plan_, robot_center_) >
          param_maximum_distance_to_path_tolerance_;
+}
+
+bool AgribotLocalPlanner::isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
+                                           const geometry_msgs::PoseStamped& path_end_waypoint)
+{
+  double distanceToGoal = CommonFunctions::distanceBetweenPoses(path_end_waypoint, robot_coordinates);
+  return (distanceToGoal <= param_goal_distance_tolerance_);
 }
 
 }  // namespace agribot_local_planner
