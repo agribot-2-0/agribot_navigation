@@ -10,9 +10,7 @@ CurvatureValidator::CurvatureValidator()
   max_curvature_ = 1.0 / default_min_radius;
   search_width_ = 1;
 }
-CurvatureValidator::~CurvatureValidator()
-{
-}
+
 bool CurvatureValidator::validatePath(const std::vector<geometry_msgs::PoseStamped>& path)
 {
   for (std::size_t i = search_width_; i < (path.size() - search_width_); i++)

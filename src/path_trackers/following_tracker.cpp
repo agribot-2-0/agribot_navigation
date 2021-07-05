@@ -13,9 +13,6 @@ FollowingTracker::FollowingTracker()
   param_max_missed_waypoints_ = default_missed_points_tolerance;
   reset();
 }
-FollowingTracker::~FollowingTracker()
-{
-}
 
 bool FollowingTracker::findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
                                      const std::vector<geometry_msgs::PoseStamped>& local_path,

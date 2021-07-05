@@ -173,10 +173,6 @@ add_library(obstacle_detection
   src/obstacle_detection/detection.cpp
 )
 
-add_library(i_local_planner
-  src/planners/local_planners/i_local_planner.cpp
-)
-
 add_library(circles_planner
   src/planners/local_planners/circles_planner.cpp
 )
@@ -192,7 +188,6 @@ add_library(agribot_local_planner
   src/planners/agribot_local_planner.cpp
   src/common/common_functions.cpp
   src/common/visualization_functions.cpp
-  src/planners/local_planners/i_local_planner.cpp
   src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp
   src/planners/local_planners/narrow_planner.cpp
@@ -282,10 +277,6 @@ target_link_libraries(visualization_functions
 )
 
 target_link_libraries(obstacle_detection
-  ${catkin_LIBRARIES}
-)
-
-target_link_libraries(i_local_planner
   ${catkin_LIBRARIES}
 )
 

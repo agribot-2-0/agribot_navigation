@@ -13,9 +13,6 @@ RayTracker::RayTracker()
   side_tracking_ = true;
   reset();
 }
-RayTracker::~RayTracker()
-{
-}
 
 void RayTracker::reset()
 {

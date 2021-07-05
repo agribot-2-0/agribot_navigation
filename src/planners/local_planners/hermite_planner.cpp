@@ -9,23 +9,12 @@ constexpr double tangent_coefficient = 1.8;
 
 namespace agribot_local_planner
 {
-HermitePlanner::HermitePlanner() : ILocalPlanner()
-{
-  step_size = default_step_size;
-  base_magnitude_start = default_hermite_magnitude;
-  base_magnitude_end = default_hermite_magnitude;
-}
-
 HermitePlanner::HermitePlanner(const std::string& frame) : ILocalPlanner()
 {
   step_size = default_step_size;
   base_magnitude_start = default_hermite_magnitude;
   base_magnitude_end = default_hermite_magnitude;
-  setFrameId(frame);
-}
-
-HermitePlanner::~HermitePlanner()
-{
+  frame_id = frame;
 }
 
 bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,

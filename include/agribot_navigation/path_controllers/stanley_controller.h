@@ -20,8 +20,7 @@ namespace agribot_path_controllers
 class StanleyController : public IPathController
 {
 public:
-  StanleyController();
-  ~StanleyController();
+  StanleyController() = default;
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;

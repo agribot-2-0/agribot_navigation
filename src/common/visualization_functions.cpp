@@ -61,7 +61,8 @@ void goalVisualization(const geometry_msgs::PoseStamped& goal, const double para
   marker.type = visualization_msgs::Marker::SPHERE;
   marker.action = visualization_msgs::Marker::DELETEALL;
 
-  marker.pose = goal.pose;
+  marker.pose.position = goal.pose.position;
+  marker.pose.orientation.w = 1;
   marker.scale.x = 2 * param_goal_distance_tolerance;
   marker.scale.y = 2 * param_goal_distance_tolerance;
   marker.scale.z = 0.01;

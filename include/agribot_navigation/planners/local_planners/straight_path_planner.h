@@ -14,9 +14,9 @@ namespace agribot_local_planner
 class StraightPathPlanner : public ILocalPlanner
 {
 public:
-  StraightPathPlanner();
+  StraightPathPlanner() = delete;
   explicit StraightPathPlanner(const std::string& frame);
-  ~StraightPathPlanner();
+
   bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                   const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) override;
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
@@ -26,6 +26,7 @@ public:
   void setStepSize(const double param_step_size);
 
 private:
+  std::string frame_id;
   double chassis_length_ = 0;
   double step_size_ = 0.1;
   std::vector<ObstacleDetection::Obstacle> obstacles_;

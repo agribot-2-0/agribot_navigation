@@ -9,9 +9,7 @@ DistanceValidator::DistanceValidator()
 {
   min_distance_ = default_chassis_length;
 }
-DistanceValidator::~DistanceValidator()
-{
-}
+
 bool DistanceValidator::validatePath(const std::vector<geometry_msgs::PoseStamped>& path)
 {
   double path_distance = 0.0;

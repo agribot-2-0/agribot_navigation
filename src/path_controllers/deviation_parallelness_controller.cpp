@@ -17,10 +17,6 @@ DeviationParallelnessController::DeviationParallelnessController() : IPathContro
   param_epsilon = default_epsilon;
 }
 
-DeviationParallelnessController::~DeviationParallelnessController()
-{
-}
-
 void DeviationParallelnessController::setSpeedLimiting(const bool limiting)
 {
   param_speed_limiting = limiting;

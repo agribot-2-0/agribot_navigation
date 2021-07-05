@@ -74,15 +74,12 @@ private:
   tf2_ros::TransformListener* tf_listener_;
   ros::Subscriber odom_sub_;
   ros::Publisher path_pub_;
-  ros::Publisher predicted_path_pub_;
-  ros::Publisher path_slice_pub_;
   ros::Publisher obstacles_pub_;
   ros::Publisher obstacles_left_polygon_pub_;
   ros::Publisher obstacles_right_polygon_pub_;
   ros::Publisher obstacles_polygon_pub_;
   ros::Publisher obstacles_left_line_pub_;
   ros::Publisher obstacles_right_line_pub_;
-  ros::Publisher rabbit_pub_;
   ros::Publisher goal_pub_;
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> local_plan_;
@@ -178,7 +175,6 @@ private:
   double closeToZero(const double value);
   bool isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
                         const geometry_msgs::PoseStamped& path_end_waypoint);
-  bool isTheSameGoalAsPrevious(const geometry_msgs::PoseStamped& goal);
   bool isOutOfPath();
 
   void getParameters(const ros::NodeHandle& nh);

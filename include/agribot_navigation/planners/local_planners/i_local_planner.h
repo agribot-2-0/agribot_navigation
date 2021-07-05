@@ -25,15 +25,11 @@ namespace agribot_local_planner
 class ILocalPlanner
 {
 public:
+  virtual ~ILocalPlanner() = default;
   virtual bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                           const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) = 0;
   virtual void addObstacle(const ObstacleDetection::Obstacle& obstacle) = 0;
   virtual std::vector<ObstacleDetection::Obstacle> getObstacles(void) = 0;
   virtual void clearObstacles(void) = 0;
-
-  void setFrameId(const std::string& frame);
-
-protected:
-  std::string frame_id;
 };
 }  // namespace agribot_local_planner

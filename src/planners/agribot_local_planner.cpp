@@ -187,15 +187,12 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
     odom_sub_ = gn.subscribe("odom", 100, &AgribotLocalPlanner::odomCallback, this);
 
     path_pub_ = pnh.advertise<nav_msgs::Path>("local_path", 10);
-    predicted_path_pub_ = pnh.advertise<nav_msgs::Path>("predicted_path", 10);
-    path_slice_pub_ = pnh.advertise<nav_msgs::Path>("path_slice", 10);
     obstacles_pub_ = pnh.advertise<costmap_converter::ObstacleMsg>("obstacles", 10);
     obstacles_left_polygon_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_left_polygon", 10);
     obstacles_right_polygon_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_right_polygon", 10);
     obstacles_polygon_pub_ = pnh.advertise<visualization_msgs::Marker>("obstacles_polygon", 10);
     obstacles_left_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_left_line", 10);
     obstacles_right_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_right_line", 10);
-    rabbit_pub_ = pnh.advertise<geometry_msgs::PoseStamped>("rabbit_pose", 10);
     goal_pub_ = pnh.advertise<visualization_msgs::Marker>("goal_tolerance", 10);
 
     // be sure that path planning arc radius is greater or equal to minimum turning radius
@@ -630,47 +627,17 @@ geometry_msgs::PolygonStamped AgribotLocalPlanner::transformPolygon(const geomet
   return polygon_transformed;
 }
 
-bool AgribotLocalPlanner::isTheSameGoalAsPrevious(const geometry_msgs::PoseStamped& goal)
-{
-  bool isTheSame = false;
-  if (goal_previous_ == goal)
-  {
-    isTheSame = true;
-  }
-  goal_previous_ = goal;
-  return isTheSame;
-}
-
 void AgribotLocalPlanner::visualizationPath(void)
 {
   VisualizationFunctions::pathVisualization(local_plan_, reference_frame_id_, path_pub_);
-  // VisualizationFunctions::pathVisualization(path_slice_.poses, reference_frame_id_, path_slice_pub_);
-  // VisualizationFunctions::pathVisualization(trajectory_, reference_frame_id_, path_slice_pub_);
-  // VisualizationFunctions::predictedPathVisualization(
-  //     cmd_vel, CommonFunctions::pCoordinatesFromPoseStamped(robot_center_), param_prediction_points_per_second_,
-  //     param_prediction_time_, reference_frame_id_, predicted_path_pub_);
-  // auto pure_pursuit_pointer =
-  //     dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["pure_pursuit"].get());
-  // if (pure_pursuit_pointer != nullptr)
-  // {
-  //   VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pub_);
-  // }
-
-  auto stanley_pointer =
-      dynamic_cast<agribot_path_controllers::StanleyController*>(controllers_["StanleyController"].get());
-  if (stanley_pointer != nullptr)
+  try
   {
-    VisualizationFunctions::poseVisualization(stanley_pointer->getProjectionPose(), rabbit_pub_);
+    VisualizationFunctions::goalVisualization(local_plan_.back(), param_goal_distance_tolerance_, goal_pub_);
   }
-
-  // try
-  // {
-  //   VisualizationFunctions::goalVisualization(local_plan_.back(), param_goal_distance_tolerance_, goal_pub_);
-  // }
-  // catch (const std::exception& ex)
-  // {
-  //   ROS_ERROR_STREAM("[AgribotLocalPlanner] " << ex.what());
-  // }
+  catch (const std::exception& ex)
+  {
+    ROS_ERROR_STREAM("[AgribotLocalPlanner] " << ex.what());
+  }
 }
 
 void AgribotLocalPlanner::visualizationObstacles(void)

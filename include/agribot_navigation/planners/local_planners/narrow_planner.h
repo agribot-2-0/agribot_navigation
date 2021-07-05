@@ -24,9 +24,9 @@ namespace agribot_local_planner
 class NarrowCorridorPlanner : public ILocalPlanner
 {
 public:
-  NarrowCorridorPlanner();
+  NarrowCorridorPlanner() = delete;
   explicit NarrowCorridorPlanner(const std::string& frame);
-  ~NarrowCorridorPlanner();
+
   bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                   const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) override;
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
@@ -36,6 +36,7 @@ public:
   void setStepSize(const double param_step_size);
 
 private:
+  std::string frame_id;
   ObstacleDetection::Obstacle obstacles_left_;
   ObstacleDetection::Obstacle obstacles_right_;
   std::vector<ObstacleDetection::Obstacle> obstacles_;

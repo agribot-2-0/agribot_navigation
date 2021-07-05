@@ -11,14 +11,6 @@
 
 namespace agribot_path_controllers
 {
-StanleyController::StanleyController() : IPathController()
-{
-}
-
-StanleyController::~StanleyController()
-{
-}
-
 void StanleyController::setVelocityLinear(const double velocity)
 {
   lin_vel_ = velocity;
@@ -70,7 +62,7 @@ double StanleyController::calculateCrosstrackError(const std::vector<geometry_ms
                                                    const geometry_msgs::PoseStamped& robot_pose)
 {
   double shortest_distance = std::numeric_limits<double>::max();
-  for (auto& pose : path_to_track)
+  for (const auto& pose : path_to_track)
   {
     if (CommonFunctions::distanceBetweenPoses(pose, robot_pose) < shortest_distance)
     {
@@ -79,11 +71,11 @@ double StanleyController::calculateCrosstrackError(const std::vector<geometry_ms
     }
   }
 
-  double directrion_of_projection =
+  double direction_of_projection =
       CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(path_to_track.back(), robot_pose) -
                                   CommonFunctions::angleBetweenPoses(path_to_track.back(), path_to_track.front()));
 
-  if (directrion_of_projection < 0)
+  if (direction_of_projection < 0)
   {
     shortest_distance *= -1;
   }

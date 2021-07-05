@@ -6,17 +6,9 @@
 
 namespace agribot_local_planner
 {
-StraightPathPlanner::StraightPathPlanner() : ILocalPlanner()
-{
-}
-
 StraightPathPlanner::StraightPathPlanner(const std::string& frame) : ILocalPlanner()
 {
-  setFrameId(frame);
-}
-
-StraightPathPlanner::~StraightPathPlanner()
-{
+  frame_id = frame;
 }
 
 bool StraightPathPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,

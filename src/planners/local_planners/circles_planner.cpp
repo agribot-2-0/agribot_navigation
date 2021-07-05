@@ -6,25 +6,13 @@
 
 namespace agribot_local_planner
 {
-CirclesPlanner::CirclesPlanner() : ILocalPlanner()
-{
-  dead_zone = default_design_dead_zone;
-  arc_radius = default_design_arc_radius;
-  step_size = default_step_size;
-  arc_step = calculateArcStep(arc_radius, step_size);
-}
-
 CirclesPlanner::CirclesPlanner(const std::string& frame) : ILocalPlanner()
 {
   dead_zone = default_design_dead_zone;
   arc_radius = default_design_arc_radius;
   step_size = default_step_size;
   arc_step = calculateArcStep(arc_radius, step_size);
-  setFrameId(frame);
-}
-
-CirclesPlanner::~CirclesPlanner()
-{
+  frame_id = frame;
 }
 
 bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,

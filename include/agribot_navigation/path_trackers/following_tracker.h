@@ -6,10 +6,10 @@
 
 #include <vector>
 
-#include "agribot_navigation/path_trackers/i_path_tracker.h"
-#include "agribot_navigation/common/structures.h"
-#include "agribot_navigation/common/default_values.h"
 #include "agribot_navigation/common/common_functions.h"
+#include "agribot_navigation/common/default_values.h"
+#include "agribot_navigation/common/structures.h"
+#include "agribot_navigation/path_trackers/i_path_tracker.h"
 
 namespace agribot_path_trackers
 {
@@ -17,7 +17,6 @@ class FollowingTracker : public IPathTracker
 {
 public:
   FollowingTracker();
-  ~FollowingTracker();
   bool findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
                      const std::vector<geometry_msgs::PoseStamped>& local_path,
                      const geometry_msgs::PoseStamped& robot_pose) override;

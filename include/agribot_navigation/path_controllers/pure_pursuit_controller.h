@@ -20,7 +20,6 @@ class PurePursuitController : public IPathController
 {
 public:
   PurePursuitController();
-  ~PurePursuitController();
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;

@@ -17,7 +17,6 @@ class CurvatureValidator : public IPathValidator
 {
 public:
   CurvatureValidator();
-  ~CurvatureValidator();
   bool validatePath(const std::vector<geometry_msgs::PoseStamped>& path) override;
   void setMaxCurvature(const double curvature);
   void setSearchWidth(const std::size_t width);

@@ -16,9 +16,9 @@ namespace agribot_local_planner
 class CirclesPlanner : public ILocalPlanner
 {
 public:
-  CirclesPlanner();
+  CirclesPlanner() = delete;
   explicit CirclesPlanner(const std::string& frame);
-  ~CirclesPlanner();
+
   bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                   const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) override;
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
@@ -29,7 +29,7 @@ public:
   void setDeadZone(const double param_dead_zone);
   void setStepSize(const double param_step_size);
 
-protected:
+private:
   pos pCircleTangentToPathAndCircle(const pos& c2_center, const pos& end_point, const double path_angle,
                                     const double angle_difference, const double arc_radius,
                                     const double dead_zone) const;
@@ -50,6 +50,8 @@ protected:
                          const bool reverse_direction) const;
   double calculateSpanC2(const pos& end_point, const pos& c1_center, const pos& c2_center,
                          const double angle_difference, const bool reverse_direction) const;
+
+  std::string frame_id;
   pos end_c2_center;
   pos end_c1_center;
   pos end_tangent_point;

@@ -14,11 +14,6 @@ PurePursuitController::PurePursuitController() : IPathController()
   rabbit_count_ = 0;
   look_ahead_distance_ = 0;
 }
-
-PurePursuitController::~PurePursuitController()
-{
-}
-
 void PurePursuitController::setVelocityLinear(const double velocity)
 {
   lin_vel_ = velocity;

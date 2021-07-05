@@ -6,17 +6,9 @@
 
 namespace agribot_local_planner
 {
-NarrowCorridorPlanner::NarrowCorridorPlanner() : ILocalPlanner()
-{
-}
-
 NarrowCorridorPlanner::NarrowCorridorPlanner(const std::string& frame) : ILocalPlanner()
 {
-  setFrameId(frame);
-}
-
-NarrowCorridorPlanner::~NarrowCorridorPlanner()
-{
+  frame_id = frame;
 }
 
 bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
