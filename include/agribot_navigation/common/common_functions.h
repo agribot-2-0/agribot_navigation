@@ -54,8 +54,8 @@ void straightPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runt
 double calculateCrosstrackError(const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                 const geometry_msgs::PoseStamped& robot_pose);
 
-geometry_msgs::Quaternion orientationBetweenQuaternions(const geometry_msgs::Quaternion& quaterion1,
-                                                        const geometry_msgs::Quaternion& quaterion2);
+geometry_msgs::Quaternion orientationBetweenQuaternions(const geometry_msgs::Quaternion& quaternion1,
+                                                        const geometry_msgs::Quaternion& quaternion2);
 geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg, const double min_motion_radius,
                                  const double cutoff_radius);
 geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg, const double min_motion_radius);

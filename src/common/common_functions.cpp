@@ -190,12 +190,12 @@ double calculateCrosstrackError(const std::vector<geometry_msgs::PoseStamped>& p
   return shortest_distance;
 }
 
-geometry_msgs::Quaternion orientationBetweenQuaternions(const geometry_msgs::Quaternion& quaterion1,
-                                                        const geometry_msgs::Quaternion& quaterion2)
+geometry_msgs::Quaternion orientationBetweenQuaternions(const geometry_msgs::Quaternion& quaternion1,
+                                                        const geometry_msgs::Quaternion& quaternion2)
 {
   tf2::Quaternion q_1, q_rot, q_2;
-  tf2::convert(quaterion1, q_1);
-  tf2::convert(quaterion2, q_2);
+  tf2::convert(quaternion1, q_1);
+  tf2::convert(quaternion2, q_2);
 
   q_rot = q_2 * q_1.inverse();
   return tf2::toMsg(q_rot);
