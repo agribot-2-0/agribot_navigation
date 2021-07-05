@@ -13,6 +13,7 @@ namespace agribot_path_trackers
 class IPathTracker
 {
 public:
+  virtual ~IPathTracker() = default;
   virtual bool findPathSlice(std::vector<geometry_msgs::PoseStamped>& path_slice,  // NOLINT(runtime/references)
                              const std::vector<geometry_msgs::PoseStamped>& local_path,
                              const geometry_msgs::PoseStamped& robot_pose) = 0;

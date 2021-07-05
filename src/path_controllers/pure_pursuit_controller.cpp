@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #include "agribot_navigation/path_controllers/pure_pursuit_controller.h"
@@ -14,11 +14,6 @@ PurePursuitController::PurePursuitController() : IPathController()
   rabbit_count_ = 0;
   look_ahead_distance_ = 0;
 }
-
-PurePursuitController::~PurePursuitController()
-{
-}
-
 void PurePursuitController::setVelocityLinear(const double velocity)
 {
   lin_vel_ = velocity;
@@ -75,29 +70,9 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
   msg.linear_velocity = lin_vel_;
   msg.circle_radius = motion_radius_;
 
-  cmd_vel = teleopToVel(msg);
+  cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
 
   return true;
-}
-
-geometry_msgs::Twist PurePursuitController::teleopToVel(const agribot_msgs::AgribotManualControl& in_msg)
-{
-  geometry_msgs::Twist out_msg;
-
-  out_msg.linear.x = in_msg.linear_velocity;
-  if (abs(in_msg.circle_radius) > min_motion_radius_)
-  {
-    out_msg.angular.z = in_msg.linear_velocity / in_msg.circle_radius;
-  }
-  else if (abs(in_msg.circle_radius) < min_motion_radius_ && in_msg.circle_radius > 0)
-  {
-    out_msg.angular.z = in_msg.linear_velocity / min_motion_radius_;
-  }
-  else if (abs(in_msg.circle_radius) < min_motion_radius_ && in_msg.circle_radius < 0)
-  {
-    out_msg.angular.z = -in_msg.linear_velocity / min_motion_radius_;
-  }
-  return out_msg;
 }
 
 bool PurePursuitController::computeRabbit(double look_ahead_distance, const std::size_t& path_size)

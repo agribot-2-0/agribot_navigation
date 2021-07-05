@@ -9,6 +9,8 @@
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
 
+#include <string>
+
 enum
 {
   X,
@@ -154,5 +156,5 @@ public:
   void vSetFrontLimit(double limit);
   void vSetBackLimit(double limit);
   void vSetPrecisionRange(double range);
-  void setSteeringMode(const SteeringMode& mode);
+  void setSteeringMode(const std::string& mode);
 };

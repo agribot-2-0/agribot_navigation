@@ -31,6 +31,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
 
+# Geographiclib installs FindGeographicLib.cmake to this non-standard location
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/usr/share/cmake/geographiclib/")
+find_package(GeographicLib REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -157,10 +160,6 @@ link_directories(
   ${PROJECT_SOURCE_DIR}
 )
 
-add_library(simple_local_planner
-  src/planners/simple_local_planner.cpp
-)
-
 add_library(common_functions
   src/common/common_functions.cpp
 )
@@ -174,10 +173,6 @@ add_library(obstacle_detection
   src/obstacle_detection/detection.cpp
 )
 
-add_library(i_local_planner
-  src/planners/local_planners/i_local_planner.cpp
-)
-
 add_library(circles_planner
   src/planners/local_planners/circles_planner.cpp
 )
@@ -185,15 +180,18 @@ add_library(circles_planner
 add_library(hermite_planner
   src/planners/local_planners/hermite_planner.cpp
 )
+add_library(straight_path_planner
+  src/planners/local_planners/straight_path_planner.cpp
+)
 
 add_library(agribot_local_planner
   src/planners/agribot_local_planner.cpp
   src/common/common_functions.cpp
   src/common/visualization_functions.cpp
-  src/planners/local_planners/i_local_planner.cpp
   src/planners/local_planners/circles_planner.cpp
   src/planners/local_planners/hermite_planner.cpp
   src/planners/local_planners/narrow_planner.cpp
+  src/planners/local_planners/straight_path_planner.cpp
   src/path_trackers/following_tracker.cpp
   src/path_trackers/ray_tracker.cpp
   src/path_controllers/pure_pursuit_controller.cpp
@@ -213,8 +211,8 @@ add_library(ray_tracker
   src/path_trackers/ray_tracker.cpp
 )
 
-add_library(waypoint_global_planner
-  src/planners/waypoint_global_planner.cpp
+add_library(agribot_global_planner
+  src/planners/agribot_global_planner.cpp
 )
 
 add_library(pure_pursuit_controller
@@ -250,10 +248,11 @@ add_executable(kinematics_control
 add_executable(cmd_vel_arbiter_node
   src/cmd_vel_arbiter/cmd_vel_arbiter_node.cpp
   src/cmd_vel_arbiter/CmdVelArbiterNode.cpp
+  src/common/common_functions.cpp
 )
 
 add_executable(navigation_manager_node src/navigation_manager/navigation_manager_node.cpp src/navigation_manager/NavigationManager.cpp)
-target_link_libraries(navigation_manager_node ${catkin_LIBRARIES})
+target_link_libraries(navigation_manager_node ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES})
 add_dependencies(navigation_manager_node ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(
@@ -269,10 +268,6 @@ target_link_libraries(kinematics_control
   ${Boost_LIBRARIES}
 )
 
-target_link_libraries(simple_local_planner
-  ${catkin_LIBRARIES}
-)
-
 target_link_libraries(common_functions
   ${catkin_LIBRARIES}
 )
@@ -282,10 +277,6 @@ target_link_libraries(visualization_functions
 )
 
 target_link_libraries(obstacle_detection
-  ${catkin_LIBRARIES}
-)
-
-target_link_libraries(i_local_planner
   ${catkin_LIBRARIES}
 )
 
@@ -301,7 +292,7 @@ target_link_libraries(agribot_local_planner
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(waypoint_global_planner
+target_link_libraries(agribot_global_planner
   ${catkin_LIBRARIES}
 )
 
@@ -358,30 +349,19 @@ install(TARGETS
 )
 
 install(
-  TARGETS simple_local_planner
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-)
-
-install(
   TARGETS agribot_local_planner
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
 install(
-  TARGETS waypoint_global_planner
+  TARGETS agribot_global_planner
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
 install(
   FILES bgp_plugin.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
-install(
-  FILES SP_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

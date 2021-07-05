@@ -6,25 +6,13 @@
 
 namespace agribot_local_planner
 {
-CirclesPlanner::CirclesPlanner() : ILocalPlanner()
-{
-  dead_zone = default_design_dead_zone;
-  arc_radius = default_design_arc_radius;
-  step_size = default_step_size;
-  arc_step = calculateArcStep(arc_radius, step_size);
-}
-
 CirclesPlanner::CirclesPlanner(const std::string& frame) : ILocalPlanner()
 {
   dead_zone = default_design_dead_zone;
   arc_radius = default_design_arc_radius;
   step_size = default_step_size;
   arc_step = calculateArcStep(arc_radius, step_size);
-  setFrameId(frame);
-}
-
-CirclesPlanner::~CirclesPlanner()
-{
+  frame_id = frame;
 }
 
 bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
@@ -181,13 +169,13 @@ double CirclesPlanner::calculatePerpendicular(const double angle_difference, con
     direction = 1.0;
   }
 
-  if (angle_difference < CommonFunctions::toRadians(-dead_zone))
+  if (angle_difference < common_functions::radians(-dead_zone))
   {
-    perpendicular = vector_orientation - direction * CommonFunctions::toRadians(90);
+    perpendicular = vector_orientation - direction * common_functions::radians(90);
   }
-  else if (angle_difference > CommonFunctions::toRadians(dead_zone))
+  else if (angle_difference > common_functions::radians(dead_zone))
   {
-    perpendicular = vector_orientation + direction * CommonFunctions::toRadians(90);
+    perpendicular = vector_orientation + direction * common_functions::radians(90);
   }
   else
   {
@@ -207,7 +195,7 @@ bool CirclesPlanner::arcPath(std::vector<geometry_msgs::PoseStamped>& path, cons
 {
   double angle_start_center = CommonFunctions::dAngleBetweenCoordinates(circle_start, circle_center);
 
-  int steps = abs(CommonFunctions::toDegrees(angle_span)) / arc_step;
+  int steps = abs(common_functions::degrees(angle_span)) / arc_step;
   double step_size = angle_span / steps;
 
   if (steps <= 0)
@@ -283,14 +271,14 @@ double CirclesPlanner::calculateSpanC2(const pos& end_point, const pos& c1_cente
   {
     if (c2_span > 0)
     {
-      c2_span = fmod(c2_span - CommonFunctions::toRadians(360), CommonFunctions::toRadians(360));
+      c2_span = fmod(c2_span - common_functions::radians(360), common_functions::radians(360));
     }
   }
   else
   {
     if (c2_span < 0)
     {
-      c2_span = fmod(c2_span + CommonFunctions::toRadians(360), CommonFunctions::toRadians(360));
+      c2_span = fmod(c2_span + common_functions::radians(360), common_functions::radians(360));
     }
   }
   return c2_span;
@@ -353,5 +341,15 @@ bool CirclesPlanner::assemblePath(std::vector<geometry_msgs::PoseStamped>& path,
   }
 
   return true;
+}
+
+std::vector<ObstacleDetection::Obstacle> CirclesPlanner::getObstacles(void)
+{
+  return obstacles_;
+}
+
+void CirclesPlanner::clearObstacles(void)
+{
+  obstacles_.clear();
 }
 }  // namespace agribot_local_planner

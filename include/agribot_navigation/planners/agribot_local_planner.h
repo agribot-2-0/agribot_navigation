@@ -13,6 +13,7 @@
 #include <nav_core/base_local_planner.h>
 #include <ros/ros.h>
 #pragma GCC diagnostic pop
+#include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <geometry_msgs/Polygon.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -52,14 +53,15 @@
 #include "agribot_navigation/planners/local_planners/hermite_planner.h"
 #include "agribot_navigation/planners/local_planners/i_local_planner.h"
 #include "agribot_navigation/planners/local_planners/narrow_planner.h"
+#include "agribot_navigation/planners/local_planners/straight_path_planner.h"
 
 namespace agribot_local_planner
 {
-class AgribotPlannerROS : public nav_core::BaseLocalPlanner
+class AgribotLocalPlanner : public nav_core::BaseLocalPlanner
 {
 public:
-  AgribotPlannerROS();
-  ~AgribotPlannerROS();
+  AgribotLocalPlanner();
+  ~AgribotLocalPlanner();
   void initialize(std::string name, tf2_ros::Buffer* tfBuffer, costmap_2d::Costmap2DROS* costmapROS);
   bool setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan);
   bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);  // NOLINT(runtime/references)
@@ -72,29 +74,29 @@ private:
   tf2_ros::TransformListener* tf_listener_;
   ros::Subscriber odom_sub_;
   ros::Publisher path_pub_;
-  ros::Publisher predicted_path_pub_;
-  ros::Publisher path_slice_pub_;
   ros::Publisher obstacles_pub_;
   ros::Publisher obstacles_left_polygon_pub_;
   ros::Publisher obstacles_right_polygon_pub_;
   ros::Publisher obstacles_polygon_pub_;
   ros::Publisher obstacles_left_line_pub_;
   ros::Publisher obstacles_right_line_pub_;
-  ros::Publisher rabbit_pub_;
+  ros::Publisher goal_pub_;
   // contains the global plan
-  std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> local_plan_;
   std::vector<geometry_msgs::PoseStamped> trajectory_;
-  nav_msgs::Path local_path_;
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
-  geometry_msgs::PoseStamped robot_center_;  // present robot center frame
-  std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
+  geometry_msgs::PoseStamped robot_center_;
+  geometry_msgs::PoseStamped goal_;
+  geometry_msgs::PoseStamped goal_previous_;
   std::string reference_frame_id_;
   std::string obstacle_frame_id_;
+
+  std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;
+  std::vector<std::string> planners_fallback_strategy_;
 
   pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> costmap_converter_loader_;
   boost::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_;
@@ -118,36 +120,32 @@ private:
   // deviation measuring for statistics
   double traveled_distance_;
   bool abort_executing_;
+  bool is_out_of_path_;
+  int out_of_path_counter_;
+
   // params
-  int param_missed_points_tolerance_;          // n
-  int param_prediction_time_;                  // seconds
-  int param_prediction_points_per_second_;     // n/second
-  double param_goal_distance_tolerance_;       // metres
-  double param_goal_range_;                    // factor
-  double param_chassis_length_;                // metres
-  double param_min_radius_;                    // metres
-  double param_dead_zone_;                     // degrees
-  double param_max_linear_vel_;                // m/s
-  double param_min_linear_vel_;                // m/s
-  double param_current_deviation_weight_;      // factor
-  double param_current_parallelness_weight_;   // factor
-  double param_deviation_weight_straight_;     // factor
-  double param_parallelness_weight_straight_;  // factor
-  double param_deviation_weight_arc_;          // factor
-  double param_parallelness_weight_arc_;       // factor
-  double param_epsilon_;                       // unitless
+  int param_max_missed_waypoints_;        // n
+  double param_goal_distance_tolerance_;  // metres
+  double param_chassis_length_;           // metres
+  double param_min_radius_;               // metres
+  double param_max_linear_vel_;           // m/s
+  double param_min_linear_vel_;           // m/s
+  double param_epsilon_;                  // unitless
 
-  double param_design_dead_zone_;             // degrees
-  double param_design_arc_radius_;            // metres
-  double param_design_step_size_;             // metres
-  double param_hermite_magnitude_;            // factor
-  double param_odom_filter_time_;             // seconds
-  double param_missed_distance_coefficient_;  // factor >1
+  double param_design_dead_zone_;                    // degrees
+  double param_design_arc_radius_;                   // metres
+  double param_design_step_size_;                    // metres
+  double param_hermite_magnitude_;                   // factor
+  double param_odom_filter_time_;                    // seconds
+  double param_missed_distance_coefficient_;         // factor >1
+  double param_maximum_distance_to_path_tolerance_;  // factor >1
 
-  bool param_speed_limit_;
-  bool param_debug_;
+  double param_pure_pursuit_rabbit_distance_;  // metres
+  double param_stanley_error_gain_;            // metres
+
+  std::string param_agribot_controller_name_;
+
   bool param_statistics_;
-  bool param_take_front_;
 
   void createPlanners();
   void createTrackers();
@@ -160,11 +158,12 @@ private:
   void publishObstacles();
   void odomCallback(const nav_msgs::Odometry& odometry_msg);
 
-  bool planPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose,
-                const std::string& planner_id);
+  bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
+                const geometry_msgs::PoseStamped& end_pose);
   void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);  // NOLINT(runtime/references)
   void calculateControls(geometry_msgs::Twist& cmd_vel);                       // NOLINT(runtime/references)
+  void visualizationPath(void);
+  void visualizationObstacles(void);
 
   geometry_msgs::PoseStamped transformPose(const geometry_msgs::PoseStamped& pose,
                                            const std::string& frame_id);  // NOLINT(runtime/references)
@@ -174,7 +173,9 @@ private:
   geometry_msgs::Twist stopRobot();
   geometry_msgs::Twist finishedPathBehaviour();
   double closeToZero(const double value);
-  bool isReachedPathEnd(const pos& robot_coordinates, const pos& path_end_waypoint);
+  bool isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
+                        const geometry_msgs::PoseStamped& path_end_waypoint);
+  bool isOutOfPath();
 
   void getParameters(const ros::NodeHandle& nh);
 

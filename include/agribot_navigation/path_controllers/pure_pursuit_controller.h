@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #pragma once
@@ -20,7 +20,6 @@ class PurePursuitController : public IPathController
 {
 public:
   PurePursuitController();
-  ~PurePursuitController();
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
@@ -45,6 +44,5 @@ private:
 
   std::size_t rabbit_count_;
   geometry_msgs::PoseStamped rabbit_pose_;
-  geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg);
 };
 }  // namespace agribot_path_controllers

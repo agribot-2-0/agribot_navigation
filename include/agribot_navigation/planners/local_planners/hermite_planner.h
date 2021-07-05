@@ -16,26 +16,21 @@ namespace agribot_local_planner
 class HermitePlanner : public ILocalPlanner
 {
 public:
-  HermitePlanner();
+  HermitePlanner() = delete;
   explicit HermitePlanner(const std::string& frame);
-  ~HermitePlanner();
+
   bool designPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                   const geometry_msgs::PoseStamped& start_pose, const geometry_msgs::PoseStamped& end_pose) override;
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
-  std::vector<ObstacleDetection::Obstacle> getObstacles(void)
-  {
-    return obstacles_;
-  }
-  void clearObstacles(void)
-  {
-    obstacles_.clear();
-  }
+  std::vector<ObstacleDetection::Obstacle> getObstacles(void) override;
+  void clearObstacles(void) override;
 
   void setStepSize(const double param_step_size);
   void setMagnitudeStart(const double param_magnitude);
   void setMagnitudeEnd(const double param_magnitude);
 
-protected:
+private:
+  std::string frame_id;
   bool hermitePath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
                    const pos& start_point, const pos& end_point, double m_start, double m_end) const;
   pos calculateDerivatives(const double angle, const double magnitude) const;

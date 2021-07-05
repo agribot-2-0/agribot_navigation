@@ -6,8 +6,10 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
+#include <robot_localization/navsat_conversions.h>
 #include <tf2/utils.h>
 #pragma GCC diagnostic pop
 #include <agribot_msgs/AgribotNavigationManagerResult.h>
@@ -15,7 +17,6 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <nav_msgs/Path.h>
-#include <robot_localization/navsat_conversions.h>
 #include <ros/ros.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/Int32.h>

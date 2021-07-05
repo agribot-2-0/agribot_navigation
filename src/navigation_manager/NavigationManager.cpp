@@ -172,8 +172,9 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
     if (load_point)
     {
       pose = path_.poses[current_waypoint];
-      ROS_INFO_STREAM("[NavigationManager] Point " << pose.pose.position.x << ", " << pose.pose.position.y << " Index "
-                                                   << current_waypoint);
+      ROS_INFO_STREAM("[NavigationManager] Starting waypoint " << current_waypoint << " of " << path_.poses.size() - 1);
+      ROS_INFO_STREAM("[NavigationManager] Frame id: " << pose.header.frame_id);
+      ROS_INFO_STREAM("[NavigationManager] Point: x " << pose.pose.position.x << ", y " << pose.pose.position.y);
       goal.target_pose = pose;
       move_base_action_client_->sendGoal(goal);
       load_point = false;
@@ -189,16 +190,15 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
       else if (goal_result == actionlib::SimpleClientGoalState::SUCCEEDED)
       {
         path_action_feedback_.feedback.result = path_action_feedback_.feedback.SUCCES;
-        ROS_INFO_STREAM("[NavigationManager] Goal succeeded, "
-                        << "taking the next goal");
+        ROS_INFO_STREAM("[NavigationManager] Finished waypoint " << current_waypoint << " of " << path_.poses.size() - 1
+                                                                 << ", taking the next one");
         current_waypoint++;
         load_point = true;
       }
       else if (goal_result == actionlib::SimpleClientGoalState::PREEMPTED)
       {
         path_action_feedback_.feedback.result = path_action_feedback_.feedback.PREEMPTED;
-        ROS_INFO_STREAM("[NavigationManager] Goal PREEMPTED, "
-                        << "trying next goal");
+        ROS_INFO_STREAM("[NavigationManager] Goal PREEMPTED, trying next goal");
         current_waypoint++;
         load_point = true;
       }
@@ -217,22 +217,19 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
         path_action_feedback_.feedback.result = path_action_feedback_.feedback.FAILED;
         current_waypoint++;
         load_point = true;
-        ROS_INFO_STREAM("[NavigationManager] The goal was REJECTED!, "
-                        << "trying next goal");
+        ROS_INFO_STREAM("[NavigationManager] The goal was REJECTED!, trying next goal");
       }
       else if (goal_result == actionlib::SimpleClientGoalState::RECALLED)
       {
         path_action_feedback_.feedback.result = path_action_feedback_.feedback.FAILED;
-        ROS_INFO_STREAM("[NavigationManager] The goal was RECALLED!,"
-                        << "trying next goal");
+        ROS_INFO_STREAM("[NavigationManager] The goal was RECALLED!, trying next goal");
         current_waypoint++;
         load_point = true;
       }
       else if (goal_result == actionlib::SimpleClientGoalState::LOST)
       {
         path_action_feedback_.feedback.result = path_action_feedback_.feedback.FAILED;
-        ROS_INFO_STREAM("[NavigationManager] The goal was LOST!,"
-                        << "trying next goal");
+        ROS_INFO_STREAM("[NavigationManager] The goal was LOST!, trying next goal");
         current_waypoint++;
         load_point = true;
       }

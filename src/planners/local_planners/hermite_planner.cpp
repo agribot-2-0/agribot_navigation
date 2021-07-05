@@ -9,23 +9,12 @@ constexpr double tangent_coefficient = 1.8;
 
 namespace agribot_local_planner
 {
-HermitePlanner::HermitePlanner() : ILocalPlanner()
-{
-  step_size = default_step_size;
-  base_magnitude_start = default_hermite_magnitude;
-  base_magnitude_end = default_hermite_magnitude;
-}
-
 HermitePlanner::HermitePlanner(const std::string& frame) : ILocalPlanner()
 {
   step_size = default_step_size;
   base_magnitude_start = default_hermite_magnitude;
   base_magnitude_end = default_hermite_magnitude;
-  setFrameId(frame);
-}
-
-HermitePlanner::~HermitePlanner()
-{
+  frame_id = frame;
 }
 
 bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
@@ -146,11 +135,21 @@ pos HermitePlanner::calculateDerivatives(const double angle, const double magnit
   }
 
   // take negative derivatives for angles between 135 and -45 (315) degrees
-  if (CommonFunctions::toDegrees(angle) < -45 || CommonFunctions::toDegrees(angle) > 135)
+  if (common_functions::degrees(angle) < -45 || common_functions::degrees(angle) > 135)
   {
     derivative.x *= -1;
     derivative.y *= -1;
   }
   return derivative;
 }
+
+std::vector<ObstacleDetection::Obstacle> HermitePlanner::getObstacles(void)
+{
+  return obstacles_;
+}
+void HermitePlanner::clearObstacles(void)
+{
+  obstacles_.clear();
+}
+
 }  // namespace agribot_local_planner

@@ -24,8 +24,8 @@ void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agri
     for (int i = 0; i < prediction_points_per_second * prediction_time; i++)
     {
       double theta = i * velocity.angular.z / prediction_points_per_second;
-      tmp_x = radius * cos(theta - CommonFunctions::toRadians(90)) - radius * cos(CommonFunctions::toRadians(-90));
-      tmp_y = radius * sin(theta - CommonFunctions::toRadians(90)) - radius * sin(CommonFunctions::toRadians(-90));
+      tmp_x = radius * cos(theta - common_functions::radians(90)) - radius * cos(common_functions::radians(-90));
+      tmp_y = radius * sin(theta - common_functions::radians(90)) - radius * sin(common_functions::radians(-90));
 
       point.pose.position.x = robot_center.x + tmp_x * cos(robot_center.az) - tmp_y * sin(robot_center.az);
       point.pose.position.y = robot_center.y + tmp_x * sin(robot_center.az) + tmp_y * cos(robot_center.az);
@@ -50,32 +50,27 @@ void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agri
   pathVisualization(predicted_path, frame_id, publisher);
 }
 
-void goalVisualization(const agribot_local_planner::pos& last_waypoint, const agribot_local_planner::pos& goal,
-                       const std::string& frame_id, const ros::Publisher& publisher)
+void goalVisualization(const geometry_msgs::PoseStamped& goal, const double param_goal_distance_tolerance,
+                       const ros::Publisher& publisher)
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = frame_id;
+  marker.header.frame_id = goal.header.frame_id;
   marker.header.stamp = ros::Time::now();
   marker.ns = "next_goal";
-  marker.action = visualization_msgs::Marker::ADD;
-  marker.id = 2;
-  marker.type = visualization_msgs::Marker::LINE_STRIP;
-  marker.scale.x = 0.1;
-  marker.color.r = 1.0;
-  marker.color.a = 1.0;
+  marker.id = 0;
+  marker.type = visualization_msgs::Marker::SPHERE;
+  marker.action = visualization_msgs::Marker::DELETEALL;
+
+  marker.pose.position = goal.pose.position;
   marker.pose.orientation.w = 1;
+  marker.scale.x = 2 * param_goal_distance_tolerance;
+  marker.scale.y = 2 * param_goal_distance_tolerance;
+  marker.scale.z = 0.01;
+  marker.color.a = 0.5;
+  marker.color.r = 1.0;
 
-  geometry_msgs::Point p;
-  p.x = last_waypoint.x;
-  p.y = last_waypoint.y;
-  p.z = 0;
-  marker.points.push_back(p);
-
-  p.x = goal.x;
-  p.y = goal.y;
-  p.z = 0;
-  marker.points.push_back(p);
-
+  publisher.publish(marker);
+  marker.action = visualization_msgs::Marker::ADD;
   publisher.publish(marker);
 }
 

@@ -2,6 +2,7 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
+#include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <agribot_msgs/AgribotCaterpillar.h>
 #include <agribot_msgs/SteeringMode.h>
 #include <agribot_navigation/KinematicsConfig.h>
@@ -63,19 +64,19 @@ bool steering_mode_callback(agribot_msgs::SteeringMode::Request& request,    // 
   if (request.steering_mode == agribot_msgs::SteeringMode::Request::FOUR_WHEEL)
   {
     ROS_WARN_STREAM("[KinematicsController] Switched to FOUR WHEEL steering mode");
-    KinControl.setSteeringMode(SteeringMode::four_wheel);
+    KinControl.setSteeringMode("four_wheel");
     response.result = true;
   }
   else if (request.steering_mode == agribot_msgs::SteeringMode::Request::FRONT_WHEEL)
   {
     ROS_WARN_STREAM("[KinematicsController] Switched to FRONT WHEEL steering mode");
-    KinControl.setSteeringMode(SteeringMode::front_wheel);
+    KinControl.setSteeringMode("front_wheel");
     response.result = true;
   }
   else if (request.steering_mode == agribot_msgs::SteeringMode::Request::CRAB)
   {
     ROS_WARN_STREAM("[KinematicsController] Switched to CRAB steering mode");
-    KinControl.setSteeringMode(SteeringMode::crab);
+    KinControl.setSteeringMode("crab");
     response.result = true;
   }
   else
@@ -94,40 +95,37 @@ int main(int argc, char** argv)
   server.setCallback(f);
 
   ros::NodeHandle n;
-  ros::NodeHandle pnh("~kinematics_control");
+  ros::NodeHandle pnh("~");
 
-  double CoarseKp;
-  double CoarseKi;
-  double CoarseKd;
-  double PreciseKp;
-  double PreciseKd;
-  double PreciseKi;
-  double PrecisionRange;
-  double FrontLimit;
-  double BackLimit;
+  try
+  {
+    double coarse_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kp");
+    double coarse_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Ki");
+    double coarse_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kd");
+    double precise_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kp");
+    double precise_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Ki");
+    double precise_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kd");
+    double precision_range = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precision_range");
+    double front_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_limit");
+    double back_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_limit");
+    std::string steering_mode = ros_common_functions::getRosParam<std::string>(pnh.getNamespace() + "/steering_mode");
 
-  pnh.param("coarse_Kp", CoarseKp, 0.25);
-  pnh.param("coarse_Ki", CoarseKi, 0.05);
-  pnh.param("coarse_Kd", CoarseKd, 0.3);
-
-  pnh.param("precise_Kp", PreciseKp, 0.25);
-  pnh.param("precise_Ki", PreciseKi, 0.05);
-  pnh.param("precise_Kd", PreciseKd, 0.3);
-
-  pnh.param("precision_range", PrecisionRange, 7.2);
-
-  pnh.param("front_limit", FrontLimit, 20.7);
-  pnh.param("back_limit", BackLimit, 20.7);
-
-  KinControl.vSetPreciseKp(CoarseKp);
-  KinControl.vSetPreciseKi(CoarseKi);
-  KinControl.vSetPreciseKd(CoarseKd);
-  KinControl.vSetCoarseKp(PreciseKp);
-  KinControl.vSetCoarseKi(PreciseKd);
-  KinControl.vSetCoarseKd(PreciseKi);
-  KinControl.vSetFrontLimit(PrecisionRange);
-  KinControl.vSetBackLimit(FrontLimit);
-  KinControl.vSetPrecisionRange(BackLimit);
+    KinControl.vSetPreciseKp(coarse_kp);
+    KinControl.vSetPreciseKi(coarse_ki);
+    KinControl.vSetPreciseKd(coarse_kd);
+    KinControl.vSetCoarseKp(precise_kp);
+    KinControl.vSetCoarseKi(precise_kd);
+    KinControl.vSetCoarseKd(precise_ki);
+    KinControl.vSetFrontLimit(precision_range);
+    KinControl.vSetBackLimit(front_limit);
+    KinControl.vSetPrecisionRange(back_limit);
+    KinControl.setSteeringMode(steering_mode);
+  }
+  catch (const std::exception& ex)
+  {
+    ROS_ERROR_STREAM("[KinematicsController] " << ex.what());
+    return 0;
+  }
 
   KinControl.vCreatePubs(n);
   ros::Rate loop_rate(100);

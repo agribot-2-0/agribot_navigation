@@ -45,7 +45,7 @@ KinematicsControl::KinematicsControl()
   this->_pFrontCartPID = new PID();
   this->_pBackCartPID = new PID();
 
-  setSteeringMode(SteeringMode::four_wheel);
+  setSteeringMode("four_wheel");
 }
 
 void KinematicsControl::vCreatePubs(ros::NodeHandle n)
@@ -579,7 +579,18 @@ void KinematicsControl::vSetPrecisionRange(double range)
   this->_dPrecisionRange = range;
 }
 
-void KinematicsControl::setSteeringMode(const SteeringMode& mode)
+void KinematicsControl::setSteeringMode(const std::string& mode)
 {
-  steering_mode_ = mode;
+  if (mode == "four_wheel")
+  {
+    steering_mode_ = SteeringMode::four_wheel;
+  }
+  else if (mode == "front_wheel")
+  {
+    steering_mode_ = SteeringMode::front_wheel;
+  }
+  else if (mode == "crab")
+  {
+    steering_mode_ = SteeringMode::crab;
+  }
 }

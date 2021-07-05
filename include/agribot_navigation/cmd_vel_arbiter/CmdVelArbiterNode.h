@@ -1,16 +1,17 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #pragma once
 
-#include <ros/ros.h>
+#include <agribot_msgs/AgribotManualControl.h>
 #include <geometry_msgs/Twist.h>
+#include <ros/ros.h>
 #include <std_srvs/Empty.h>
 
-#include <agribot_msgs/AgribotManualControl.h>
-
 #include <string>
+
+#include "agribot_navigation/common/common_functions.h"
 
 enum class ArbiterState
 {
@@ -64,7 +65,6 @@ public:
 
   void navCallback(const geometry_msgs::Twist::ConstPtr& msg);
   void teleopCallback(const agribot_msgs::AgribotManualControl& msg);
-  geometry_msgs::Twist teleopToVel(const agribot_msgs::AgribotManualControl& in_msg);
   void timeoutCallback(const ros::TimerEvent& event);
   void publishStopToCmdVel();
   void run();

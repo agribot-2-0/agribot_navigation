@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #include "agribot_navigation/cmd_vel_arbiter/CmdVelArbiterNode.h"
@@ -238,29 +238,10 @@ void CmdVelArbiterNode::navCallback(const geometry_msgs::Twist::ConstPtr& msg)
 void CmdVelArbiterNode::teleopCallback(const agribot_msgs::AgribotManualControl& msg)
 {
   // Rewrite message
-  _outPub.publish(teleopToVel(msg));
+  _outPub.publish(CommonFunctions::teleopToVel(msg, minRadius, cutoffRadius));
 
   // Restart timeoutTimer
   restartTimeoutTimer();
-}
-
-geometry_msgs::Twist CmdVelArbiterNode::teleopToVel(const agribot_msgs::AgribotManualControl& in_msg)
-{
-  geometry_msgs::Twist out_msg;
-  out_msg.linear.x = in_msg.linear_velocity;
-  if (abs(in_msg.circle_radius) > minRadius && abs(in_msg.circle_radius) < cutoffRadius)
-  {
-    out_msg.angular.z = in_msg.linear_velocity / in_msg.circle_radius;
-  }
-  else if (abs(in_msg.circle_radius) < minRadius && in_msg.circle_radius > 0)
-  {
-    out_msg.angular.z = in_msg.linear_velocity / minRadius;
-  }
-  else if (abs(in_msg.circle_radius) < minRadius && in_msg.circle_radius < 0)
-  {
-    out_msg.angular.z = -in_msg.linear_velocity / minRadius;
-  }
-  return out_msg;
 }
 
 void CmdVelArbiterNode::timeoutCallback(const ros::TimerEvent& event)
