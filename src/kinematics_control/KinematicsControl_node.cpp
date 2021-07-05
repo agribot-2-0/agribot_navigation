@@ -99,26 +99,26 @@ int main(int argc, char** argv)
 
   try
   {
-    double CoarseKp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kp");
-    double CoarseKi = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Ki");
-    double CoarseKd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kd");
-    double PreciseKp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kp");
-    double PreciseKd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Ki");
-    double PreciseKi = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kd");
-    double PrecisionRange = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precision_range");
-    double FrontLimit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_limit");
-    double BackLimit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_limit");
+    double coarse_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kp");
+    double coarse_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Ki");
+    double coarse_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kd");
+    double precise_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kp");
+    double precise_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Ki");
+    double precise_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kd");
+    double precision_range = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precision_range");
+    double front_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_limit");
+    double back_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_limit");
     std::string steering_mode = ros_common_functions::getRosParam<std::string>(pnh.getNamespace() + "/steering_mode");
 
-    KinControl.vSetPreciseKp(CoarseKp);
-    KinControl.vSetPreciseKi(CoarseKi);
-    KinControl.vSetPreciseKd(CoarseKd);
-    KinControl.vSetCoarseKp(PreciseKp);
-    KinControl.vSetCoarseKi(PreciseKd);
-    KinControl.vSetCoarseKd(PreciseKi);
-    KinControl.vSetFrontLimit(PrecisionRange);
-    KinControl.vSetBackLimit(FrontLimit);
-    KinControl.vSetPrecisionRange(BackLimit);
+    KinControl.vSetPreciseKp(coarse_kp);
+    KinControl.vSetPreciseKi(coarse_ki);
+    KinControl.vSetPreciseKd(coarse_kd);
+    KinControl.vSetCoarseKp(precise_kp);
+    KinControl.vSetCoarseKi(precise_kd);
+    KinControl.vSetCoarseKd(precise_ki);
+    KinControl.vSetFrontLimit(precision_range);
+    KinControl.vSetBackLimit(front_limit);
+    KinControl.vSetPrecisionRange(back_limit);
     KinControl.setSteeringMode(steering_mode);
   }
   catch (const std::exception& ex)

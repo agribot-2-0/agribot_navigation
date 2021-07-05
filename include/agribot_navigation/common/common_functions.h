@@ -39,7 +39,7 @@ double distanceBetweenPoses(const geometry_msgs::PoseStamped& target_frame,
                             const geometry_msgs::PoseStamped& current_frame);
 agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::PoseStamped& ps);
 void updateOrientationInPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                             const int start_index, const int end_index);
+                             const std::size_t start_index, const std::size_t end_index);
 agribot_local_planner::pos pCalculateProjection(const agribot_local_planner::pos& lastWaypoint,
                                                 const agribot_local_planner::pos& nextWaypoint,
                                                 const agribot_local_planner::pos& robotCenter);

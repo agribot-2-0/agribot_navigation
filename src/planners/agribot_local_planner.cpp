@@ -250,7 +250,10 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
 
   goal_ = orig_global_plan.back();
   goal_.header.stamp = ros::Time::now();
-  goal_ = transformPose(goal_, reference_frame_id_);
+  if (goal_.header.frame_id != reference_frame_id_)
+  {
+    goal_ = transformPose(goal_, reference_frame_id_);
+  }
 
   last_odom_stamp_ = 0;
   ros::topic::waitForMessage<nav_msgs::Odometry>("odom");

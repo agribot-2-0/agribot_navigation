@@ -42,10 +42,6 @@ void StraightPathPlanner::clearObstacles(void)
   obstacles_.clear();
 }
 
-void StraightPathPlanner::setChassisLength(double chassis_length)
-{
-  chassis_length_ = chassis_length;
-}
 void StraightPathPlanner::setStepSize(const double param_step_size)
 {
   step_size_ = param_step_size;

@@ -22,13 +22,11 @@ public:
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
   std::vector<ObstacleDetection::Obstacle> getObstacles(void) override;
   void clearObstacles(void) override;
-  void setChassisLength(double chassis_length);
   void setStepSize(const double param_step_size);
 
 private:
   std::string frame_id;
-  double chassis_length_ = 0;
-  double step_size_ = 0.1;
+  double step_size_;
   std::vector<ObstacleDetection::Obstacle> obstacles_;
 };
 }  // namespace agribot_local_planner

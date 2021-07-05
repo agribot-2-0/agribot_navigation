@@ -84,11 +84,12 @@ agribot_local_planner::pos pCoordinatesFromPoseStamped(const geometry_msgs::Pose
   return coordinates;
 }
 
+// TODO(lchojnacki): Use iterators instead of indexes
 void updateOrientationInPath(std::vector<geometry_msgs::PoseStamped>& path,  // NOLINT(runtime/references)
-                             const int start_index, const int end_index)
+                             const std::size_t start_index, const std::size_t end_index)
 {
   // add proper orientation to each point
-  for (int i = start_index; i < end_index; i++)
+  for (std::size_t i = start_index; i < end_index; i++)
   {
     double angle = std::atan2(path[i + 1].pose.position.y - path[i].pose.position.y,
                               path[i + 1].pose.position.x - path[i].pose.position.x);
@@ -196,9 +197,7 @@ geometry_msgs::Quaternion orientationBetweenQuaternions(const geometry_msgs::Qua
   tf2::convert(quaterion1, q_1);
   tf2::convert(quaterion2, q_2);
 
-  q_1[3] = -q_1[3];
-
-  q_rot = q_2 * q_1;
+  q_rot = q_2 * q_1.inverse();
   return tf2::toMsg(q_rot);
 }
 
