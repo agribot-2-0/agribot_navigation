@@ -32,7 +32,11 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
     return false;
   }
 
-  path.push_back(end_pose);
+  geometry_msgs::PoseStamped end_pose_tmp = end_pose;
+  end_pose_tmp.header.stamp.sec = 0;
+  end_pose_tmp.header.stamp.nsec = 0;
+  end_pose_tmp.header.seq = path.back().header.seq + 1;
+  path.push_back(end_pose_tmp);
   CommonFunctions::updateOrientationInPath(path, path_start_index, path.size() - 1);
   return true;
 }
