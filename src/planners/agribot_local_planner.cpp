@@ -369,6 +369,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   checkObstacles();
   if (detection_.isInRow(planners_["narrow"]->getObstacles()))
   {
+    ROS_WARN_STREAM("[AgribotLocalPlanner] In the row");
     local_plan_.clear();
     try
     {
@@ -379,24 +380,26 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
       abort_executing_ = true;
     }
-    publishObstacles();
   }
+  publishObstacles();
 
   // Calculate velocities
   calculateControls(cmd_vel);
+
+  visualizationPath();
 
   // Stop condition
   if (isReachedPathEnd(robot_center_, transformPose(local_plan_.back(), reference_frame_id_)))
   {
     cmd_vel = finishedPathBehaviour();
+    ROS_INFO_STREAM("[AgribotLocalPlanner] Finished Path");
+    return true;
   }
 
   if (isOutOfPath())
   {
     out_of_path_counter_++;
   }
-
-  visualizationPath();
 
   if (abort_executing_)
   {
@@ -467,7 +470,8 @@ void AgribotLocalPlanner::publishObstacles()
   try
   {
     auto obstacles = planners_["narrow"]->getObstacles();
-    if (obstacles.size() == 0)
+    ROS_WARN_STREAM("[AgribotLocalPlanner] size of obstacles " << obstacles.size());
+    if (obstacles.size() != 2)
     {
       return;
     }
@@ -581,6 +585,7 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
 
 geometry_msgs::Twist AgribotLocalPlanner::stopRobot()
 {
+  ROS_INFO_STREAM("[AgribotLocalPlanner] Stop robot");
   geometry_msgs::Twist velocity;
   velocity.linear.x = 0;
   velocity.linear.y = 0;
@@ -645,14 +650,14 @@ void AgribotLocalPlanner::visualizationPath(void)
 
 void AgribotLocalPlanner::visualizationObstacles(void)
 {
-  VisualizationFunctions::pathVisualization(obstacles_left_.toPath(param_design_step_size_), obstacle_frame_id_,
-                                            obstacles_left_line_pub_);
-  VisualizationFunctions::pathVisualization(obstacles_right_.toPath(param_design_step_size_), obstacle_frame_id_,
-                                            obstacles_right_line_pub_);
+  // VisualizationFunctions::pathVisualization(obstacles_left_.toPath(param_design_step_size_), obstacle_frame_id_,
+  //                                           obstacles_left_line_pub_);
+  // VisualizationFunctions::pathVisualization(obstacles_right_.toPath(param_design_step_size_), obstacle_frame_id_,
+  //                                           obstacles_right_line_pub_);
 
   VisualizationFunctions::obstacleVisualization(obstacles_left_, obstacles_left_polygon_pub_, COLOR_GREEN);
   VisualizationFunctions::obstacleVisualization(obstacles_right_, obstacles_right_polygon_pub_, COLOR_BLUE);
-  VisualizationFunctions::obstaclesVisualization(obstacles_, obstacles_polygon_pub_);
+  // VisualizationFunctions::obstaclesVisualization(obstacles_, obstacles_polygon_pub_);
 }
 
 bool AgribotLocalPlanner::isOutOfPath(void)
