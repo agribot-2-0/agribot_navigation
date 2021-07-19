@@ -325,7 +325,7 @@ bool AgribotLocalPlanner::planPath(const std::string& planner_id, const geometry
     return false;
   }
 
-  visualizationPath();
+  visualizationPath(reference_frame_id_);
 
   // validate
   ROS_INFO_STREAM("[AgribotLocalPlanner] Validating path");
@@ -366,27 +366,26 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     return false;
   }
 
-  checkObstacles();
-  if (detection_.isInRow(planners_["narrow"]->getObstacles()))
-  {
-    ROS_WARN_STREAM("[AgribotLocalPlanner] In the row");
-    local_plan_.clear();
-    try
-    {
-      planners_["narrow"]->designPath(local_plan_, robot_center_, goal_);
-    }
-    catch (const std::exception& e)
-    {
-      ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
-      abort_executing_ = true;
-    }
-  }
-  publishObstacles();
+  // checkObstacles();
+  // if (detection_.isInRow(planners_["narrow"]->getObstacles()))
+  // {
+  //   local_plan_.clear();
+  //   try
+  //   {
+  //     planners_["narrow"]->designPath(local_plan_, robot_center_, goal_);
+  //   }
+  //   catch (const std::exception& e)
+  //   {
+  //     ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
+  //     abort_executing_ = true;
+  //   }
+  //   visualizationPath(obstacle_frame_id_);
+  // }
+  // publishObstacles();
+  visualizationPath(reference_frame_id_);
 
   // Calculate velocities
   calculateControls(cmd_vel);
-
-  visualizationPath();
 
   // Stop condition
   if (isReachedPathEnd(robot_center_, transformPose(local_plan_.back(), reference_frame_id_)))
@@ -453,7 +452,7 @@ void AgribotLocalPlanner::processObstacles(const costmap_converter::ObstacleArra
     if (obstacle.polygon.points.size() > 2)
     {
       geometry_msgs::PolygonStamped polygon, transformed_polygon;
-      polygon.header.frame_id = "odom";
+      polygon.header.frame_id = "base_footprint";
       polygon.header.stamp = ros::Time::now();
       polygon.polygon = obstacle.polygon;
       transformed_polygon = transformPolygon(polygon, obstacle_frame_id_);
@@ -470,7 +469,6 @@ void AgribotLocalPlanner::publishObstacles()
   try
   {
     auto obstacles = planners_["narrow"]->getObstacles();
-    ROS_WARN_STREAM("[AgribotLocalPlanner] size of obstacles " << obstacles.size());
     if (obstacles.size() != 2)
     {
       return;
@@ -635,9 +633,9 @@ geometry_msgs::PolygonStamped AgribotLocalPlanner::transformPolygon(const geomet
   return polygon_transformed;
 }
 
-void AgribotLocalPlanner::visualizationPath(void)
+void AgribotLocalPlanner::visualizationPath(std::string frame_id)
 {
-  VisualizationFunctions::pathVisualization(local_plan_, reference_frame_id_, path_pub_);
+  VisualizationFunctions::pathVisualization(local_plan_, frame_id, path_pub_);
   try
   {
     VisualizationFunctions::goalVisualization(local_plan_.back(), param_goal_distance_tolerance_, goal_pub_);
@@ -650,14 +648,14 @@ void AgribotLocalPlanner::visualizationPath(void)
 
 void AgribotLocalPlanner::visualizationObstacles(void)
 {
-  // VisualizationFunctions::pathVisualization(obstacles_left_.toPath(param_design_step_size_), obstacle_frame_id_,
-  //                                           obstacles_left_line_pub_);
-  // VisualizationFunctions::pathVisualization(obstacles_right_.toPath(param_design_step_size_), obstacle_frame_id_,
-  //                                           obstacles_right_line_pub_);
+  VisualizationFunctions::pathVisualization(obstacles_left_.toPath(param_design_step_size_), obstacle_frame_id_,
+                                            obstacles_left_line_pub_);
+  VisualizationFunctions::pathVisualization(obstacles_right_.toPath(param_design_step_size_), obstacle_frame_id_,
+                                            obstacles_right_line_pub_);
 
   VisualizationFunctions::obstacleVisualization(obstacles_left_, obstacles_left_polygon_pub_, COLOR_GREEN);
   VisualizationFunctions::obstacleVisualization(obstacles_right_, obstacles_right_polygon_pub_, COLOR_BLUE);
-  // VisualizationFunctions::obstaclesVisualization(obstacles_, obstacles_polygon_pub_);
+  VisualizationFunctions::obstaclesVisualization(obstacles_, obstacles_polygon_pub_);
 }
 
 bool AgribotLocalPlanner::isOutOfPath(void)

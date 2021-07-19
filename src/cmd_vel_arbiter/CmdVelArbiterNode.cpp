@@ -261,5 +261,10 @@ void CmdVelArbiterNode::publishStopToCmdVel()
 
 void CmdVelArbiterNode::run()
 {
-  ros::spin();
+  ros::Rate loop_rate(10);
+  while (ros::ok())
+  {
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
 }

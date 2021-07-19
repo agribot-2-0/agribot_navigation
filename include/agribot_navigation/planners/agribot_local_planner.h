@@ -162,7 +162,7 @@ private:
                 const geometry_msgs::PoseStamped& end_pose);
   void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);  // NOLINT(runtime/references)
   void calculateControls(geometry_msgs::Twist& cmd_vel);                       // NOLINT(runtime/references)
-  void visualizationPath(void);
+  void visualizationPath(std::string frame_id);
   void visualizationObstacles(void);
 
   geometry_msgs::PoseStamped transformPose(const geometry_msgs::PoseStamped& pose,
