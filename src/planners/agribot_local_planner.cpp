@@ -366,23 +366,23 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     return false;
   }
 
-  // checkObstacles();
-  // if (detection_.isInRow(planners_["narrow"]->getObstacles()))
-  // {
-  //   local_plan_.clear();
-  //   try
-  //   {
-  //     planners_["narrow"]->designPath(local_plan_, robot_center_, goal_);
-  //   }
-  //   catch (const std::exception& e)
-  //   {
-  //     ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
-  //     abort_executing_ = true;
-  //   }
-  //   visualizationPath(obstacle_frame_id_);
-  // }
-  // publishObstacles();
-  visualizationPath(reference_frame_id_);
+  checkObstacles();
+  if (detection_.isInRow(planners_["narrow"]->getObstacles()))
+  {
+    local_plan_.clear();
+    try
+    {
+      planners_["narrow"]->designPath(local_plan_, robot_center_, goal_);
+    }
+    catch (const std::exception& e)
+    {
+      ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
+      abort_executing_ = true;
+    }
+    visualizationPath(obstacle_frame_id_);
+  }
+  publishObstacles();
+  // visualizationPath(reference_frame_id_);
 
   // Calculate velocities
   calculateControls(cmd_vel);
