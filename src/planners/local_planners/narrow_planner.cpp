@@ -34,9 +34,24 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
     for (size_t position = 1; position < path_size; position++)
     {
       auto midpose = calculateMidpose(line_left[position], line_right[position]);
-      midpose.header.seq = path.size() + 1;
-      path.push_back(midpose);
+      if (midpose.pose.position.x < end_pose.pose.position.x)
+      {
+        midpose.header.seq = path.size() + 1;
+        path.push_back(midpose);
+      }
     }
+
+    auto midpose_last = calculateMidpose(line_left.back(), line_right.back());
+    if (midpose_last.pose.position.x < end_pose.pose.position.x)
+    {
+      CommonFunctions::straightPath(path, midpose_last, end_pose, frame_id, step_size_);
+    }
+
+    path.back().pose.orientation.x = 0;
+    path.back().pose.orientation.y = 0;
+    path.back().pose.orientation.z = 0;
+    path.back().pose.orientation.w = 1;
+
     CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
   }
   catch (const std::exception& e)
