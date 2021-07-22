@@ -325,8 +325,6 @@ bool AgribotLocalPlanner::planPath(const std::string& planner_id, const geometry
     return false;
   }
 
-  visualizationPath(reference_frame_id_);
-
   // validate
   ROS_INFO_STREAM("[AgribotLocalPlanner] Validating path");
   for (auto const& [validator_id, validator] : validators_)
@@ -372,17 +370,24 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     local_plan_.clear();
     try
     {
-      planners_["narrow"]->designPath(local_plan_, robot_center_, goal_);
+      planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, obstacle_frame_id_),
+                                      transformPose(goal_, obstacle_frame_id_));
+      for (std::size_t i = 0; i < local_plan_.size(); ++i)
+      {
+        local_plan_[i].header.stamp.sec = 0;
+        local_plan_[i].header.stamp.nsec = 0;
+        local_plan_[i] = transformPose(local_plan_[i], reference_frame_id_);
+        local_plan_[i].header.seq = i;
+      }
     }
     catch (const std::exception& e)
     {
       ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
       abort_executing_ = true;
     }
-    visualizationPath(obstacle_frame_id_);
   }
   publishObstacles();
-  // visualizationPath(reference_frame_id_);
+  visualizationPath(reference_frame_id_);
 
   // Calculate velocities
   calculateControls(cmd_vel);
@@ -595,12 +600,14 @@ geometry_msgs::PoseStamped AgribotLocalPlanner::transformPose(const geometry_msg
                                                               const std::string& frame_id)
 {
   geometry_msgs::PoseStamped pose_transformed;
+  geometry_msgs::PoseStamped pose_tmp = pose;
   pose_transformed.header.frame_id = frame_id;
 
   try
   {
-    pose_transformed.header.stamp = ros::Time::now();
-    tf_buffer_->transform(pose, pose_transformed, frame_id, ros::Duration(0.2));
+    pose_tmp.header.stamp.sec = 0;
+    pose_tmp.header.stamp.nsec = 0;
+    tf_buffer_->transform(pose_tmp, pose_transformed, frame_id, ros::Duration(0.2));
   }
   catch (tf2::ExtrapolationException e)
   {
