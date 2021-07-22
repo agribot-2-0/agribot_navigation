@@ -73,6 +73,8 @@ private:
   tf2_ros::Buffer* tf_buffer_;
   tf2_ros::TransformListener* tf_listener_;
   ros::Subscriber odom_sub_;
+  ros::Subscriber line_left_sub_;
+  ros::Subscriber line_right_sub_;
   ros::Publisher path_pub_;
   ros::Publisher obstacles_pub_;
   ros::Publisher obstacles_left_polygon_pub_;
@@ -157,6 +159,8 @@ private:
   void processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
   void publishObstacles();
   void odomCallback(const nav_msgs::Odometry& odometry_msg);
+  void lineLeftCallback(const nav_msgs::Path& msg);
+  void lineRightCallback(const nav_msgs::Path& msg);
 
   bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
                 const geometry_msgs::PoseStamped& end_pose);

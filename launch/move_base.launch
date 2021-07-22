@@ -16,6 +16,8 @@
 
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
     <remap from="odom" to="$(arg odom_topic)" />
+    <remap from="line_left" to="/agribot/obstacle_detection/front/left_row" />
+    <remap from="line_right" to="/agribot/obstacle_detection/front/right_row" />
     <remap from="/lidar_scan" to="$(arg lidar_topic)"/>
   </node>
 </launch>

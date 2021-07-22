@@ -9,6 +9,7 @@
 #include <costmap_2d/costmap_2d_ros.h>
 #pragma GCC diagnostic pop
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Path.h>
 #include <tf/tf.h>
 
 #include <cmath>
@@ -31,5 +32,8 @@ public:
   virtual void addObstacle(const ObstacleDetection::Obstacle& obstacle) = 0;
   virtual std::vector<ObstacleDetection::Obstacle> getObstacles(void) = 0;
   virtual void clearObstacles(void) = 0;
+
+  virtual void setLineLeft(const nav_msgs::Path& line) = 0;
+  virtual void setLineRight(const nav_msgs::Path& line) = 0;
 };
 }  // namespace agribot_local_planner

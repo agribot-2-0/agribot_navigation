@@ -185,6 +185,8 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
     robot_center_.header.frame_id = reference_frame_id_;
 
     odom_sub_ = gn.subscribe("odom", 100, &AgribotLocalPlanner::odomCallback, this);
+    line_left_sub_ = gn.subscribe("line_left", 100, &AgribotLocalPlanner::lineLeftCallback, this);
+    line_right_sub_ = gn.subscribe("line_right", 100, &AgribotLocalPlanner::lineRightCallback, this);
 
     path_pub_ = pnh.advertise<nav_msgs::Path>("local_path", 10);
     obstacles_pub_ = pnh.advertise<costmap_converter::ObstacleMsg>("obstacles", 10);
@@ -374,8 +376,6 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
                                       transformPose(goal_, obstacle_frame_id_));
       for (std::size_t i = 0; i < local_plan_.size(); ++i)
       {
-        local_plan_[i].header.stamp.sec = 0;
-        local_plan_[i].header.stamp.nsec = 0;
         local_plan_[i] = transformPose(local_plan_[i], reference_frame_id_);
         local_plan_[i].header.seq = i;
       }
@@ -584,6 +584,16 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
 
     traveled_distance_ += CommonFunctions::distanceBetweenPoses(lastRobotPosition, robot_center_);
   }
+}
+
+void AgribotLocalPlanner::lineLeftCallback(const nav_msgs::Path& msg)
+{
+  planners_["narrow"]->setLineLeft(msg);
+}
+
+void AgribotLocalPlanner::lineRightCallback(const nav_msgs::Path& msg)
+{
+  planners_["narrow"]->setLineRight(msg);
 }
 
 geometry_msgs::Twist AgribotLocalPlanner::stopRobot()
