@@ -30,12 +30,12 @@ KinematicsControl::KinematicsControl()
   this->_dChassisLength = 2.42 - 2 * _dWheelRadius;
   this->_dLinearMultiplier = 1;
 
-  this->_dCoarseKp = 0.0;
-  this->_dCoarseKi = 0.0;
-  this->_dCoarseKd = 0.0;
-  this->_dPreciseKp = 0.0;
-  this->_dPreciseKd = 0.0;
-  this->_dPreciseKi = 0.0;
+  this->_dKp[FRONT_CART] = 0.0;
+  this->_dKp[BACK_CART] = 0.0;
+  this->_dKi[FRONT_CART] = 0.0;
+  this->_dKi[BACK_CART] = 0.0;
+  this->_dKd[FRONT_CART] = 0.0;
+  this->_dKd[BACK_CART] = 0.0;
 
   this->_dFrontLimit = 0.0;
   this->_dBackLimit = 0.0;
@@ -102,17 +102,21 @@ bool KinematicsControl::cleanup()
   return false;
 }
 
-PID_terms_coefficients KinematicsControl::xSelectPIDCoefficients(double Error)
+PID_terms_coefficients KinematicsControl::xSelectFrontPIDCoefficients()
 {
   PID_terms_coefficients coefficients;
-  if (abs(Error * RAD_TO_DEG) > this->_dPrecisionRange)
-  {
-    coefficients = { this->_dCoarseKp, this->_dCoarseKi, this->_dCoarseKd };
-  }
-  else
-  {
-    coefficients = { this->_dPreciseKp, this->_dPreciseKi, this->_dPreciseKd };
-  }
+
+  coefficients = { this->_dKp[FRONT_CART], this->_dKi[FRONT_CART], this->_dKd[FRONT_CART] };
+
+  return coefficients;
+}
+
+PID_terms_coefficients KinematicsControl::xSelectBackPIDCoefficients()
+{
+  PID_terms_coefficients coefficients;
+
+  coefficients = { this->_dKp[BACK_CART], this->_dKi[BACK_CART], this->_dKd[BACK_CART] };
+
   return coefficients;
 }
 
@@ -120,12 +124,12 @@ void KinematicsControl::vSetPIDsParameters()
 {
   PID_terms_coefficients coefficients;
 
-  coefficients = xSelectPIDCoefficients(_pFrontCartPID->dGetError());
+  coefficients = xSelectFrontPIDCoefficients();
   this->_pFrontCartPID->vSetKp(coefficients.dKp);
   this->_pFrontCartPID->vSetKi(coefficients.dKi);
   this->_pFrontCartPID->vSetKd(coefficients.dKd);
 
-  coefficients = xSelectPIDCoefficients(_pFrontCartPID->dGetError());
+  coefficients = xSelectBackPIDCoefficients();
   this->_pBackCartPID->vSetKp(coefficients.dKp);
   this->_pBackCartPID->vSetKi(coefficients.dKi);
   this->_pBackCartPID->vSetKd(coefficients.dKd);
@@ -530,34 +534,34 @@ void KinematicsControl::vUpdatePIDs(double t)
   this->_dLastTime = t;
 }
 
-void KinematicsControl::vSetPreciseKp(double Kp)
+void KinematicsControl::vSetFrontKp(double Kp)
 {
-  this->_dPreciseKp = Kp;
+  this->_dKp[FRONT_CART] = Kp;
 }
 
-void KinematicsControl::vSetPreciseKi(double Ki)
+void KinematicsControl::vSetBackKp(double Kp)
 {
-  this->_dPreciseKi = Ki;
+  this->_dKp[BACK_CART] = Kp;
 }
 
-void KinematicsControl::vSetPreciseKd(double Kd)
+void KinematicsControl::vSetFrontKi(double Ki)
 {
-  this->_dPreciseKd = Kd;
+  this->_dKi[FRONT_CART] = Ki;
 }
 
-void KinematicsControl::vSetCoarseKp(double Kp)
+void KinematicsControl::vSetBackKi(double Ki)
 {
-  this->_dCoarseKp = Kp;
+  this->_dKi[BACK_CART] = Ki;
 }
 
-void KinematicsControl::vSetCoarseKi(double Ki)
+void KinematicsControl::vSetFrontKd(double Kd)
 {
-  this->_dCoarseKi = Ki;
+  this->_dKd[FRONT_CART] = Kd;
 }
 
-void KinematicsControl::vSetCoarseKd(double Kd)
+void KinematicsControl::vSetBackKd(double Kd)
 {
-  this->_dCoarseKd = Kd;
+  this->_dKd[BACK_CART] = Kd;
 }
 
 void KinematicsControl::vSetFrontLimit(double limit)

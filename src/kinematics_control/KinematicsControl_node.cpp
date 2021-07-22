@@ -47,12 +47,12 @@ void callback(agribot_navigation::KinematicsConfig& config,  // NOLINT(runtime/r
               uint32_t level)
 {
   static_cast<void>(level);
-  KinControl.vSetPreciseKp(config.coarse_Kp);
-  KinControl.vSetPreciseKi(config.coarse_Ki);
-  KinControl.vSetPreciseKd(config.coarse_Kd);
-  KinControl.vSetCoarseKp(config.precise_Kp);
-  KinControl.vSetCoarseKi(config.precise_Ki);
-  KinControl.vSetCoarseKd(config.precise_Kd);
+  KinControl.vSetFrontKp(config.front_Kp);
+  KinControl.vSetFrontKi(config.front_Ki);
+  KinControl.vSetFrontKd(config.front_Kd);
+  KinControl.vSetBackKp(config.back_Kp);
+  KinControl.vSetBackKi(config.back_Ki);
+  KinControl.vSetBackKd(config.back_Kd);
   KinControl.vSetFrontLimit(config.precision_range);
   KinControl.vSetBackLimit(config.front_limit);
   KinControl.vSetPrecisionRange(config.back_limit);
@@ -99,23 +99,23 @@ int main(int argc, char** argv)
 
   try
   {
-    double coarse_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kp");
-    double coarse_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Ki");
-    double coarse_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kd");
-    double precise_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kp");
-    double precise_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Ki");
-    double precise_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kd");
+    double front_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_Kp");
+    double front_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_Ki");
+    double front_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_Kd");
+    double back_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_Kp");
+    double back_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_Ki");
+    double back_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_Kd");
     double precision_range = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precision_range");
     double front_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_limit");
     double back_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_limit");
     std::string steering_mode = ros_common_functions::getRosParam<std::string>(pnh.getNamespace() + "/steering_mode");
 
-    KinControl.vSetPreciseKp(coarse_kp);
-    KinControl.vSetPreciseKi(coarse_ki);
-    KinControl.vSetPreciseKd(coarse_kd);
-    KinControl.vSetCoarseKp(precise_kp);
-    KinControl.vSetCoarseKi(precise_kd);
-    KinControl.vSetCoarseKd(precise_ki);
+    KinControl.vSetFrontKp(front_kp);
+    KinControl.vSetFrontKi(front_kd);
+    KinControl.vSetFrontKd(front_ki);
+    KinControl.vSetBackKp(back_kp);
+    KinControl.vSetBackKi(back_kd);
+    KinControl.vSetBackKd(back_ki);
     KinControl.vSetFrontLimit(precision_range);
     KinControl.vSetBackLimit(front_limit);
     KinControl.vSetPrecisionRange(back_limit);

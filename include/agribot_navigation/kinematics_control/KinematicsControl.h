@@ -96,12 +96,9 @@ private:
   double _dLastTime;
   double _dLinearMultiplier;
   double _dAngularMultiplier;
-  double _dCoarseKp;
-  double _dCoarseKi;
-  double _dCoarseKd;
-  double _dPreciseKp;
-  double _dPreciseKd;
-  double _dPreciseKi;
+  double _dKp[2];
+  double _dKi[2];
+  double _dKd[2];
   double _dPrecisionRange;
   double _dFrontLimit;
   double _dBackLimit;
@@ -131,7 +128,8 @@ private:
   double dMultiplierExponential(double x);
   Carts_Setpoints xCalculatePIDSetPoints(double linear_vel, double angular_vel);
   Carts_Setpoints getSetPoints(const DrivingDirection& direction, const double radius) const;
-  PID_terms_coefficients xSelectPIDCoefficients(double Error);
+  PID_terms_coefficients xSelectFrontPIDCoefficients();
+  PID_terms_coefficients xSelectBackPIDCoefficients();
 
 public:
   KinematicsControl();
@@ -147,12 +145,12 @@ public:
   void vSetFrontCartAngle(double theta);
   void vSetBackCartAngle(double theta);
   double* pdGetCaterpillarVelocities();
-  void vSetPreciseKp(double Kp);
-  void vSetPreciseKi(double Ki);
-  void vSetPreciseKd(double Kd);
-  void vSetCoarseKp(double Kp);
-  void vSetCoarseKi(double Ki);
-  void vSetCoarseKd(double Kd);
+  void vSetFrontKp(double Kp);
+  void vSetBackKp(double Kp);
+  void vSetFrontKi(double Ki);
+  void vSetBackKi(double Ki);
+  void vSetFrontKd(double Kd);
+  void vSetBackKd(double Kd);
   void vSetFrontLimit(double limit);
   void vSetBackLimit(double limit);
   void vSetPrecisionRange(double range);
