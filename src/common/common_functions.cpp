@@ -143,7 +143,7 @@ geometry_msgs::PoseStamped calculateProjection(const geometry_msgs::PoseStamped&
   return projection;
 }
 
-double dCalculateRadiusFromVelocity(const geometry_msgs::Twist& velocity)
+double calculateRadiusFromVelocity(const geometry_msgs::Twist& velocity)
 {
   if (velocity.angular.z != 0)
   {
