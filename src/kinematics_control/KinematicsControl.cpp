@@ -106,7 +106,8 @@ PidTermsCoefficients KinematicsControl::getFrontPIDCoefficients()
 {
   PidTermsCoefficients coefficients;
 
-  coefficients = { this->cart_front_coefficients_.kp_, this->cart_front_coefficients_.ki_, this->cart_front_coefficients_.kd_ };
+  coefficients = { this->cart_front_coefficients_.kp_, this->cart_front_coefficients_.ki_,
+                   this->cart_front_coefficients_.kd_ };
 
   return coefficients;
 }
@@ -115,7 +116,8 @@ PidTermsCoefficients KinematicsControl::getBackPIDCoefficients()
 {
   PidTermsCoefficients coefficients;
 
-  coefficients = { this->cart_back_coefficients_.kp_, this->cart_back_coefficients_.ki_, this->cart_back_coefficients_.kd_ };
+  coefficients = { this->cart_back_coefficients_.kp_, this->cart_back_coefficients_.ki_,
+                   this->cart_back_coefficients_.kd_ };
 
   return coefficients;
 }

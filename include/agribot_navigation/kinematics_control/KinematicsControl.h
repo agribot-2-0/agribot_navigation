@@ -96,7 +96,7 @@ private:
   double last_time_;
   double linear_multiplier_;
   double angular_multiplier_;
-  
+
   PidTermsCoefficients cart_front_coefficients_;
   PidTermsCoefficients cart_back_coefficients_;
   double precision_range_;
