@@ -2,8 +2,8 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 
-#include <ros/ros.h>
 #include <agribot_navigation/velocity_smoother/velocity_smoother.hh>
+#include <ros/ros.h>
 
 int main(int argc, char** argv)
 {
