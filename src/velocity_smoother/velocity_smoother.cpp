@@ -3,7 +3,7 @@
  */
 #include <agribot_navigation/velocity_smoother/velocity_smoother.hh>
 
-explicit VelocitySmoother::VelocitySmoother(ros::NodeHandle* nh)
+VelocitySmoother::VelocitySmoother(ros::NodeHandle* nh)
 {
   nh_ = nh;
   smooth_velocity_publisher_ = nh_->advertise<geometry_msgs::Twist>("/cmd_vel_filtered", 1);
