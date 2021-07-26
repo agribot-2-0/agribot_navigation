@@ -21,7 +21,7 @@ private:
   bool message_received_ = false;
 
 public:
-  VelocitySmoother(ros::NodeHandle* nh);
+  explicit VelocitySmoother(ros::NodeHandle* nh);
   int checkParameters();
   void run();
   void rawVelocityCallback(const geometry_msgs::Twist msg);
