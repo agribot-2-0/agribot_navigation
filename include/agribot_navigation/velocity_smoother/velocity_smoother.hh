@@ -2,9 +2,9 @@
  * Copyright (C) 2020 Agribot. All rights reserved.
  */
 #pragma once
-#include "ros/ros.h"
-#include <geometry_msgs/Twist.h>
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
+#include <geometry_msgs/Twist.h>
+#include "ros/ros.h"
 
 class VelocitySmoother
 {
