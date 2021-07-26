@@ -72,6 +72,12 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
 
+  ROS_WARN_STREAM("rabbit_pose_ " << CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az);
+  ROS_WARN_STREAM("robot_pose " << CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az);
+  ROS_WARN_STREAM("error_heading_ " << angle_between_poses_);
+  ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
+  ROS_WARN_STREAM("motion_radius_ " << motion_radius_);
+
   return true;
 }
 

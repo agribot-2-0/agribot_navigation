@@ -32,6 +32,10 @@ public:
   {
     static_cast<void>(line);
   };
+  std::string getFrameId() override
+  {
+    return frame_id;
+  };
 
   void setArcRadius(const double param_arc_radius);
   void setDeadZone(const double param_dead_zone);

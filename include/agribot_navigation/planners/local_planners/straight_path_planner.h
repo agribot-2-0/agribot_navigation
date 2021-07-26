@@ -31,6 +31,10 @@ public:
   {
     static_cast<void>(line);
   };
+  std::string getFrameId() override
+  {
+    return frame_id;
+  };
 
 private:
   std::string frame_id;

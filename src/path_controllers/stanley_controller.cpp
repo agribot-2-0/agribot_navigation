@@ -47,6 +47,7 @@ bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT
   error_crosstrack_factor_ = atan2(error_gain_ * error_crosstrack_, lin_vel_);
 
   theta_ = error_heading_ + error_crosstrack_factor_;
+
   motion_radius_ = robot_length_ / 2.0 / sin(theta_);
 
   agribot_msgs::AgribotManualControl msg;
@@ -54,6 +55,11 @@ bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT
   msg.circle_radius = motion_radius_;
 
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
+
+  ROS_WARN_STREAM("error_heading_ " << error_heading_);
+  ROS_WARN_STREAM("error_crosstrack_factor_ " << error_crosstrack_factor_);
+  ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
+  ROS_WARN_STREAM("motion_radius_ " << motion_radius_);
 
   return true;
 }

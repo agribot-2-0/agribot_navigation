@@ -22,6 +22,10 @@ public:
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
   void reset() override{};
+  std::string getFrameId() override
+  {
+    return "base_footprint";
+  };
   void setSpeedLimiting(const bool limiting);
   void setParallelnessWeight(const double parallelness_weight);
   void setDeviationWeight(const double deviation_weight);

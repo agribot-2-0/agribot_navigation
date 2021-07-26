@@ -251,11 +251,7 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
   }
 
   goal_ = orig_global_plan.back();
-  goal_.header.stamp = ros::Time::now();
-  if (goal_.header.frame_id != reference_frame_id_)
-  {
-    goal_ = transformPose(goal_, reference_frame_id_);
-  }
+  goal_ = transformPose(goal_, reference_frame_id_);
 
   last_odom_stamp_ = 0;
   ros::topic::waitForMessage<nav_msgs::Odometry>("odom");
@@ -314,7 +310,8 @@ bool AgribotLocalPlanner::planPath(const std::string& planner_id, const geometry
   local_plan_.clear();
   try
   {
-    if (!planners_[planner_id]->designPath(local_plan_, start_pose, end_pose))
+    if (!planners_[planner_id]->designPath(local_plan_, transformPose(start_pose, planners_[planner_id]->getFrameId()),
+                                           transformPose(end_pose, planners_[planner_id]->getFrameId())))
     {
       ROS_WARN_STREAM("[AgribotLocalPlanner][" << planner_id << "_planner] Local planner is not able to create path ");
       return false;
@@ -372,13 +369,8 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     local_plan_.clear();
     try
     {
-      planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, obstacle_frame_id_),
-                                      transformPose(goal_, obstacle_frame_id_));
-      for (std::size_t i = 0; i < local_plan_.size(); ++i)
-      {
-        local_plan_[i] = transformPose(local_plan_[i], reference_frame_id_);
-        local_plan_[i].header.seq = i;
-      }
+      planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
+                                      transformPose(goal_, planners_["narrow"]->getFrameId()));
     }
     catch (const std::exception& e)
     {
@@ -387,7 +379,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     }
   }
   publishObstacles();
-  visualizationPath(reference_frame_id_);
+  visualizationPath(local_plan_.front().header.frame_id);
 
   // Calculate velocities
   calculateControls(cmd_vel);
@@ -508,7 +500,18 @@ void AgribotLocalPlanner::truncatePath(std::vector<geometry_msgs::PoseStamped>& 
 
 void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel)
 {
-  controllers_[param_agribot_controller_name_]->computeControl(cmd_vel, local_plan_, robot_center_);
+  for (std::size_t i = 0; i < local_plan_.size(); ++i)
+  {
+    local_plan_[i] = transformPose(local_plan_[i], controllers_[param_agribot_controller_name_]->getFrameId());
+    local_plan_[i].header.seq = i;
+  }
+  controllers_[param_agribot_controller_name_]->computeControl(
+      cmd_vel, local_plan_, transformPose(robot_center_, controllers_[param_agribot_controller_name_]->getFrameId()));
+  for (std::size_t i = 0; i < local_plan_.size(); ++i)
+  {
+    local_plan_[i] = transformPose(local_plan_[i], reference_frame_id_);
+    local_plan_[i].header.seq = i;
+  }
   cmd_vel = limitVelocities(cmd_vel);
 }
 
@@ -609,6 +612,11 @@ geometry_msgs::Twist AgribotLocalPlanner::stopRobot()
 geometry_msgs::PoseStamped AgribotLocalPlanner::transformPose(const geometry_msgs::PoseStamped& pose,
                                                               const std::string& frame_id)
 {
+  if (pose.header.frame_id == frame_id)
+  {
+    return pose;
+  }
+
   geometry_msgs::PoseStamped pose_transformed;
   geometry_msgs::PoseStamped pose_tmp = pose;
   pose_transformed.header.frame_id = frame_id;
@@ -655,7 +663,7 @@ void AgribotLocalPlanner::visualizationPath(std::string frame_id)
   VisualizationFunctions::pathVisualization(local_plan_, frame_id, path_pub_);
   try
   {
-    VisualizationFunctions::goalVisualization(local_plan_.back(), param_goal_distance_tolerance_, goal_pub_);
+    VisualizationFunctions::goalVisualization(goal_, param_goal_distance_tolerance_, goal_pub_);
   }
   catch (const std::exception& ex)
   {

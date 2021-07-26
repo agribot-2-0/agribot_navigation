@@ -32,6 +32,7 @@ public:
   virtual void addObstacle(const ObstacleDetection::Obstacle& obstacle) = 0;
   virtual std::vector<ObstacleDetection::Obstacle> getObstacles(void) = 0;
   virtual void clearObstacles(void) = 0;
+  virtual std::string getFrameId(void) = 0;
 
   virtual void setLineLeft(const nav_msgs::Path& line) = 0;
   virtual void setLineRight(const nav_msgs::Path& line) = 0;

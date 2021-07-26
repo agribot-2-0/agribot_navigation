@@ -32,7 +32,10 @@ public:
   {
     static_cast<void>(line);
   };
-
+  std::string getFrameId() override
+  {
+    return frame_id;
+  };
   void setStepSize(const double param_step_size);
   void setMagnitudeStart(const double param_magnitude);
   void setMagnitudeEnd(const double param_magnitude);

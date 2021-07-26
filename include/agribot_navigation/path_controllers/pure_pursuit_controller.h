@@ -24,7 +24,10 @@ public:
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
   void reset() override;
-
+  std::string getFrameId() override
+  {
+    return "base_footprint";
+  };
   void setVelocityLinear(const double velocity);
   void setRobotLength(const double robot_length);
   void setRabbitDistance(const double distance);
