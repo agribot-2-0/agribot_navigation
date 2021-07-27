@@ -41,9 +41,11 @@ void VelocitySmoother::run()
     }
     else
     {
-      if (abs(last_sent_filtered_velocity_ - current_raw_velocity_) < acceleration_ / frequency_)
+      if (abs(last_sent_filtered_velocity_ - current_raw_velocity_) < acceleration_)
       {
-        current_filtered_velocity_ = current_raw_velocity_;
+        current_filtered_velocity_ = (last_sent_filtered_velocity_ > current_raw_velocity_ ?
+                                          last_sent_filtered_velocity_ - acceleration_ / (frequency_ * 10) :
+                                          last_sent_filtered_velocity_ + acceleration_ / (frequency_ * 10));
       }
       else
       {
@@ -54,6 +56,7 @@ void VelocitySmoother::run()
     }
 
     filtered_msg.linear.x = current_filtered_velocity_;
+    filtered_msg.angular.z = angular_velocity;
     smooth_velocity_publisher_.publish(filtered_msg);
     last_sent_filtered_velocity_ = current_filtered_velocity_;
 
@@ -66,4 +69,5 @@ void VelocitySmoother::rawVelocityCallback(const geometry_msgs::Twist msg)
 {
   message_received_ = true;
   current_raw_velocity_ = msg.linear.x;
+  angular_velocity = msg.angular.z;
 }
