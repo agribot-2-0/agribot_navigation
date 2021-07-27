@@ -351,6 +351,7 @@ install(TARGETS
   kinematics_control
   cmd_vel_arbiter_node
   navigation_manager_node
+  velocity_smoother_node
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )

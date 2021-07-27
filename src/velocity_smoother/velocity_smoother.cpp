@@ -30,16 +30,20 @@ void VelocitySmoother::run()
 {
   geometry_msgs::Twist filtered_msg;
 
-  ros::Rate loop_rate(100);
+  ros::Rate loop_rate(frequency_);
   while (ros::ok())
   {
     ros::spinOnce();
 
-    if (message_received_)
+    if (current_raw_velocity_ == last_sent_filtered_velocity_)
     {
-      if (current_raw_velocity_ == last_sent_filtered_velocity_)
+      current_filtered_velocity_ = last_sent_filtered_velocity_;
+    }
+    else
+    {
+      if (abs(last_sent_filtered_velocity_ - current_raw_velocity_) < acceleration_ / frequency_)
       {
-        current_filtered_velocity_ = last_sent_filtered_velocity_;
+        current_filtered_velocity_ = current_raw_velocity_;
       }
       else
       {
@@ -48,17 +52,7 @@ void VelocitySmoother::run()
                                           last_sent_filtered_velocity_ + acceleration_ / frequency_);
       }
     }
-    else
-    {
-      if (last_sent_filtered_velocity_ > stop_)
-      {
-        current_filtered_velocity_ = (last_sent_filtered_velocity_ - acceleration_ / frequency_);
-      }
-      else
-      {
-        current_filtered_velocity_ = stop_;
-      }
-    }
+
     filtered_msg.linear.x = current_filtered_velocity_;
     smooth_velocity_publisher_.publish(filtered_msg);
     last_sent_filtered_velocity_ = current_filtered_velocity_;

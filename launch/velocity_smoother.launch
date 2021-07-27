@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-	<!-- <param name="default_acceleration" type="double" value="0.1" /> -->
-	<!-- <param name="default_frequency" type="double" value="100" /> -->
-  <node name="velocity_smoother_node" pkg="agribot_navigation" type="velocity_smoother_node" />
-</launch>
