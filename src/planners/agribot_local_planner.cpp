@@ -196,6 +196,7 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
     obstacles_left_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_left_line", 10);
     obstacles_right_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_right_line", 10);
     goal_pub_ = pnh.advertise<visualization_msgs::Marker>("goal_tolerance", 10);
+    rabbit_pub_ = pnh.advertise<geometry_msgs::PoseStamped>("rabbit_pose", 10);
 
     // be sure that path planning arc radius is greater or equal to minimum turning radius
     if (param_design_arc_radius_ < param_min_radius_)
@@ -668,6 +669,13 @@ void AgribotLocalPlanner::visualizationPath(std::string frame_id)
   catch (const std::exception& ex)
   {
     ROS_ERROR_STREAM("[AgribotLocalPlanner] " << ex.what());
+  }
+
+  auto pure_pursuit_pointer =
+      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["PurePursuitController"].get());
+  if (pure_pursuit_pointer != nullptr)
+  {
+    VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pub_);
   }
 }
 

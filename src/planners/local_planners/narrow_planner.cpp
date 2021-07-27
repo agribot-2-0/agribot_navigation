@@ -15,7 +15,7 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
                                        const geometry_msgs::PoseStamped& start_pose,
                                        const geometry_msgs::PoseStamped& end_pose)
 {
-  static_cast<void>(end_pose);
+  // static_cast<void>(start_pose);
   path.push_back(start_pose);
   try
   {
@@ -23,7 +23,7 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
     {
       return false;
     }
-    auto start_obstacle_pose = calculateMidpose(line_left_[0], line_right_[0]);
+    auto start_obstacle_pose = calculateMidpose(line_left_.front(), line_right_.front());
 
     CommonFunctions::straightPath(path, start_pose, start_obstacle_pose, frame_id, step_size_);
 
@@ -40,6 +40,8 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
     }
 
     auto midpose_last = calculateMidpose(line_left_.back(), line_right_.back());
+    // ROS_WARN_STREAM(midpose_last.pose.position.x);
+    // ROS_WARN_STREAM(end_pose.pose.position.x);
     if (midpose_last.pose.position.x < end_pose.pose.position.x)
     {
       CommonFunctions::straightPath(path, midpose_last, end_pose, frame_id, step_size_);

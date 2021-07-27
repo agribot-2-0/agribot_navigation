@@ -54,6 +54,9 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
+  ROS_WARN_STREAM(CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az);
+  ROS_WARN_STREAM(CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az);
+
   if (look_ahead_distance_ < rabbit_distance_)
   {
     angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
