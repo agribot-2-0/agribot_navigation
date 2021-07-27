@@ -358,26 +358,29 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     return false;
   }
 
+  checkObstacles();
+  if (detection_.isInRow(planners_["narrow"]->getObstacles()))
+  {
+    if (CommonFunctions::distanceBetweenPoses(robot_center_, goal_) > 1.5)
+    {
+      ROS_INFO_STREAM("Plan narrow");
+      try
+      {
+        local_plan_.clear();
+        planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
+                                        transformPose(goal_, planners_["narrow"]->getFrameId()));
+      }
+      catch (const std::exception& e)
+      {
+        ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
+        abort_executing_ = true;
+      }
+    }
+  }
   if (local_plan_.size() <= 0)
   {
     ROS_ERROR("[AgribotLocalPlanner] Local plan is not created");
     return false;
-  }
-
-  checkObstacles();
-  if (detection_.isInRow(planners_["narrow"]->getObstacles()))
-  {
-    local_plan_.clear();
-    try
-    {
-      planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
-                                      transformPose(goal_, planners_["narrow"]->getFrameId()));
-    }
-    catch (const std::exception& e)
-    {
-      ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
-      abort_executing_ = true;
-    }
   }
   publishObstacles();
   visualizationPath(local_plan_.front().header.frame_id);
@@ -386,7 +389,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   calculateControls(cmd_vel);
 
   // Stop condition
-  if (isReachedPathEnd(robot_center_, transformPose(local_plan_.back(), reference_frame_id_)))
+  if (isReachedPathEnd(robot_center_, goal_))
   {
     cmd_vel = finishedPathBehaviour();
     ROS_INFO_STREAM("[AgribotLocalPlanner] Finished Path");
@@ -501,17 +504,15 @@ void AgribotLocalPlanner::truncatePath(std::vector<geometry_msgs::PoseStamped>& 
 
 void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel)
 {
-  for (std::size_t i = 0; i < local_plan_.size(); ++i)
+  for (auto& pose : local_plan_)
   {
-    local_plan_[i] = transformPose(local_plan_[i], controllers_[param_agribot_controller_name_]->getFrameId());
-    local_plan_[i].header.seq = i;
+    pose = transformPose(pose, controllers_[param_agribot_controller_name_]->getFrameId());
   }
   controllers_[param_agribot_controller_name_]->computeControl(
       cmd_vel, local_plan_, transformPose(robot_center_, controllers_[param_agribot_controller_name_]->getFrameId()));
-  for (std::size_t i = 0; i < local_plan_.size(); ++i)
+  for (auto& pose : local_plan_)
   {
-    local_plan_[i] = transformPose(local_plan_[i], reference_frame_id_);
-    local_plan_[i].header.seq = i;
+    pose = transformPose(pose, reference_frame_id_);
   }
   cmd_vel = limitVelocities(cmd_vel);
 }
@@ -693,6 +694,10 @@ void AgribotLocalPlanner::visualizationObstacles(void)
 
 bool AgribotLocalPlanner::isOutOfPath(void)
 {
+  for (auto& pose : local_plan_)
+  {
+    pose = transformPose(pose, reference_frame_id_);
+  }
   return CommonFunctions::calculateCrosstrackError(local_plan_, robot_center_) >
          param_maximum_distance_to_path_tolerance_;
 }

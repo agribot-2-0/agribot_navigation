@@ -48,14 +48,17 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
                                            const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                            const geometry_msgs::PoseStamped& robot_pose)
 {
+  if (path_to_track.size() <= 1)
+  {
+    return false;
+  }
+  rabbit_count_ = 0;
+  rabbit_pose_ = path_to_track[rabbit_count_];
   do
   {
     look_ahead_distance_ = CommonFunctions::distanceBetweenPoses(rabbit_pose_, robot_pose);
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
-
-  ROS_WARN_STREAM(CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az);
-  ROS_WARN_STREAM(CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az);
 
   if (look_ahead_distance_ < rabbit_distance_)
   {
@@ -75,6 +78,13 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
 
+  ROS_WARN_STREAM("look_ahead_distance_ " << look_ahead_distance_);
+
+  ROS_WARN_STREAM("rabbit_count_ " << rabbit_count_);
+  ROS_WARN_STREAM("size " << path_to_track.size());
+
+  ROS_WARN_STREAM("rabbit frame " << rabbit_pose_.header.frame_id);
+  ROS_WARN_STREAM("robot frame " << robot_pose.header.frame_id);
   ROS_WARN_STREAM("rabbit_pose_ " << CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az);
   ROS_WARN_STREAM("robot_pose " << CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az);
   ROS_WARN_STREAM("error_heading_ " << angle_between_poses_);
@@ -86,6 +96,11 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
 bool PurePursuitController::computeRabbit(double look_ahead_distance, const std::size_t& path_size)
 {
+  if (rabbit_count_ >= path_size && look_ahead_distance > rabbit_distance_)
+  {
+    rabbit_count_ = path_size - 1;
+    return false;
+  }
   if (look_ahead_distance < rabbit_distance_)
   {
     rabbit_count_++;
