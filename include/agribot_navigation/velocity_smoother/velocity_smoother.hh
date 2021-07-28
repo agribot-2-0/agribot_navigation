@@ -21,10 +21,19 @@ private:
   double angular_velocity_;
   double velocity_treshold_;
   double acceleration_after_treshold_;
+  double step_;
+  double step_after_treshold_;
 
 public:
   explicit VelocitySmoother(ros::NodeHandle* nh);
   int checkParameters();
   void run();
   void rawVelocityCallback(const geometry_msgs::Twist msg);
+  bool isCloserToTresholdThanDesiredVelocity();
+  bool isCloserToDesiredVelocityThanStep();
+  bool isBelowTreshold();
+  bool isCloserToDesiredVelocityThanStepAfterTreshold();
+  bool isBelowTresholdAndIncreasing();
+  bool isAboveTresholdAndDecreasing();
+  void calculateCurrentFilteredVelocity();
 };
