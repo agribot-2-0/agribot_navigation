@@ -20,6 +20,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/Path.h>
 #include <pluginlib/class_loader.h>
 #include <tf/tf.h>
 #include <tf2_ros/buffer.h>

@@ -594,18 +594,19 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
 
 void AgribotLocalPlanner::lineLeftCallback(const nav_msgs::Path& msg)
 {
-  if (msg.poses.size() != 0)
-  {
-    planners_["narrow"]->setLineLeft(msg);
-  }
+  // ROS_WARN_STREAM("line left rec " << msg->poses.size());
+  // if (msg.poses.size() == 2)
+  // {
+  planners_["narrow"]->setLineLeft(msg);
+  // }
 }
 
 void AgribotLocalPlanner::lineRightCallback(const nav_msgs::Path& msg)
 {
-  if (msg.poses.size() != 0)
-  {
-    planners_["narrow"]->setLineRight(msg);
-  }
+  // if (msg.poses.size() != 0)
+  // {
+  planners_["narrow"]->setLineRight(msg);
+  // }
 }
 
 geometry_msgs::Twist AgribotLocalPlanner::stopRobot()

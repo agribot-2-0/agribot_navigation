@@ -15,14 +15,15 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
                                        const geometry_msgs::PoseStamped& start_pose,
                                        const geometry_msgs::PoseStamped& end_pose)
 {
-  // static_cast<void>(start_pose);
-  path.push_back(start_pose);
   try
   {
-    if (!line_left_.size() || !line_right_.size() || !path.size())
+    ROS_WARN_STREAM("narrow line left size " << line_left_.size());
+    if (line_left_.size() == 0 || !line_right_.size() || !path.size())
     {
+      ROS_WARN_STREAM("return false");
       return false;
     }
+    path.push_back(start_pose);
     auto start_obstacle_pose = calculateMidpose(line_left_.front(), line_right_.front());
 
     if (start_obstacle_pose.pose.position.x < end_pose.pose.position.x)
