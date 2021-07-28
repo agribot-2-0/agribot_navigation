@@ -599,7 +599,7 @@ geometry_msgs::PoseStamped AgribotLocalPlanner::transformPose(const geometry_msg
     pose_transformed.header.stamp = ros::Time::now();
     tf_buffer_->transform(pose, pose_transformed, frame_id, ros::Duration(0.2));
   }
-  catch (tf2::ExtrapolationException e)
+  catch (const tf2::ExtrapolationException& e)
   {
     ROS_ERROR_STREAM("[AgribotLocalPlanner] ExtrapolationException: " << e.what());
     abort_executing_ = true;

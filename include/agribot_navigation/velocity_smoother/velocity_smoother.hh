@@ -29,10 +29,10 @@ public:
   int checkParameters();
   void run();
   void rawVelocityCallback(const geometry_msgs::Twist msg);
-  bool isCloserToTresholdThanDesiredVelocity();
-  bool isCloserToDesiredVelocityThanStep();
+  bool isCloserToTresholdThanToDesiredVelocity();
+  bool isCloserToDesiredVelocityThanByStep();
   bool isBelowTreshold();
-  bool isCloserToDesiredVelocityThanStepAfterTreshold();
+  bool isCloserToDesiredVelocityThanByStepAfterTreshold();
   bool isBelowTresholdAndIncreasing();
   bool isAboveTresholdAndDecreasing();
   void calculateCurrentFilteredVelocity();

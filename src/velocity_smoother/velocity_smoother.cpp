@@ -30,12 +30,12 @@ int VelocitySmoother::checkParameters()
   return 1;
 }
 
-bool VelocitySmoother::isCloserToDesiredVelocityThanStep()
+bool VelocitySmoother::isCloserToDesiredVelocityThanByStep()
 {
   return (abs(last_sent_filtered_velocity_ - current_raw_velocity_) <= step_);
 }
 
-bool VelocitySmoother::isCloserToTresholdThanDesiredVelocity()
+bool VelocitySmoother::isCloserToTresholdThanToDesiredVelocity()
 {
   return ((abs(abs(last_sent_filtered_velocity_) - velocity_treshold_) < step_) &&
           (abs(last_sent_filtered_velocity_) != velocity_treshold_) &&
@@ -50,7 +50,7 @@ bool VelocitySmoother::isBelowTreshold()
   return ((abs(last_sent_filtered_velocity_) <= velocity_treshold_));
 }
 
-bool VelocitySmoother::isCloserToDesiredVelocityThanStepAfterTreshold()
+bool VelocitySmoother::isCloserToDesiredVelocityThanByStepAfterTreshold()
 {
   return (abs(last_sent_filtered_velocity_ - current_raw_velocity_) <= step_after_treshold_);
 }
@@ -73,9 +73,9 @@ bool VelocitySmoother::isAboveTresholdAndDecreasing()
 
 void VelocitySmoother::calculateCurrentFilteredVelocity()
 {
-  if (isCloserToDesiredVelocityThanStep())
+  if (isCloserToDesiredVelocityThanByStep())
   {
-    if (isCloserToTresholdThanDesiredVelocity())
+    if (isCloserToTresholdThanToDesiredVelocity())
     {
       current_filtered_velocity_ =
           (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_treshold_ :
@@ -83,7 +83,7 @@ void VelocitySmoother::calculateCurrentFilteredVelocity()
     }
     else if (isBelowTreshold())
     {
-      if (isCloserToDesiredVelocityThanStepAfterTreshold())
+      if (isCloserToDesiredVelocityThanByStepAfterTreshold())
       {
         current_filtered_velocity_ = current_raw_velocity_;
       }
