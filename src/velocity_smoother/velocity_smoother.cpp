@@ -56,18 +56,16 @@ void VelocitySmoother::run()
     }
 
     filtered_msg.linear.x = current_filtered_velocity_;
-    filtered_msg.angular.z = angular_velocity;
+    filtered_msg.angular.z = angular_velocity_;
     smooth_velocity_publisher_.publish(filtered_msg);
     last_sent_filtered_velocity_ = current_filtered_velocity_;
 
-    message_received_ = false;
     loop_rate.sleep();
   }
 }
 
 void VelocitySmoother::rawVelocityCallback(const geometry_msgs::Twist msg)
 {
-  message_received_ = true;
   current_raw_velocity_ = msg.linear.x;
-  angular_velocity = msg.angular.z;
+  angular_velocity_ = msg.angular.z;
 }

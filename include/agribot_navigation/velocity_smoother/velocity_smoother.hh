@@ -18,8 +18,7 @@ private:
   double frequency_;  // 1/s
   double current_filtered_velocity_ = 0;
   const double stop_ = 0;
-  bool message_received_ = false;
-  double angular_velocity;
+  double angular_velocity_;
 
 public:
   explicit VelocitySmoother(ros::NodeHandle* nh);
