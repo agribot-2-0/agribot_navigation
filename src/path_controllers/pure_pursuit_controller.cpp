@@ -52,23 +52,22 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
   {
     return false;
   }
-  rabbit_count_ = 0;
-  rabbit_pose_ = path_to_track[rabbit_count_];
+
   do
   {
     look_ahead_distance_ = CommonFunctions::distanceBetweenPoses(rabbit_pose_, robot_pose);
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
-  if (look_ahead_distance_ < rabbit_distance_)
-  {
-    angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
-                           CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
-  }
-  else
-  {
-    angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
-  }
+  // if (look_ahead_distance_ < rabbit_distance_)
+  // {
+  //   angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
+  //                          CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
+  // }
+  // else
+  // {
+  angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
+  // }
 
   motion_radius_ = look_ahead_distance_ / (2 * sin(angle_between_poses_));
 
@@ -96,7 +95,10 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
 bool PurePursuitController::computeRabbit(double look_ahead_distance, const std::size_t& path_size)
 {
-  if (rabbit_count_ >= path_size && look_ahead_distance > rabbit_distance_)
+  ROS_WARN_STREAM("look_ahead_distance_ " << look_ahead_distance_);
+  ROS_WARN_STREAM("rabbit_distance_ " << rabbit_distance_);
+
+  if (rabbit_count_ >= path_size)
   {
     rabbit_count_ = path_size - 1;
     return false;

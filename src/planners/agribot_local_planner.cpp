@@ -363,6 +363,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   {
     if (CommonFunctions::distanceBetweenPoses(robot_center_, goal_) > 1.5)
     {
+      controllers_[param_agribot_controller_name_].reset();
       ROS_INFO_STREAM("Plan narrow");
       try
       {
@@ -593,12 +594,18 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
 
 void AgribotLocalPlanner::lineLeftCallback(const nav_msgs::Path& msg)
 {
-  planners_["narrow"]->setLineLeft(msg);
+  if (msg.poses.size() != 0)
+  {
+    planners_["narrow"]->setLineLeft(msg);
+  }
 }
 
 void AgribotLocalPlanner::lineRightCallback(const nav_msgs::Path& msg)
 {
-  planners_["narrow"]->setLineRight(msg);
+  if (msg.poses.size() != 0)
+  {
+    planners_["narrow"]->setLineRight(msg);
+  }
 }
 
 geometry_msgs::Twist AgribotLocalPlanner::stopRobot()

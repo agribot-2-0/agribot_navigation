@@ -18,7 +18,8 @@ bool StraightPathPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& pa
   try
   {
     CommonFunctions::straightPath(path, start_pose, end_pose, frame_id, step_size_);
-    CommonFunctions::updateOrientationInPath(path, 0, path.size());
+    path.push_back(end_pose);
+    CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
   }
   catch (const std::exception& e)
   {
