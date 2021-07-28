@@ -16,6 +16,8 @@ int VelocitySmoother::checkParameters()
   {
     frequency_ = ros_common_functions::getRosParam<double>("/default_frequency");
     acceleration_ = ros_common_functions::getRosParam<double>("/default_acceleration");
+    velocity_treshold_ = ros_common_functions::getRosParam<double>("/default_velocity_treshold");
+    acceleration_after_treshold_ = ros_common_functions::getRosParam<double>("/default_acceleration_after_treshold");
   }
 
   catch (const std::exception& ex)
@@ -35,17 +37,33 @@ void VelocitySmoother::run()
   {
     ros::spinOnce();
 
-    if (current_raw_velocity_ == last_sent_filtered_velocity_)
+    if (abs(last_sent_filtered_velocity_ - current_raw_velocity_) <= acceleration_ / (frequency_))
     {
-      current_filtered_velocity_ = last_sent_filtered_velocity_;
+      if (abs(last_sent_filtered_velocity_) <= velocity_treshold_)
+      {
+        if (abs(last_sent_filtered_velocity_ - current_raw_velocity_) <= acceleration_after_treshold_ / (frequency_))
+        {
+          current_filtered_velocity_ = current_raw_velocity_;
+        }
+        else
+        {
+          current_filtered_velocity_ = (last_sent_filtered_velocity_ > current_raw_velocity_ ?
+                                            last_sent_filtered_velocity_ - acceleration_after_treshold_ / (frequency_) :
+                                            last_sent_filtered_velocity_ + acceleration_after_treshold_ / (frequency_));
+        }
+      }
+      else
+      {
+        current_filtered_velocity_ = current_raw_velocity_;
+      }
     }
     else
     {
-      if (abs(last_sent_filtered_velocity_ - current_raw_velocity_) < acceleration_)
+      if (abs(last_sent_filtered_velocity_) <= velocity_treshold_)
       {
         current_filtered_velocity_ = (last_sent_filtered_velocity_ > current_raw_velocity_ ?
-                                          last_sent_filtered_velocity_ - acceleration_ / (frequency_ * 10) :
-                                          last_sent_filtered_velocity_ + acceleration_ / (frequency_ * 10));
+                                          last_sent_filtered_velocity_ - acceleration_after_treshold_ / (frequency_) :
+                                          last_sent_filtered_velocity_ + acceleration_after_treshold_ / (frequency_));
       }
       else
       {

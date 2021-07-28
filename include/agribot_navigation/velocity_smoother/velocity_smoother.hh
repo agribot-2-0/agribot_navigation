@@ -19,6 +19,8 @@ private:
   double current_filtered_velocity_ = 0;
   const double stop_ = 0;
   double angular_velocity_;
+  double velocity_treshold_;
+  double acceleration_after_treshold_;
 
 public:
   explicit VelocitySmoother(ros::NodeHandle* nh);
