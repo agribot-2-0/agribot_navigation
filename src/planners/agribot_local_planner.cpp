@@ -361,22 +361,19 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   checkObstacles();
   if (detection_.isInRow(planners_["narrow"]->getObstacles()))
   {
-    if (CommonFunctions::distanceBetweenPoses(robot_center_, goal_) > 1.5)
+    ROS_INFO_STREAM("Plan narrow");
+    try
     {
-      ROS_INFO_STREAM("Plan narrow");
-      try
-      {
-        // controllers_[param_agribot_controller_name_].reset();
-        planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
-                                        transformPose(goal_, planners_["narrow"]->getFrameId()));
-        goal_ = local_plan_.back();
-        goal_ = transformPose(goal_, reference_frame_id_);
-      }
-      catch (const std::exception& e)
-      {
-        ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
-        abort_executing_ = true;
-      }
+      // controllers_[param_agribot_controller_name_].reset();
+      planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
+                                      transformPose(goal_, planners_["narrow"]->getFrameId()));
+      // goal_ = local_plan_.back();
+      // goal_ = transformPose(goal_, reference_frame_id_);
+    }
+    catch (const std::exception& e)
+    {
+      ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
+      abort_executing_ = true;
     }
   }
   if (local_plan_.size() <= 0)

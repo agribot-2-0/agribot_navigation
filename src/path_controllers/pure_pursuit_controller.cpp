@@ -73,7 +73,7 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
   angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
   // }
 
-  motion_radius_ = look_ahead_distance_ / (2 * sin(angle_between_poses_));
+  motion_radius_ = look_ahead_distance_ / (tan(angle_between_poses_));
 
   agribot_msgs::AgribotManualControl msg;
   msg.linear_velocity = lin_vel_;
@@ -99,8 +99,8 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
 bool PurePursuitController::computeRabbit(double look_ahead_distance, const std::size_t& path_size)
 {
-  ROS_WARN_STREAM("look_ahead_distance_ " << look_ahead_distance_);
-  ROS_WARN_STREAM("rabbit_distance_ " << rabbit_distance_);
+  // ROS_WARN_STREAM("look_ahead_distance_ " << look_ahead_distance_);
+  // ROS_WARN_STREAM("rabbit_distance_ " << rabbit_distance_);
 
   if (rabbit_count_ >= path_size)
   {
