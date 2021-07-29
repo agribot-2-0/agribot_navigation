@@ -48,10 +48,14 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
                                            const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                            const geometry_msgs::PoseStamped& robot_pose)
 {
-  if (path_to_track.size() <= 1)
+  ROS_WARN_STREAM("purePursuit " << path_to_track.empty());
+  if (path_to_track.empty())
   {
     return false;
   }
+
+  this->reset();
+  rabbit_pose_ = path_to_track[rabbit_count_];
 
   do
   {

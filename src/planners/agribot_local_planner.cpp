@@ -363,13 +363,14 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   {
     if (CommonFunctions::distanceBetweenPoses(robot_center_, goal_) > 1.5)
     {
-      controllers_[param_agribot_controller_name_].reset();
       ROS_INFO_STREAM("Plan narrow");
       try
       {
-        local_plan_.clear();
+        // controllers_[param_agribot_controller_name_].reset();
         planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
                                         transformPose(goal_, planners_["narrow"]->getFrameId()));
+        goal_ = local_plan_.back();
+        goal_ = transformPose(goal_, reference_frame_id_);
       }
       catch (const std::exception& e)
       {
@@ -505,12 +506,20 @@ void AgribotLocalPlanner::truncatePath(std::vector<geometry_msgs::PoseStamped>& 
 
 void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel)
 {
+  ROS_WARN_STREAM("Calculate controls " << local_plan_.empty());
+  ROS_WARN_STREAM("Calculate controls " << local_plan_.size());
+  if (local_plan_.empty())
+  {
+    return;
+  }
   for (auto& pose : local_plan_)
   {
     pose = transformPose(pose, controllers_[param_agribot_controller_name_]->getFrameId());
   }
+  ROS_WARN_STREAM("Calculate controls track path started");
   controllers_[param_agribot_controller_name_]->computeControl(
       cmd_vel, local_plan_, transformPose(robot_center_, controllers_[param_agribot_controller_name_]->getFrameId()));
+  ROS_WARN_STREAM("Calculate controls track path finished");
   for (auto& pose : local_plan_)
   {
     pose = transformPose(pose, reference_frame_id_);

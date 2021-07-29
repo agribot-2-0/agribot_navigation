@@ -18,11 +18,14 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
   try
   {
     ROS_WARN_STREAM("narrow line left size " << line_left_.size());
+    ROS_WARN_STREAM("narrow line right size " << line_right_.size());
+
     if (line_left_.size() == 0 || !line_right_.size() || !path.size())
     {
       ROS_WARN_STREAM("return false");
       return false;
     }
+    path.clear();
     path.push_back(start_pose);
     auto start_obstacle_pose = calculateMidpose(line_left_.front(), line_right_.front());
 
@@ -138,12 +141,24 @@ void NarrowCorridorPlanner::setStepSize(const double param_step_size)
 
 void NarrowCorridorPlanner::setLineLeft(const nav_msgs::Path& line)
 {
+  // ROS_WARN_STREAM("set line left " << line.poses.size());
+  // ROS_WARN_STREAM("set line left " << line.poses.size());
+  if (line.poses.empty())
+  {
+    return;
+  }
   line_left_.clear();
   CommonFunctions::straightPath(line_left_, line.poses.front(), line.poses.back(), frame_id, step_size_);
 }
 
 void NarrowCorridorPlanner::setLineRight(const nav_msgs::Path& line)
 {
+  // ROS_WARN_STREAM("set line right");
+  // ROS_WARN_STREAM("set line right " << line.poses.size());
+  if (line.poses.empty())
+  {
+    return;
+  }
   line_right_.clear();
   CommonFunctions::straightPath(line_right_, line.poses.front(), line.poses.back(), frame_id, step_size_);
 }
