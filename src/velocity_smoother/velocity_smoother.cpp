@@ -10,14 +10,14 @@ VelocitySmoother::VelocitySmoother(ros::NodeHandle* nh)
   raw_velocity_subscriber_ = nh_->subscribe("/cmd_vel", 1, &VelocitySmoother::rawVelocityCallback, this);
 }
 
-int VelocitySmoother::checkParameters()
+int VelocitySmoother::getParameters()
 {
   try
   {
     frequency_ = ros_common_functions::getRosParam<double>("/default_frequency");
     acceleration_ = ros_common_functions::getRosParam<double>("/default_acceleration");
-    velocity_treshold_ = ros_common_functions::getRosParam<double>("/default_velocity_treshold");
-    acceleration_after_treshold_ = ros_common_functions::getRosParam<double>("/default_acceleration_after_treshold");
+    velocity_threshold_ = ros_common_functions::getRosParam<double>("/default_velocity_threshold");
+    acceleration_after_threshold_ = ros_common_functions::getRosParam<double>("/default_acceleration_after_threshold");
   }
 
   catch (const std::exception& ex)
@@ -26,7 +26,7 @@ int VelocitySmoother::checkParameters()
     return 0;
   }
   step_ = acceleration_ / frequency_;
-  step_after_treshold_ = acceleration_after_treshold_ / frequency_;
+  step_after_threshold_ = acceleration_after_threshold_ / frequency_;
   return 1;
 }
 
@@ -35,38 +35,38 @@ bool VelocitySmoother::isCloserToDesiredVelocityThanByStep()
   return (abs(last_sent_filtered_velocity_ - current_raw_velocity_) <= step_);
 }
 
-bool VelocitySmoother::isCloserToTresholdThanToDesiredVelocity()
+bool VelocitySmoother::isCloserToThresholdThanToDesiredVelocity()
 {
-  return ((abs(abs(last_sent_filtered_velocity_) - velocity_treshold_) < step_) &&
-          (abs(last_sent_filtered_velocity_) != velocity_treshold_) &&
+  return ((abs(abs(last_sent_filtered_velocity_) - velocity_threshold_) < step_) &&
+          (abs(last_sent_filtered_velocity_) != velocity_threshold_) &&
           (abs(last_sent_filtered_velocity_ - current_raw_velocity_) >
-           abs(abs(last_sent_filtered_velocity_) - velocity_treshold_)) &&
+           abs(abs(last_sent_filtered_velocity_) - velocity_threshold_)) &&
           (((current_raw_velocity_ - last_sent_filtered_velocity_ < 0) && (last_sent_filtered_velocity_ < 0)) ||
            ((current_raw_velocity_ - last_sent_filtered_velocity_ > 0) && (last_sent_filtered_velocity_ > 0))));
 }
 
-bool VelocitySmoother::isBelowTreshold()
+bool VelocitySmoother::isBelowThreshold()
 {
-  return ((abs(last_sent_filtered_velocity_) <= velocity_treshold_));
+  return ((abs(last_sent_filtered_velocity_) <= velocity_threshold_));
 }
 
-bool VelocitySmoother::isCloserToDesiredVelocityThanByStepAfterTreshold()
+bool VelocitySmoother::isCloserToDesiredVelocityThanByStepAfterThreshold()
 {
-  return (abs(last_sent_filtered_velocity_ - current_raw_velocity_) <= step_after_treshold_);
+  return (abs(last_sent_filtered_velocity_ - current_raw_velocity_) <= step_after_threshold_);
 }
 
-bool VelocitySmoother::isBelowTresholdAndIncreasing()
+bool VelocitySmoother::isBelowThresholdAndIncreasing()
 {
-  return ((abs(abs(last_sent_filtered_velocity_) - velocity_treshold_) < step_) &&
-          (abs(last_sent_filtered_velocity_) > velocity_treshold_) &&
+  return ((abs(abs(last_sent_filtered_velocity_) - velocity_threshold_) < step_) &&
+          (abs(last_sent_filtered_velocity_) > velocity_threshold_) &&
           (((current_raw_velocity_ - last_sent_filtered_velocity_ < 0) && (last_sent_filtered_velocity_ > 0)) ||
            ((current_raw_velocity_ - last_sent_filtered_velocity_ > 0) && (last_sent_filtered_velocity_ < 0))));
 }
 
-bool VelocitySmoother::isAboveTresholdAndDecreasing()
+bool VelocitySmoother::isAboveThresholdAndDecreasing()
 {
-  return ((abs(last_sent_filtered_velocity_) < velocity_treshold_) &&
-          (abs(abs(last_sent_filtered_velocity_) - velocity_treshold_) < step_after_treshold_) &&
+  return ((abs(last_sent_filtered_velocity_) < velocity_threshold_) &&
+          (abs(abs(last_sent_filtered_velocity_) - velocity_threshold_) < step_after_threshold_) &&
           (((current_raw_velocity_ - last_sent_filtered_velocity_ < 0) && (last_sent_filtered_velocity_ < 0)) ||
            ((current_raw_velocity_ - last_sent_filtered_velocity_ > 0) && (last_sent_filtered_velocity_ > 0))));
 }
@@ -75,23 +75,23 @@ void VelocitySmoother::calculateCurrentFilteredVelocity()
 {
   if (isCloserToDesiredVelocityThanByStep())
   {
-    if (isCloserToTresholdThanToDesiredVelocity())
+    if (isCloserToThresholdThanToDesiredVelocity())
     {
       current_filtered_velocity_ =
-          (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_treshold_ :
-                                                                  last_sent_filtered_velocity_ + step_after_treshold_);
+          (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_threshold_ :
+                                                                  last_sent_filtered_velocity_ + step_after_threshold_);
     }
-    else if (isBelowTreshold())
+    else if (isBelowThreshold())
     {
-      if (isCloserToDesiredVelocityThanByStepAfterTreshold())
+      if (isCloserToDesiredVelocityThanByStepAfterThreshold())
       {
         current_filtered_velocity_ = current_raw_velocity_;
       }
       else
       {
         current_filtered_velocity_ = (last_sent_filtered_velocity_ > current_raw_velocity_ ?
-                                          last_sent_filtered_velocity_ - step_after_treshold_ :
-                                          last_sent_filtered_velocity_ + step_after_treshold_);
+                                          last_sent_filtered_velocity_ - step_after_threshold_ :
+                                          last_sent_filtered_velocity_ + step_after_threshold_);
       }
     }
     else
@@ -99,23 +99,23 @@ void VelocitySmoother::calculateCurrentFilteredVelocity()
       current_filtered_velocity_ = current_raw_velocity_;
     }
   }
-  else if (isBelowTresholdAndIncreasing())
+  else if (isBelowThresholdAndIncreasing())
   {
     current_filtered_velocity_ =
-        (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_treshold_ :
-                                                                last_sent_filtered_velocity_ + step_after_treshold_);
+        (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_threshold_ :
+                                                                last_sent_filtered_velocity_ + step_after_threshold_);
   }
-  else if (isAboveTresholdAndDecreasing())
+  else if (isAboveThresholdAndDecreasing())
   {
     current_filtered_velocity_ =
-        (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_treshold_ :
-                                                                last_sent_filtered_velocity_ + step_after_treshold_);
+        (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_threshold_ :
+                                                                last_sent_filtered_velocity_ + step_after_threshold_);
   }
-  else if (isBelowTreshold())
+  else if (isBelowThreshold())
   {
     current_filtered_velocity_ =
-        (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_treshold_ :
-                                                                last_sent_filtered_velocity_ + step_after_treshold_);
+        (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_threshold_ :
+                                                                last_sent_filtered_velocity_ + step_after_threshold_);
   }
   else
   {

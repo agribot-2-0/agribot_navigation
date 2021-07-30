@@ -4,7 +4,7 @@
 #pragma once
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <geometry_msgs/Twist.h>
-#include "ros/ros.h"
+#include <ros/ros.h>
 
 class VelocitySmoother
 {
@@ -13,27 +13,27 @@ private:
   ros::Publisher smooth_velocity_publisher_;
   ros::Subscriber raw_velocity_subscriber_;
   double last_sent_filtered_velocity_ = 0;
-  double acceleration_;  // m/s^2
+  double acceleration_;
   double current_raw_velocity_ = 0;
-  double frequency_;  // 1/s
+  double frequency_;
   double current_filtered_velocity_ = 0;
   const double stop_ = 0;
   double angular_velocity_;
-  double velocity_treshold_;
-  double acceleration_after_treshold_;
+  double velocity_threshold_;
+  double acceleration_after_threshold_;
   double step_;
-  double step_after_treshold_;
+  double step_after_threshold_;
 
 public:
   explicit VelocitySmoother(ros::NodeHandle* nh);
-  int checkParameters();
+  int getParameters();
   void run();
   void rawVelocityCallback(const geometry_msgs::Twist msg);
-  bool isCloserToTresholdThanToDesiredVelocity();
+  bool isCloserToThresholdThanToDesiredVelocity();
   bool isCloserToDesiredVelocityThanByStep();
-  bool isBelowTreshold();
-  bool isCloserToDesiredVelocityThanByStepAfterTreshold();
-  bool isBelowTresholdAndIncreasing();
-  bool isAboveTresholdAndDecreasing();
+  bool isBelowThreshold();
+  bool isCloserToDesiredVelocityThanByStepAfterThreshold();
+  bool isBelowThresholdAndIncreasing();
+  bool isAboveThresholdAndDecreasing();
   void calculateCurrentFilteredVelocity();
 };
