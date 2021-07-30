@@ -16,7 +16,6 @@ void VelocitySmoother::getParameters()
   acceleration_ = ros_common_functions::getRosParam<double>("/default_acceleration");
   velocity_threshold_ = ros_common_functions::getRosParam<double>("/default_velocity_threshold");
   acceleration_after_threshold_ = ros_common_functions::getRosParam<double>("/default_acceleration_after_threshold");
-
   step_ = acceleration_ / frequency_;
   step_after_threshold_ = acceleration_after_threshold_ / frequency_;
 }
