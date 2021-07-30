@@ -48,7 +48,7 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
                                            const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                            const geometry_msgs::PoseStamped& robot_pose)
 {
-  ROS_WARN_STREAM("purePursuit " << path_to_track.empty());
+  // ROS_WARN_STREAM("purePursuit " << path_to_track.empty());
   if (path_to_track.empty())
   {
     return false;
@@ -81,17 +81,17 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
 
-  ROS_WARN_STREAM("look_ahead_distance_ " << look_ahead_distance_);
+  // ROS_WARN_STREAM("look_ahead_distance_ " << look_ahead_distance_);
 
-  ROS_WARN_STREAM("rabbit_count_ " << rabbit_count_);
-  ROS_WARN_STREAM("size " << path_to_track.size());
+  // ROS_WARN_STREAM("rabbit_count_ " << rabbit_count_);
+  // ROS_WARN_STREAM("size " << path_to_track.size());
 
-  ROS_WARN_STREAM("rabbit frame " << rabbit_pose_.header.frame_id);
-  ROS_WARN_STREAM("robot frame " << robot_pose.header.frame_id);
-  ROS_WARN_STREAM("rabbit_pose_ " << CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az);
-  ROS_WARN_STREAM("robot_pose " << CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az);
-  ROS_WARN_STREAM("error_heading_ " << angle_between_poses_);
-  ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
+  // ROS_WARN_STREAM("rabbit frame " << rabbit_pose_.header.frame_id);
+  // ROS_WARN_STREAM("robot frame " << robot_pose.header.frame_id);
+  // ROS_WARN_STREAM("rabbit_pose_ " << CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az);
+  // ROS_WARN_STREAM("robot_pose " << CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az);
+  // ROS_WARN_STREAM("error_heading_ " << angle_between_poses_);
+  // ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
   ROS_WARN_STREAM("motion_radius_ " << motion_radius_);
 
   return true;
