@@ -225,6 +225,7 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
     ros::topic::waitForMessage<nav_msgs::Odometry>("odom");
 
     initialized_ = true;
+    local_plan_planned_ = false;
 
     if (param_statistics_)
     {
@@ -251,6 +252,13 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
     return false;
   }
 
+  if (local_plan_planned_)
+  {
+    ROS_ERROR_STREAM("[AgribotLocalPlanner] Local plan was planned once. Avoid planning more times");
+    return false;
+  }
+
+  global_plan_ = orig_global_plan;
   goal_ = orig_global_plan.back();
   goal_ = transformPose(goal_, reference_frame_id_);
 
@@ -298,6 +306,8 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
     start_time_ = ros::Time::now().toSec();
     last_time_ = 0;
   }
+
+  local_plan_planned_ = true;
 
   ROS_INFO_STREAM("[AgribotLocalPlanner] Plan received from Global Planner. Initialization finished.");
 
@@ -358,8 +368,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     return false;
   }
 
-  checkObstacles();
-  if (detection_.isInRow(planners_["narrow"]->getObstacles()))
+  if (isInRow())
   {
     ROS_INFO_STREAM("Plan narrow");
     try
@@ -375,17 +384,23 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       ROS_ERROR_STREAM("[AgribotLocalPlanner]" << e.what());
       abort_executing_ = true;
     }
+    calculateControls(cmd_vel, "PurePursuitController");
+    local_plan_planned_ = false;
   }
+  else
+  {
+    setPlan(global_plan_);
+    calculateControls(cmd_vel, "StanleyController");
+  }
+
   if (local_plan_.size() <= 0)
   {
     ROS_ERROR("[AgribotLocalPlanner] Local plan is not created");
     return false;
   }
+
   publishObstacles();
   visualizationPath(local_plan_.front().header.frame_id);
-
-  // Calculate velocities
-  calculateControls(cmd_vel);
 
   // Stop condition
   if (isReachedPathEnd(robot_center_, goal_))
@@ -483,25 +498,7 @@ void AgribotLocalPlanner::publishObstacles()
   }
 }
 
-void AgribotLocalPlanner::truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path)
-{
-  std::vector<geometry_msgs::PoseStamped> path_slice_ray;
-  geometry_msgs::PoseStamped robot_center = transformPose(robot_center_, reference_frame_id_);
-
-  if (!trackers_["side_ray"]->findPathSlice(path_slice_ray, local_plan_, robot_center))
-  {
-    trackers_["front_ray"]->findPathSlice(path_slice_ray, local_plan_, robot_center);
-  }
-
-  trackers_["following"]->findPathSlice(truncated_path, local_plan_, robot_center);
-
-  if (path_slice_ray.size() > 1)
-  {
-    truncated_path = path_slice_ray;
-  }
-}
-
-void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel)
+void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel, std::string controller_id)
 {
   ROS_WARN_STREAM("Calculate controls " << local_plan_.empty());
   ROS_WARN_STREAM("Calculate controls " << local_plan_.size());
@@ -511,11 +508,11 @@ void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel)
   }
   for (auto& pose : local_plan_)
   {
-    pose = transformPose(pose, controllers_[param_agribot_controller_name_]->getFrameId());
+    pose = transformPose(pose, controllers_[controller_id]->getFrameId());
   }
   ROS_WARN_STREAM("Calculate controls track path started");
-  controllers_[param_agribot_controller_name_]->computeControl(
-      cmd_vel, local_plan_, transformPose(robot_center_, controllers_[param_agribot_controller_name_]->getFrameId()));
+  controllers_[controller_id]->computeControl(cmd_vel, local_plan_,
+                                              transformPose(robot_center_, controllers_[controller_id]->getFrameId()));
   ROS_WARN_STREAM("Calculate controls track path finished");
   for (auto& pose : local_plan_)
   {
@@ -721,6 +718,12 @@ bool AgribotLocalPlanner::isReachedPathEnd(const geometry_msgs::PoseStamped& rob
 {
   double distanceToGoal = CommonFunctions::distanceBetweenPoses(path_end_waypoint, robot_coordinates);
   return (distanceToGoal <= param_goal_distance_tolerance_);
+}
+
+bool AgribotLocalPlanner::isInRow()
+{
+  checkObstacles();
+  return detection_.isInRow(planners_["narrow"]->getObstacles());
 }
 
 }  // namespace agribot_local_planner

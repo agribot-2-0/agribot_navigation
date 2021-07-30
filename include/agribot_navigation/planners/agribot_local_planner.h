@@ -88,6 +88,7 @@ private:
 
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> local_plan_;
+  std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> trajectory_;
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
@@ -119,6 +120,7 @@ private:
 
   bool goal_reached_;
   bool initialized_;
+  bool local_plan_planned_;
   // time measuring for statistics
   double stop_time_, start_time_, last_time_;
   double last_odom_stamp_;
@@ -167,8 +169,7 @@ private:
 
   bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
                 const geometry_msgs::PoseStamped& end_pose);
-  void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);  // NOLINT(runtime/references)
-  void calculateControls(geometry_msgs::Twist& cmd_vel);                       // NOLINT(runtime/references)
+  void calculateControls(geometry_msgs::Twist& cmd_vel, std::string controller_id);  // NOLINT(runtime/references)
   void visualizationPath(std::string frame_id);
   void visualizationObstacles(void);
 
@@ -183,6 +184,7 @@ private:
   bool isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
                         const geometry_msgs::PoseStamped& path_end_waypoint);
   bool isOutOfPath();
+  bool isInRow();
 
   void getParameters(const ros::NodeHandle& nh);
 
