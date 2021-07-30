@@ -10,24 +10,15 @@ VelocitySmoother::VelocitySmoother(ros::NodeHandle* nh)
   raw_velocity_subscriber_ = nh_->subscribe("/cmd_vel", 1, &VelocitySmoother::rawVelocityCallback, this);
 }
 
-int VelocitySmoother::getParameters()
+void VelocitySmoother::getParameters()
 {
-  try
-  {
-    frequency_ = ros_common_functions::getRosParam<double>("/default_frequency");
-    acceleration_ = ros_common_functions::getRosParam<double>("/default_acceleration");
-    velocity_threshold_ = ros_common_functions::getRosParam<double>("/default_velocity_threshold");
-    acceleration_after_threshold_ = ros_common_functions::getRosParam<double>("/default_acceleration_after_threshold");
-  }
+  frequency_ = ros_common_functions::getRosParam<double>("/default_frequency");
+  acceleration_ = ros_common_functions::getRosParam<double>("/default_acceleration");
+  velocity_threshold_ = ros_common_functions::getRosParam<double>("/default_velocity_threshold");
+  acceleration_after_threshold_ = ros_common_functions::getRosParam<double>("/default_acceleration_after_threshold");
 
-  catch (const std::exception& ex)
-  {
-    ROS_ERROR_STREAM("[VelocitySmoother] " << ex.what());
-    return 0;
-  }
   step_ = acceleration_ / frequency_;
   step_after_threshold_ = acceleration_after_threshold_ / frequency_;
-  return 1;
 }
 
 bool VelocitySmoother::isCloserToDesiredVelocityThanByStep()

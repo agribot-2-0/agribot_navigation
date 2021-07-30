@@ -10,8 +10,13 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "velocity_smoother_node");
   ros::NodeHandle nh;
   VelocitySmoother vel_smooth = VelocitySmoother(&nh);
-  if (vel_smooth.getParameters() == 0)
+  try
   {
+    vel_smooth.getParameters();
+  }
+  catch (const std::exception& ex)
+  {
+    ROS_ERROR_STREAM("[VelocitySmoother] " << ex.what());
     return 0;
   }
   vel_smooth.run();
