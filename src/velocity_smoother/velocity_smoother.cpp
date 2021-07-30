@@ -33,7 +33,7 @@ bool VelocitySmoother::isCloserToThresholdThanToDesiredVelocity()
 
 bool VelocitySmoother::isBelowThreshold()
 {
-  return ((abs(last_sent_filtered_velocity_) <= velocity_threshold_));
+  return ((abs(last_sent_filtered_velocity_) < velocity_threshold_));
 }
 
 bool VelocitySmoother::isCloserToDesiredVelocityThanByStepAfterThreshold()
@@ -41,27 +41,39 @@ bool VelocitySmoother::isCloserToDesiredVelocityThanByStepAfterThreshold()
   return (abs(last_sent_filtered_velocity_ - current_raw_velocity_) <= step_after_threshold_);
 }
 
-bool VelocitySmoother::isBelowThresholdAndIncreasing()
+bool VelocitySmoother::isCloseToThreshold()
 {
-  return ((abs(abs(last_sent_filtered_velocity_) - velocity_threshold_) < step_after_threshold_) &&
-          (abs(last_sent_filtered_velocity_) > velocity_threshold_) &&
-          (((current_raw_velocity_ - last_sent_filtered_velocity_ < 0) && (last_sent_filtered_velocity_ > 0)) ||
-           ((current_raw_velocity_ - last_sent_filtered_velocity_ > 0) && (last_sent_filtered_velocity_ < 0))));
+  return (abs(abs(last_sent_filtered_velocity_) - velocity_threshold_) < step_after_threshold_);
 }
 
-bool VelocitySmoother::isAboveThresholdAndDecreasing()
+bool VelocitySmoother::isDecreasing()
 {
-  return ((abs(last_sent_filtered_velocity_) < velocity_threshold_) &&
-          (abs(abs(last_sent_filtered_velocity_) - velocity_threshold_) < step_after_threshold_) &&
-          (((current_raw_velocity_ - last_sent_filtered_velocity_ < 0) && (last_sent_filtered_velocity_ < 0)) ||
-           ((current_raw_velocity_ - last_sent_filtered_velocity_ > 0) && (last_sent_filtered_velocity_ > 0))));
+  return (((current_raw_velocity_ - last_sent_filtered_velocity_ < 0) && (last_sent_filtered_velocity_ > 0)) ||
+          ((current_raw_velocity_ - last_sent_filtered_velocity_ > 0) && (last_sent_filtered_velocity_ < 0)));
+}
+
+bool VelocitySmoother::isIncreasing()
+{
+  return (((current_raw_velocity_ - last_sent_filtered_velocity_ < 0) && (last_sent_filtered_velocity_ < 0)) ||
+          ((current_raw_velocity_ - last_sent_filtered_velocity_ > 0) && (last_sent_filtered_velocity_ > 0)));
+}
+
+bool VelocitySmoother::isCloseToThresholdAndIncreasing()
+{
+  return ((abs(abs(last_sent_filtered_velocity_) - velocity_threshold_) < step_after_threshold_) &&
+          (isBelowThreshold()) && (isIncreasing()));
+}
+
+bool VelocitySmoother::isCloseToThresholdAndDecreasing()
+{
+  return ((!isBelowThreshold()) && (isCloseToThreshold()) && (isDecreasing()));
 }
 
 void VelocitySmoother::calculateCurrentFilteredVelocity()
 {
   if (isCloserToDesiredVelocityThanByStep())
   {
-    if (isCloserToThresholdThanToDesiredVelocity() && isAboveThresholdAndDecreasing())
+    if (isCloserToThresholdThanToDesiredVelocity() && isCloseToThresholdAndDecreasing())
     {
       current_filtered_velocity_ =
           (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_threshold_ :
@@ -85,13 +97,13 @@ void VelocitySmoother::calculateCurrentFilteredVelocity()
       current_filtered_velocity_ = current_raw_velocity_;
     }
   }
-  else if (isBelowThresholdAndIncreasing())
+  else if (isCloseToThresholdAndIncreasing())
   {
     current_filtered_velocity_ =
         (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_threshold_ :
                                                                 last_sent_filtered_velocity_ + step_after_threshold_);
   }
-  else if (isAboveThresholdAndDecreasing())
+  else if (isCloseToThresholdAndDecreasing())
   {
     current_filtered_velocity_ =
         (last_sent_filtered_velocity_ > current_raw_velocity_ ? last_sent_filtered_velocity_ - step_after_threshold_ :

@@ -32,7 +32,10 @@ public:
   bool isCloserToDesiredVelocityThanByStep();
   bool isBelowThreshold();
   bool isCloserToDesiredVelocityThanByStepAfterThreshold();
-  bool isBelowThresholdAndIncreasing();
-  bool isAboveThresholdAndDecreasing();
+  bool isCloseToThresholdAndIncreasing();
+  bool isCloseToThresholdAndDecreasing();
   void calculateCurrentFilteredVelocity();
+  bool isCloseToThreshold();
+  bool isIncreasing();
+  bool isDecreasing();
 };
