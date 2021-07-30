@@ -60,8 +60,7 @@ bool VelocitySmoother::isIncreasing()
 
 bool VelocitySmoother::isCloseToThresholdAndIncreasing()
 {
-  return ((abs(abs(last_sent_filtered_velocity_) - velocity_threshold_) < step_after_threshold_) &&
-          (isBelowThreshold()) && (isIncreasing()));
+  return ((isCloseToThreshold()) && (isBelowThreshold()) && (isIncreasing()));
 }
 
 bool VelocitySmoother::isCloseToThresholdAndDecreasing()
