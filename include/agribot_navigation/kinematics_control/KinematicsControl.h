@@ -97,8 +97,8 @@ private:
   double linear_multiplier_;
   double angular_multiplier_;
 
-  PidTermsCoefficients cart_front_coefficients_;
-  PidTermsCoefficients cart_back_coefficients_;
+  PidTermsCoefficients front_cart_coefficients_;
+  PidTermsCoefficients back_cart_coefficients_;
   double precision_range_;
   double front_limit_;
   double back_limit_;
@@ -138,7 +138,7 @@ public:
   virtual bool update();
   virtual bool stop();
   virtual bool cleanup();
-  void createPubs(ros::NodeHandle n);
+  void createPubs(ros::NodeHandle* n);
   void setInputLinear(double x, double y, double z);
   void setInputAngular(double x, double y, double z);
   void setChassisAngle(double theta);

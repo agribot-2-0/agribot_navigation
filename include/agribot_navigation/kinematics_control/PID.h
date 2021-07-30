@@ -35,10 +35,10 @@ private:
   bool antiWindup(double Error, double ControlValue, double dt);
   bool desiredSetPointCrossedNextSetPoint(double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint);
   double calculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps,
-                                double SubstepSize);
+                               double SubstepSize);
   double setPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize);
   double setPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize,
-                       double ActualNextSetPoint, int Substeps);
+                      double ActualNextSetPoint, int Substeps);
   double calculateError(double SetPoint, double ProcessValue);
   double derivativePart(double Derrivative);
   double errorIntegration(double Error, double dt);
@@ -56,13 +56,13 @@ public:
   void setKi(double Ki);
   void setLowLimit(double LL);
   void setHighLimit(double HL);
-  void setSP(double SP);
+  void setSp(double SP);
   void setBias(double Bias);
-  void setSPAcceleration(double SubstepSize, int Substeps);
+  void setSpAcceleration(double SubstepSize, int Substeps);
   void resetError();
   void resetSetPoints(double SP);
   double Update(double PV, double dt);
-  std::string printDebugInfo();
+  std::string getDebugInfo();
   double averageFilter(double ValueNow, double ValueBack1, double ValueBack2);
   double getSetPoint();
   double getControlValue();

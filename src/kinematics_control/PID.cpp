@@ -84,7 +84,7 @@ void PID::setHighLimit(double HL)
   this->high_limit_ = HL;
 }
 
-void PID::setSP(double SP)
+void PID::setSp(double SP)
 {
   this->last_desired_set_point_ = this->desired_set_point_;
   this->desired_set_point_ = SP;
@@ -112,7 +112,7 @@ void PID::resetError()
   this->error_integral_ = 0;
 }
 
-void PID::setSPAcceleration(double SubstepStepSize, int Substeps)
+void PID::setSpAcceleration(double SubstepStepSize, int Substeps)
 {
   this->substep_step_size_ = SubstepStepSize;
   this->substeps_ = Substeps;
@@ -124,7 +124,7 @@ bool PID::desiredSetPointCrossedNextSetPoint(double ProcessValue, double Desired
 }
 
 double PID::calculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps,
-                                   double SubstepStepSize)
+                                  double SubstepStepSize)
 {
   if (this->desiredSetPointCrossedNextSetPoint(ProcessValue, DesiredSetPoint, this->last_desired_set_point_))
   {
@@ -184,7 +184,7 @@ double PID::setPointSubstep(double ActualSetPoint, double NextSetPoint, double S
 }
 
 double PID::setPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize,
-                          double ActualNextSetPoint, int Substeps)
+                         double ActualNextSetPoint, int Substeps)
 {
   this->next_set_point_ =
       this->calculateNextSetPoint(ActualNextSetPoint, ProcessValue, DesiredSetPoint, Substeps, SubstepStepSize);
@@ -282,7 +282,7 @@ double PID::Update(double ProcessValue, double dt)
 {
   this->updateProcessValue(ProcessValue);
   this->set_point_ = this->setPointRamp(this->desired_set_point_, this->process_value_, this->set_point_,
-                                         this->substep_step_size_, this->next_set_point_, this->substeps_);
+                                        this->substep_step_size_, this->next_set_point_, this->substeps_);
   this->error_ = this->calculateError(this->set_point_, this->process_value_);
   if (!this->antiWindup(this->error_, this->control_value_, dt))
   {
@@ -303,15 +303,15 @@ double PID::Update(double ProcessValue, double dt)
   return this->control_value_;
 }
 
-std::string PID::printDebugInfo()
+std::string PID::getDebugInfo()
 {
   std::stringstream ss;
   ss << "DSP=" << this->desired_set_point_ * RAD_TO_DEG << ";LDSP=" << this->last_desired_set_point_ * RAD_TO_DEG
      << ";NSP=" << this->next_set_point_ * RAD_TO_DEG << ";dSP=" << this->substep_step_size_ * substeps_ * RAD_TO_DEG
      << ";SP=" << this->set_point_ * RAD_TO_DEG << ";PV=" << this->process_value_ * RAD_TO_DEG
      << ";CV=" << this->control_value_ * RAD_TO_DEG << ";ER=" << this->error_ * RAD_TO_DEG
-     << ";IE=" << this->error_integral_ * RAD_TO_DEG << ";DE=" << this->derivative_ * RAD_TO_DEG
-     << ";KP=" << this->kp_ << ";KI=" << this->ki_ << ";KD=" << this->kd_;
+     << ";IE=" << this->error_integral_ * RAD_TO_DEG << ";DE=" << this->derivative_ * RAD_TO_DEG << ";KP=" << this->kp_
+     << ";KI=" << this->ki_ << ";KD=" << this->kd_;
   return ss.str();
 }
 

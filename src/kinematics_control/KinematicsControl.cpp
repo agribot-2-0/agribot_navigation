@@ -30,12 +30,12 @@ KinematicsControl::KinematicsControl()
   this->chassis_length_ = 2.42 - 2 * wheel_radius_;
   this->linear_multiplier_ = 1;
 
-  this->cart_front_coefficients_.kp_ = 0.0;
-  this->cart_back_coefficients_.kp_ = 0.0;
-  this->cart_front_coefficients_.ki_ = 0.0;
-  this->cart_back_coefficients_.ki_ = 0.0;
-  this->cart_front_coefficients_.kd_ = 0.0;
-  this->cart_back_coefficients_.kd_ = 0.0;
+  this->front_cart_coefficients_.kp_ = 0.0;
+  this->back_cart_coefficients_.kp_ = 0.0;
+  this->front_cart_coefficients_.ki_ = 0.0;
+  this->back_cart_coefficients_.ki_ = 0.0;
+  this->front_cart_coefficients_.kd_ = 0.0;
+  this->back_cart_coefficients_.kd_ = 0.0;
 
   this->front_limit_ = 0.0;
   this->back_limit_ = 0.0;
@@ -48,31 +48,31 @@ KinematicsControl::KinematicsControl()
   setSteeringMode("four_wheel");
 }
 
-void KinematicsControl::createPubs(ros::NodeHandle n)
+void KinematicsControl::createPubs(ros::NodeHandle* n)
 {
 #ifdef DEBUG
-  front_set_point_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/SetPoint", 10);
-  front_control_value_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/ControlValue", 10);
-  front_process_value_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/ProcessValue", 10);
-  front_error_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/Error", 10);
-  front_integral_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/IntegrationError", 10);
-  front_derivative_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/DerivativeError", 10);
-  front_des_set_point_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/DesiredSetPoint", 10);
+  front_set_point_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/SetPoint", 10);
+  front_control_value_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/ControlValue", 10);
+  front_process_value_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/ProcessValue", 10);
+  front_error_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/Error", 10);
+  front_integral_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/IntegrationError", 10);
+  front_derivative_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/DerivativeError", 10);
+  front_des_set_point_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/frontPID/DesiredSetPoint", 10);
 
-  back_set_point_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/backPID/SetPoint", 10);
-  back_control_value_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/backPID/ControlValue", 10);
-  back_process_value_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/backPID/ProcessValue", 10);
-  back_error_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/backPID/Error", 10);
-  back_integral_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/backPID/IntegrationError", 10);
-  back_derivative_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/backPID/DerivativeError", 10);
-  back_des_set_point_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/backPID/DesiredSetPoint", 10);
+  back_set_point_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/backPID/SetPoint", 10);
+  back_control_value_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/backPID/ControlValue", 10);
+  back_process_value_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/backPID/ProcessValue", 10);
+  back_error_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/backPID/Error", 10);
+  back_integral_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/backPID/IntegrationError", 10);
+  back_derivative_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/backPID/DerivativeError", 10);
+  back_des_set_point_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/backPID/DesiredSetPoint", 10);
 
-  front_vel_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/limiter/FrontVelocity", 10);
-  back_vel_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/limiter/BackVelocity", 10);
-  multiplier_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/limiter/Multiplier", 10);
-  set_point_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/limiter/SetPoint", 10);
-  front_dif_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/limiter/FrontDifference", 10);
-  back_dif_pub_ = n.advertise<std_msgs::Float64>("agribot/kin_controler/limiter/BackDifference", 10);
+  front_vel_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/FrontVelocity", 10);
+  back_vel_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/BackVelocity", 10);
+  multiplier_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/Multiplier", 10);
+  set_point_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/SetPoint", 10);
+  front_dif_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/FrontDifference", 10);
+  back_dif_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/BackDifference", 10);
 #endif
 }
 
@@ -106,8 +106,8 @@ PidTermsCoefficients KinematicsControl::getFrontPIDCoefficients()
 {
   PidTermsCoefficients coefficients;
 
-  coefficients = { this->cart_front_coefficients_.kp_, this->cart_front_coefficients_.ki_,
-                   this->cart_front_coefficients_.kd_ };
+  coefficients = { this->front_cart_coefficients_.kp_, this->front_cart_coefficients_.ki_,
+                   this->front_cart_coefficients_.kd_ };
 
   return coefficients;
 }
@@ -116,8 +116,8 @@ PidTermsCoefficients KinematicsControl::getBackPIDCoefficients()
 {
   PidTermsCoefficients coefficients;
 
-  coefficients = { this->cart_back_coefficients_.kp_, this->cart_back_coefficients_.ki_,
-                   this->cart_back_coefficients_.kd_ };
+  coefficients = { this->back_cart_coefficients_.kp_, this->back_cart_coefficients_.ki_,
+                   this->back_cart_coefficients_.kd_ };
 
   return coefficients;
 }
@@ -136,8 +136,8 @@ void KinematicsControl::setPidsParameters()
   this->back_cart_pid_->setKi(coefficients.ki_);
   this->back_cart_pid_->setKd(coefficients.kd_);
 
-  this->front_cart_pid_->setSPAcceleration(SP_RAMP_SUBSTEP * DEG_TO_RAD, SP_RAMP_SUBSTEPS_NUMBER);
-  this->back_cart_pid_->setSPAcceleration(SP_RAMP_SUBSTEP * DEG_TO_RAD, SP_RAMP_SUBSTEPS_NUMBER);
+  this->front_cart_pid_->setSpAcceleration(SP_RAMP_SUBSTEP * DEG_TO_RAD, SP_RAMP_SUBSTEPS_NUMBER);
+  this->back_cart_pid_->setSpAcceleration(SP_RAMP_SUBSTEP * DEG_TO_RAD, SP_RAMP_SUBSTEPS_NUMBER);
 }
 
 Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, double angular_vel)
@@ -312,8 +312,8 @@ void KinematicsControl::setPidsSetpoints()
 {
   Carts_Setpoints CartsSetPoints;
   CartsSetPoints = this->xCalculatePIDSetPoints(input_linear_[X], input_angular_[Z]);
-  this->front_cart_pid_->setSP(CartsSetPoints.front_cart_sp_);
-  this->back_cart_pid_->setSP(CartsSetPoints.back_cart_sp_);
+  this->front_cart_pid_->setSp(CartsSetPoints.front_cart_sp_);
+  this->back_cart_pid_->setSp(CartsSetPoints.back_cart_sp_);
 
   if (input_linear_[X] == 0 && input_angular_[Z] == 0)
   {
@@ -538,32 +538,32 @@ void KinematicsControl::updatePids(double t)
 
 void KinematicsControl::setFrontKp(double Kp)
 {
-  this->cart_front_coefficients_.kp_ = Kp;
+  this->front_cart_coefficients_.kp_ = Kp;
 }
 
 void KinematicsControl::setBackKp(double Kp)
 {
-  this->cart_back_coefficients_.kp_ = Kp;
+  this->back_cart_coefficients_.kp_ = Kp;
 }
 
 void KinematicsControl::setFrontKi(double Ki)
 {
-  this->cart_front_coefficients_.ki_ = Ki;
+  this->front_cart_coefficients_.ki_ = Ki;
 }
 
 void KinematicsControl::setBackKi(double Ki)
 {
-  this->cart_back_coefficients_.ki_ = Ki;
+  this->back_cart_coefficients_.ki_ = Ki;
 }
 
 void KinematicsControl::setFrontKd(double Kd)
 {
-  this->cart_front_coefficients_.kd_ = Kd;
+  this->front_cart_coefficients_.kd_ = Kd;
 }
 
 void KinematicsControl::setBackKd(double Kd)
 {
-  this->cart_back_coefficients_.kd_ = Kd;
+  this->back_cart_coefficients_.kd_ = Kd;
 }
 
 void KinematicsControl::setFrontLimit(double limit)

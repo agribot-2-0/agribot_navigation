@@ -127,7 +127,7 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  KinControl.createPubs(n);
+  KinControl.createPubs(&n);
   ros::Rate loop_rate(100);
   std::string command_sub_topic;
 
