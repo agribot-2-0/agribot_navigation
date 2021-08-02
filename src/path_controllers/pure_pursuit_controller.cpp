@@ -72,6 +72,12 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
   // {
   angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
   // }
+  if (angle_between_poses_ == 0)
+  {
+    cmd_vel.angular.x = 0;
+    cmd_vel.linear.z = 0;
+    return false;
+  }
 
   motion_radius_ = look_ahead_distance_ / (tan(angle_between_poses_));
 
@@ -93,6 +99,13 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
   // ROS_WARN_STREAM("error_heading_ " << angle_between_poses_);
   // ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
   ROS_WARN_STREAM("motion_radius_ " << motion_radius_);
+
+  if (motion_radius_ == 0)
+  {
+    cmd_vel.angular.x = 0;
+    cmd_vel.linear.z = 0;
+    return false;
+  }
 
   return true;
 }

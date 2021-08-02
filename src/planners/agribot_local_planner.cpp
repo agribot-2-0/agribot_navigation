@@ -371,11 +371,15 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   checkObstacles();
   if (isInRow())
   {
-    ROS_INFO_STREAM_THROTTLE(5.0, "Plan in row");
+    ROS_INFO_STREAM("Plan in row");
     try
     {
-      planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
-                                      transformPose(goal_, planners_["narrow"]->getFrameId()));
+      if (!planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
+                                           transformPose(goal_, planners_["narrow"]->getFrameId())))
+      {
+        ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid plan");
+        // return false;
+      }
       calculateControls(cmd_vel, "PurePursuitController");
       publishObstacles();
     }
@@ -388,7 +392,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   }
   else
   {
-    ROS_INFO_STREAM_THROTTLE(5.0, "Plan NOT in row");
+    ROS_INFO_STREAM("Plan NOT in row");
     if (!local_plan_planned_)
     {
       setPlan(global_plan_);
