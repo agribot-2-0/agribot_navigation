@@ -36,13 +36,13 @@ PID::PID()
   this->substeps_ = 0;
 }
 
-PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
+PID::PID(double kp, double kd, double ki, double ll, double hl)
 {
-  this->kp_ = Kp;
-  this->kd_ = Kd;
-  this->ki_ = Ki;
-  this->low_limit_ = LL;
-  this->high_limit_ = HL;
+  this->kp_ = kp;
+  this->kd_ = kd;
+  this->ki_ = ki;
+  this->low_limit_ = ll;
+  this->high_limit_ = hl;
   this->bias_ = 0;
   this->error_ = 0;
   this->process_value_ = 0;
@@ -59,52 +59,52 @@ PID::PID(double Kp, double Kd, double Ki, double LL, double HL)
   this->substeps_ = 0;
 }
 
-void PID::setKp(double Kp)
+void PID::setKp(double kp)
 {
-  this->kp_ = Kp;
+  this->kp_ = kp;
 }
 
-void PID::setKd(double Kd)
+void PID::setKd(double kd)
 {
-  this->kd_ = Kd;
+  this->kd_ = kd;
 }
 
-void PID::setKi(double Ki)
+void PID::setKi(double ki)
 {
-  this->ki_ = Ki;
+  this->ki_ = ki;
 }
 
-void PID::setLowLimit(double LL)
+void PID::setLowLimit(double ll)
 {
-  this->low_limit_ = LL;
+  this->low_limit_ = ll;
 }
 
-void PID::setHighLimit(double HL)
+void PID::setHighLimit(double hl)
 {
-  this->high_limit_ = HL;
+  this->high_limit_ = hl;
 }
 
-void PID::setSp(double SP)
+void PID::setSp(double sp)
 {
   this->last_desired_set_point_ = this->desired_set_point_;
-  this->desired_set_point_ = SP;
+  this->desired_set_point_ = sp;
 }
 
-void PID::resetSetPoints(double SP)
+void PID::resetSetPoints(double sp)
 {
-  this->desired_set_point_ = SP;
-  this->next_set_point_ = SP;
-  this->set_point_ = SP;
+  this->desired_set_point_ = sp;
+  this->next_set_point_ = sp;
+  this->set_point_ = sp;
 }
 
-void PID::setBias(double Bias)
+void PID::setBias(double bias)
 {
-  this->bias_ = Bias;
+  this->bias_ = bias;
 }
 
-void PID::updateProcessValue(double PV)
+void PID::updateProcessValue(double pv)
 {
-  this->process_value_ = PV;
+  this->process_value_ = pv;
 }
 
 void PID::resetError()
@@ -112,109 +112,110 @@ void PID::resetError()
   this->error_integral_ = 0;
 }
 
-void PID::setSpAcceleration(double SubstepStepSize, int Substeps)
+void PID::setSpAcceleration(double substep_step_size, int substeps)
 {
-  this->substep_step_size_ = SubstepStepSize;
-  this->substeps_ = Substeps;
+  this->substep_step_size_ = substep_step_size;
+  this->substeps_ = substeps;
 }
 
-bool PID::desiredSetPointCrossedNextSetPoint(double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint)
+bool PID::desiredSetPointCrossedNextSetPoint(double process_value, double desired_set_point,
+                                             double last_desired_set_point)
 {
-  return (ProcessValue - DesiredSetPoint) * (ProcessValue - LastDesiredSetPoint) <= 0;
+  return (process_value - desired_set_point) * (process_value - last_desired_set_point) <= 0;
 }
 
-double PID::calculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps,
-                                  double SubstepStepSize)
+double PID::calculateNextSetPoint(double actual_next_set_point, double process_value, double desired_set_point,
+                                  int substeps, double substep_step_size)
 {
-  if (this->desiredSetPointCrossedNextSetPoint(ProcessValue, DesiredSetPoint, this->last_desired_set_point_))
+  if (this->desiredSetPointCrossedNextSetPoint(process_value, desired_set_point, this->last_desired_set_point_))
   {
     this->resetError();
-    ActualNextSetPoint = ProcessValue;
+    actual_next_set_point = process_value;
     this->last_desired_set_point_ = this->desired_set_point_;
   }
 
-  if (abs(ProcessValue - ActualNextSetPoint) < Substeps * SubstepStepSize)
+  if (abs(process_value - actual_next_set_point) < substeps * substep_step_size)
   {
-    if (abs(DesiredSetPoint - ActualNextSetPoint) > Substeps * SubstepStepSize)
+    if (abs(desired_set_point - actual_next_set_point) > substeps * substep_step_size)
     {
-      if (DesiredSetPoint - ActualNextSetPoint > 0)
+      if (desired_set_point - actual_next_set_point > 0)
       {
-        return ActualNextSetPoint + Substeps * SubstepStepSize;
+        return actual_next_set_point + substeps * substep_step_size;
       }
       else
       {
-        return ActualNextSetPoint - Substeps * SubstepStepSize;
+        return actual_next_set_point - substeps * substep_step_size;
       }
     }
     else
     {
-      return DesiredSetPoint;
+      return desired_set_point;
     }
   }
   else
   {
-    return ActualNextSetPoint;
+    return actual_next_set_point;
   }
 }
 
-double PID::setPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize)
+double PID::setPointSubstep(double actual_set_point, double next_set_point, double substep_step_size)
 {
-  if (NextSetPoint - ActualSetPoint < 0)
+  if (next_set_point - actual_set_point < 0)
   {
-    if (NextSetPoint - ActualSetPoint > -SubstepStepSize)
+    if (next_set_point - actual_set_point > -substep_step_size)
     {
-      return NextSetPoint;
+      return next_set_point;
     }
     else
     {
-      return ActualSetPoint - SubstepStepSize;
+      return actual_set_point - substep_step_size;
     }
   }
   else
   {
-    if (NextSetPoint - ActualSetPoint < SubstepStepSize)
+    if (next_set_point - actual_set_point < substep_step_size)
     {
-      return NextSetPoint;
+      return next_set_point;
     }
     else
     {
-      return ActualSetPoint + SubstepStepSize;
+      return actual_set_point + substep_step_size;
     }
   }
 }
 
-double PID::setPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize,
-                         double ActualNextSetPoint, int Substeps)
+double PID::setPointRamp(double desired_set_point, double process_value, double actual_set_point,
+                         double substep_step_size, double actual_next_set_point, int substeps)
 {
   this->next_set_point_ =
-      this->calculateNextSetPoint(ActualNextSetPoint, ProcessValue, DesiredSetPoint, Substeps, SubstepStepSize);
-  return this->setPointSubstep(ActualSetPoint, this->next_set_point_, SubstepStepSize);
+      this->calculateNextSetPoint(actual_next_set_point, process_value, desired_set_point, substeps, substep_step_size);
+  return this->setPointSubstep(actual_set_point, this->next_set_point_, substep_step_size);
 }
 
-double PID::limiter(double Value)
+double PID::limiter(double value)
 {
-  if (Value > this->high_limit_)
+  if (value > this->high_limit_)
   {
     return this->high_limit_;
   }
-  else if (Value < this->low_limit_)
+  else if (value < this->low_limit_)
   {
     return this->low_limit_;
   }
   else
   {
-    return Value;
+    return value;
   }
 }
 
-double PID::calculateError(double SetPoint, double ProcessValue)
+double PID::calculateError(double set_point, double process_value)
 {
-  return SetPoint - ProcessValue;
+  return set_point - process_value;
 }
 
-double PID::calculateDerivative(double Actual, double Previous, double dt)
+double PID::calculateDerivative(double actual, double previous, double dt)
 {
-  double derrivative = (Actual - Previous) / dt;
+  double derrivative = (actual - previous) / dt;
   if (isnan(derrivative))
   {
     return 0;
@@ -225,17 +226,17 @@ double PID::calculateDerivative(double Actual, double Previous, double dt)
   }
 }
 
-double PID::averageFilter(double ValueNow, double ValueBack1, double ValueBack2)
+double PID::averageFilter(double value_now, double value_back1, double value_back2)
 {
-  return (ValueNow + ValueBack1 + ValueBack2) / 3;
+  return (value_now + value_back1 + value_back2) / 3;
 }
 
-double PID::errorIntegration(double Error, double dt)
+double PID::errorIntegration(double error, double dt)
 {
-  return Error * dt;
+  return error * dt;
 }
 
-bool PID::antiWindup(double Error, double ControlValue, double dt)
+bool PID::antiWindup(double error, double control_value, double dt)
 {
   /*
   Condition taken from
@@ -248,17 +249,17 @@ bool PID::antiWindup(double Error, double ControlValue, double dt)
       0).
   */
   static_cast<void>(dt);
-  return ((ControlValue > this->high_limit_ || ControlValue < this->low_limit_) && (ControlValue * Error > 0));
+  return ((control_value > this->high_limit_ || control_value < this->low_limit_) && (control_value * error > 0));
 }
 
-double PID::integralPart(double ErrorIntegral)
+double PID::integralPart(double error_integral)
 {
-  return this->ki_ * ErrorIntegral;
+  return this->ki_ * error_integral;
 }
 
-double PID::proportionalPart(double Error)
+double PID::proportionalPart(double error)
 {
-  return this->kp_ * Error;
+  return this->kp_ * error;
 }
 
 double PID::biasPart()
@@ -266,9 +267,9 @@ double PID::biasPart()
   return this->bias_;
 }
 
-double PID::derivativePart(double Derrivative)
+double PID::derivativePart(double derrivative)
 {
-  return this->kd_ * Derrivative;
+  return this->kd_ * derrivative;
 }
 
 void PID::rememberPriorValues()
@@ -278,9 +279,9 @@ void PID::rememberPriorValues()
   this->process_value_prior_ = this->process_value_;
 }
 
-double PID::Update(double ProcessValue, double dt)
+double PID::Update(double process_value, double dt)
 {
-  this->updateProcessValue(ProcessValue);
+  this->updateProcessValue(process_value);
   this->set_point_ = this->setPointRamp(this->desired_set_point_, this->process_value_, this->set_point_,
                                         this->substep_step_size_, this->next_set_point_, this->substeps_);
   this->error_ = this->calculateError(this->set_point_, this->process_value_);

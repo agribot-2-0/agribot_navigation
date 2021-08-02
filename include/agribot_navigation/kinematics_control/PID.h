@@ -34,11 +34,11 @@ private:
   void rememberPriorValues();
   bool antiWindup(double Error, double ControlValue, double dt);
   bool desiredSetPointCrossedNextSetPoint(double ProcessValue, double DesiredSetPoint, double LastDesiredSetPoint);
-  double calculateNextSetPoint(double ActualNextSetPoint, double ProcessValue, double DesiredSetPoint, int Substeps,
+  double calculateNextSetPoint(double actual_next_set_point, double ProcessValue, double DesiredSetPoint, int Substeps,
                                double SubstepSize);
   double setPointSubstep(double ActualSetPoint, double NextSetPoint, double SubstepStepSize);
   double setPointRamp(double DesiredSetPoint, double ProcessValue, double ActualSetPoint, double SubstepStepSize,
-                      double ActualNextSetPoint, int Substeps);
+                      double actual_next_set_point, int Substeps);
   double calculateError(double SetPoint, double ProcessValue);
   double derivativePart(double Derrivative);
   double errorIntegration(double Error, double dt);
@@ -50,20 +50,20 @@ private:
 
 public:
   PID();
-  PID(double Kp, double Kd, double Ki, double LL, double HL);
-  void setKp(double Kp);
-  void setKd(double Kd);
-  void setKi(double Ki);
-  void setLowLimit(double LL);
-  void setHighLimit(double HL);
-  void setSp(double SP);
-  void setBias(double Bias);
-  void setSpAcceleration(double SubstepSize, int Substeps);
+  PID(double kp, double kd, double ki, double ll, double hl);
+  void setKp(double kp);
+  void setKd(double kd);
+  void setKi(double ki);
+  void setLowLimit(double ll);
+  void setHighLimit(double hl);
+  void setSp(double sp);
+  void setBias(double bias);
+  void setSpAcceleration(double subste_size, int substeps);
   void resetError();
-  void resetSetPoints(double SP);
-  double Update(double PV, double dt);
+  void resetSetPoints(double sp);
+  double Update(double pv, double dt);
   std::string getDebugInfo();
-  double averageFilter(double ValueNow, double ValueBack1, double ValueBack2);
+  double averageFilter(double value_now, double value_back1, double value_back2);
   double getSetPoint();
   double getControlValue();
   double getProcessValue();

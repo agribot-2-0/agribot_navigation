@@ -22,6 +22,7 @@
 
 KinematicsControl::KinematicsControl()
 {
+  // TODO(all): get those values from parameters/configs server
   this->cart_angle_[FRONT_CART] = 0;
   this->cart_angle_[BACK_CART] = 0;
   this->chassis_angle_ = 0;
@@ -104,29 +105,17 @@ bool KinematicsControl::cleanup()
 
 PidTermsCoefficients KinematicsControl::getFrontPIDCoefficients()
 {
-  PidTermsCoefficients coefficients;
-
-  coefficients = { this->front_cart_coefficients_.kp_, this->front_cart_coefficients_.ki_,
-                   this->front_cart_coefficients_.kd_ };
-
-  return coefficients;
+  return { this->front_cart_coefficients_.kp_, this->front_cart_coefficients_.ki_, this->front_cart_coefficients_.kd_ };
 }
 
 PidTermsCoefficients KinematicsControl::getBackPIDCoefficients()
 {
-  PidTermsCoefficients coefficients;
-
-  coefficients = { this->back_cart_coefficients_.kp_, this->back_cart_coefficients_.ki_,
-                   this->back_cart_coefficients_.kd_ };
-
-  return coefficients;
+  return { this->back_cart_coefficients_.kp_, this->back_cart_coefficients_.ki_, this->back_cart_coefficients_.kd_ };
 }
 
 void KinematicsControl::setPidsParameters()
 {
-  PidTermsCoefficients coefficients;
-
-  coefficients = getFrontPIDCoefficients();
+  auto coefficients = getFrontPIDCoefficients();
   this->front_cart_pid_->setKp(coefficients.kp_);
   this->front_cart_pid_->setKi(coefficients.ki_);
   this->front_cart_pid_->setKd(coefficients.kd_);
