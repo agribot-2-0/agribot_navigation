@@ -133,7 +133,7 @@ int main(int argc, char** argv)
 
   if (argc < 2)
   {
-    command_sub_topic = "cmd_vel";
+    command_sub_topic = "cmd_vel_filtered";
   }
   else
   {
