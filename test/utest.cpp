@@ -12,11 +12,11 @@ TEST(RampTest, ZeroProcessValue)
 {
   double kp = 0.1;
   double limit = 10;
-  PID pid = PID(kp, 0.0, 0.0, -common_functions::degrees(limit), common_functions::radians(limit));
+  PID pid = PID(kp, 0.0, 0.0, -common_functions::radians(limit), common_functions::radians(limit));
   for (int i = 0; i < 10; i++)
   {
     pid.Update(0.0, dt);
-    EXPECT_DOUBLE_EQ(0.0, common_functions::radians(pid.getControlValue()));
+    EXPECT_DOUBLE_EQ(0.0, common_functions::degrees(pid.getControlValue()));
   }
 }
 
@@ -29,7 +29,7 @@ TEST(RampTest, RisingProcessValue)
   for (double i = 0; i < limit / kp; i += 0.1)
   {
     pid.Update(common_functions::radians(i), dt);
-    EXPECT_DOUBLE_EQ(-kp * i, common_functions::radians(pid.getControlValue()));
+    EXPECT_DOUBLE_EQ(-kp * i, common_functions::degrees(pid.getControlValue()));
   }
 }
 
@@ -46,7 +46,7 @@ TEST(RampTest, SetPointRampStop)
   {
     pid.Update(0.0, dt);
   }
-  EXPECT_DOUBLE_EQ(substepsize * substeps * kp, common_functions::radians(pid.getControlValue()));
+  EXPECT_DOUBLE_EQ(substepsize * substeps * kp, common_functions::degrees(pid.getControlValue()));
 }
 
 TEST(RampTest, SetPointRampContinue)
@@ -62,14 +62,14 @@ TEST(RampTest, SetPointRampContinue)
   {
     pid.Update(0.0, dt);
   }
-  EXPECT_DOUBLE_EQ(substepsize * substeps * kp, common_functions::radians(pid.getControlValue()));
+  EXPECT_DOUBLE_EQ(substepsize * substeps * kp, common_functions::degrees(pid.getControlValue()));
 
   double newPV = 0.1;
   for (int i = 0; i < 100; i++)
   {
     pid.Update(common_functions::radians(newPV), dt);
   }
-  EXPECT_DOUBLE_EQ((2 * substepsize * substeps - newPV) * kp, common_functions::radians(pid.getControlValue()));
+  EXPECT_DOUBLE_EQ((2 * substepsize * substeps - newPV) * kp, common_functions::degrees(pid.getControlValue()));
 }
 
 TEST(RampTest, SetPointSaturation)
@@ -88,7 +88,7 @@ TEST(RampTest, SetPointSaturation)
       pid.Update(common_functions::radians(newPV), dt);
     }
   }
-  EXPECT_DOUBLE_EQ(0.0, common_functions::radians(pid.getControlValue()));
+  EXPECT_DOUBLE_EQ(0.0, common_functions::degrees(pid.getControlValue()));
 }
 
 TEST(RampTest, SetPointChangeSign)
@@ -104,14 +104,14 @@ TEST(RampTest, SetPointChangeSign)
   {
     pid.Update(0.0, dt);
   }
-  EXPECT_DOUBLE_EQ(substepsize * substeps * kp, common_functions::radians(pid.getControlValue()));
+  EXPECT_DOUBLE_EQ(substepsize * substeps * kp, common_functions::degrees(pid.getControlValue()));
 
   pid.setSp(-common_functions::radians(10.0));
   for (int i = 0; i < 1000; i++)
   {
     pid.Update(0.0, dt);
   }
-  EXPECT_DOUBLE_EQ(-substepsize * substeps * kp, common_functions::radians(pid.getControlValue()));
+  EXPECT_DOUBLE_EQ(-substepsize * substeps * kp, common_functions::degrees(pid.getControlValue()));
 }
 
 int main(int argc, char** argv)
