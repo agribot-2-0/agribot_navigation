@@ -255,6 +255,13 @@ add_executable(navigation_manager_node src/navigation_manager/navigation_manager
 target_link_libraries(navigation_manager_node ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES})
 add_dependencies(navigation_manager_node ${catkin_EXPORTED_TARGETS})
 
+add_executable(velocity_smoother_node src/velocity_smoother/velocity_smoother_node.cpp src/velocity_smoother/velocity_smoother.cpp)
+
+target_link_libraries(
+  velocity_smoother_node
+  ${catkin_LIBRARIES}
+)
+
 target_link_libraries(
   pure_pursuit_controller
   stanley_controller
@@ -344,6 +351,7 @@ install(TARGETS
   kinematics_control
   cmd_vel_arbiter_node
   navigation_manager_node
+  velocity_smoother_node
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
