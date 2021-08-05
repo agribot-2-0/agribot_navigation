@@ -3,8 +3,7 @@
     <rosparam command="load" file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/kinematics_control_params.yaml" />
   </node>
 
-  <!-- cmd_vel_arbiter -->
-  <rosparam command="load" file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/cmd_vel_arbiter.yaml" />
-  <node name="cmd_vel_arbiter_node" pkg="agribot_navigation" type="cmd_vel_arbiter_node" />
-
+  <node name="cmd_vel_arbiter_node" pkg="agribot_navigation" type="cmd_vel_arbiter_node">
+    <rosparam command="load" file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/cmd_vel_arbiter.yaml" />
+  </node>
 </launch>

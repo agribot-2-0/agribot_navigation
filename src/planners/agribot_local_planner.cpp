@@ -272,25 +272,9 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
     return false;
   }
 
-  // make local plan
-  for (auto const& planner_name : planners_fallback_strategy_)
+  if (!handlePathPlan())
   {
-    ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " taken.");
-    if (planPath(planner_name, robot_center_, goal_))
-    {
-      ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " created valid path.");
-      break;
-    }
-    else
-    {
-      ROS_WARN_STREAM("[AgribotLocalPlanner] Planner "
-                      << planner_name << " is not able to create valid path. Taking the next planner.");
-      if (planner_name == planners_fallback_strategy_.back())
-      {
-        ROS_ERROR_STREAM("[AgribotLocalPlanner] Unable to create valid path. Abort planning.");
-        return false;
-      }
-    }
+    return false;
   }
 
   // set flags and reset additional variables
@@ -360,10 +344,37 @@ bool AgribotLocalPlanner::planPath(const std::string& planner_id, const geometry
   return true;
 }
 
+bool AgribotLocalPlanner::handlePathPlan()
+{
+  for (auto const& planner_name : planners_fallback_strategy_)
+  {
+    ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " taken.");
+    if (planPath(planner_name, robot_center_, goal_))
+    {
+      ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " created valid path.");
+      break;
+    }
+    else
+    {
+      ROS_WARN_STREAM("[AgribotLocalPlanner] Planner "
+                      << planner_name << " is not able to create valid path. Taking the next planner.");
+      if (planner_name == planners_fallback_strategy_.back())
+      {
+        ROS_ERROR_STREAM("[AgribotLocalPlanner] Unable to create valid path. Abort planning.");
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 {
   if (!initialized_)
   {
+    abortPlanningBehaviour();
+    cmd_vel = stopRobot();
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Planner not initialized, call initialize() before planner");
     return false;
   }
@@ -377,8 +388,10 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       if (!planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
                                            transformPose(goal_, planners_["narrow"]->getFrameId())))
       {
-        ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid plan");
-        // return false;
+        abortPlanningBehaviour();
+        cmd_vel = stopRobot();
+        ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid path in row");
+        return false;
       }
       calculateControls(cmd_vel, "PurePursuitController");
       publishObstacles();
@@ -395,13 +408,21 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     ROS_INFO_STREAM("Plan NOT in row");
     if (!local_plan_planned_)
     {
-      setPlan(global_plan_);
+      if (!handlePathPlan())
+      {
+        abortPlanningBehaviour();
+        cmd_vel = stopRobot();
+        ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid path not in row");
+        return false;
+      }
     }
     calculateControls(cmd_vel, "StanleyController");
   }
 
   if (local_plan_.size() <= 0)
   {
+    abortPlanningBehaviour();
+    cmd_vel = stopRobot();
     ROS_ERROR("[AgribotLocalPlanner] Local plan is not created");
     return false;
   }
@@ -423,18 +444,16 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 
   if (abort_executing_)
   {
+    abortPlanningBehaviour();
     cmd_vel = stopRobot();
-    local_plan_.clear();
     ROS_ERROR("[AgribotLocalPlanner] Abort plan");
     return false;
   }
 
   if (out_of_path_counter_ > param_max_missed_waypoints_)
   {
-    out_of_path_counter_ = 0;
-    is_out_of_path_ = true;
+    abortPlanningBehaviour();
     cmd_vel = stopRobot();
-    local_plan_.clear();
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Out of path. Abort plan");
     return false;
   }
@@ -507,8 +526,6 @@ void AgribotLocalPlanner::publishObstacles()
 
 void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel, std::string controller_id)
 {
-  // ROS_WARN_STREAM("Calculate controls " << local_plan_.empty());
-  // ROS_WARN_STREAM("Calculate controls " << local_plan_.size());
   if (local_plan_.empty())
   {
     return;
@@ -517,10 +534,8 @@ void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel, std::
   {
     pose = transformPose(pose, controllers_[controller_id]->getFrameId());
   }
-  // ROS_WARN_STREAM("Calculate controls track path started");
   controllers_[controller_id]->computeControl(cmd_vel, local_plan_,
                                               transformPose(robot_center_, controllers_[controller_id]->getFrameId()));
-  // ROS_WARN_STREAM("Calculate controls track path finished");
   for (auto& pose : local_plan_)
   {
     pose = transformPose(pose, reference_frame_id_);
@@ -584,6 +599,15 @@ geometry_msgs::Twist AgribotLocalPlanner::finishedPathBehaviour()
   return stopRobot();
 }
 
+void AgribotLocalPlanner::abortPlanningBehaviour()
+{
+  out_of_path_counter_ = 0;
+  is_out_of_path_ = true;
+  local_plan_.clear();
+  local_plan_planned_ = false;
+  visualizationPath(local_plan_.front().header.frame_id);
+}
+
 void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
 {
   // prevent from too frequent odom reading
@@ -604,7 +628,6 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
 
 void AgribotLocalPlanner::lineLeftCallback(const nav_msgs::Path& msg)
 {
-  // ROS_WARN_STREAM("line left rec " << msg->poses.size());
   if (msg.poses.size() == 2)
   {
     planners_["narrow"]->setLineLeft(msg);

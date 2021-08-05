@@ -180,6 +180,8 @@ private:
   geometry_msgs::Twist limitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist stopRobot();
   geometry_msgs::Twist finishedPathBehaviour();
+  void abortPlanningBehaviour();
+  bool handlePathPlan();
   double closeToZero(const double value);
   bool isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
                         const geometry_msgs::PoseStamped& path_end_waypoint);
