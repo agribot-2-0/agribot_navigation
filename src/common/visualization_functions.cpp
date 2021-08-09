@@ -50,8 +50,8 @@ void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agri
   pathVisualization(predicted_path, frame_id, publisher);
 }
 
-void goalVisualization(const geometry_msgs::PoseStamped& goal, const double param_goal_distance_tolerance,
-                       const ros::Publisher& publisher)
+void goalVisualization(const geometry_msgs::PoseStamped& goal, const double param_goal_distance_tolerance_x,
+                       const double param_goal_distance_tolerance_y, const ros::Publisher& publisher)
 {
   visualization_msgs::Marker marker;
   marker.header.frame_id = goal.header.frame_id;
@@ -62,9 +62,9 @@ void goalVisualization(const geometry_msgs::PoseStamped& goal, const double para
   marker.action = visualization_msgs::Marker::DELETEALL;
 
   marker.pose.position = goal.pose.position;
-  marker.pose.orientation.w = 1;
-  marker.scale.x = 2 * param_goal_distance_tolerance;
-  marker.scale.y = 2 * param_goal_distance_tolerance;
+  marker.pose.orientation = goal.pose.orientation;
+  marker.scale.x = 2.0 * param_goal_distance_tolerance_x;
+  marker.scale.y = 2.0 * param_goal_distance_tolerance_y;
   marker.scale.z = 0.01;
   marker.color.a = 0.5;
   marker.color.r = 1.0;

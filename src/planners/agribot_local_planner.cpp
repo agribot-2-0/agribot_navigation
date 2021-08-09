@@ -63,7 +63,7 @@ void AgribotLocalPlanner::createValidators()
 void AgribotLocalPlanner::createTrackers()
 {
   auto following_tracker = std::make_unique<agribot_path_trackers::FollowingTracker>();
-  following_tracker->setGoalDistanceTolerance(param_goal_distance_tolerance_);
+  following_tracker->setGoalDistanceTolerance(param_goal_distance_tolerance_y_);
   following_tracker->setMissedDistanceCoefficient(param_missed_distance_coefficient_);
   trackers_["following"] = std::move(following_tracker);
 
@@ -119,8 +119,10 @@ void AgribotLocalPlanner::createCostmapConverter(const ros::NodeHandle& nh)
 
 void AgribotLocalPlanner::getParameters(const ros::NodeHandle& nh)
 {
-  param_goal_distance_tolerance_ =
-      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance");
+  param_goal_distance_tolerance_x_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance_x");
+  param_goal_distance_tolerance_y_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance_y");
   param_max_missed_waypoints_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/max_missed_waypoints");
 
   param_maximum_distance_to_path_tolerance_ =
@@ -254,6 +256,7 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
 
   if (local_plan_planned_)
   {
+    local_plan_planned_ = false;
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Local plan was planned once. Avoid planning more times");
     return false;
   }
@@ -272,25 +275,9 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
     return false;
   }
 
-  // make local plan
-  for (auto const& planner_name : planners_fallback_strategy_)
+  if (!handlePathPlan())
   {
-    ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " taken.");
-    if (planPath(planner_name, robot_center_, goal_))
-    {
-      ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " created valid path.");
-      break;
-    }
-    else
-    {
-      ROS_WARN_STREAM("[AgribotLocalPlanner] Planner "
-                      << planner_name << " is not able to create valid path. Taking the next planner.");
-      if (planner_name == planners_fallback_strategy_.back())
-      {
-        ROS_ERROR_STREAM("[AgribotLocalPlanner] Unable to create valid path. Abort planning.");
-        return false;
-      }
-    }
+    return false;
   }
 
   // set flags and reset additional variables
@@ -360,10 +347,37 @@ bool AgribotLocalPlanner::planPath(const std::string& planner_id, const geometry
   return true;
 }
 
+bool AgribotLocalPlanner::handlePathPlan()
+{
+  for (auto const& planner_name : planners_fallback_strategy_)
+  {
+    ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " taken.");
+    if (planPath(planner_name, robot_center_, goal_))
+    {
+      ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " created valid path.");
+      break;
+    }
+    else
+    {
+      ROS_WARN_STREAM("[AgribotLocalPlanner] Planner "
+                      << planner_name << " is not able to create valid path. Taking the next planner.");
+      if (planner_name == planners_fallback_strategy_.back())
+      {
+        ROS_ERROR_STREAM("[AgribotLocalPlanner] Unable to create valid path. Abort planning.");
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 {
   if (!initialized_)
   {
+    abortPlanningBehaviour();
+    cmd_vel = stopRobot();
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Planner not initialized, call initialize() before planner");
     return false;
   }
@@ -377,8 +391,10 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       if (!planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
                                            transformPose(goal_, planners_["narrow"]->getFrameId())))
       {
-        ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid plan");
-        // return false;
+        abortPlanningBehaviour();
+        cmd_vel = stopRobot();
+        ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid path in row");
+        return false;
       }
       calculateControls(cmd_vel, "PurePursuitController");
       publishObstacles();
@@ -395,13 +411,21 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     ROS_INFO_STREAM("Plan NOT in row");
     if (!local_plan_planned_)
     {
-      setPlan(global_plan_);
+      if (!handlePathPlan())
+      {
+        abortPlanningBehaviour();
+        cmd_vel = stopRobot();
+        ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid path not in row");
+        return false;
+      }
     }
     calculateControls(cmd_vel, "StanleyController");
   }
 
   if (local_plan_.size() <= 0)
   {
+    abortPlanningBehaviour();
+    cmd_vel = stopRobot();
     ROS_ERROR("[AgribotLocalPlanner] Local plan is not created");
     return false;
   }
@@ -423,18 +447,16 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
 
   if (abort_executing_)
   {
+    abortPlanningBehaviour();
     cmd_vel = stopRobot();
-    local_plan_.clear();
     ROS_ERROR("[AgribotLocalPlanner] Abort plan");
     return false;
   }
 
   if (out_of_path_counter_ > param_max_missed_waypoints_)
   {
-    out_of_path_counter_ = 0;
-    is_out_of_path_ = true;
+    abortPlanningBehaviour();
     cmd_vel = stopRobot();
-    local_plan_.clear();
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Out of path. Abort plan");
     return false;
   }
@@ -507,8 +529,6 @@ void AgribotLocalPlanner::publishObstacles()
 
 void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel, std::string controller_id)
 {
-  // ROS_WARN_STREAM("Calculate controls " << local_plan_.empty());
-  // ROS_WARN_STREAM("Calculate controls " << local_plan_.size());
   if (local_plan_.empty())
   {
     return;
@@ -517,10 +537,8 @@ void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel, std::
   {
     pose = transformPose(pose, controllers_[controller_id]->getFrameId());
   }
-  // ROS_WARN_STREAM("Calculate controls track path started");
   controllers_[controller_id]->computeControl(cmd_vel, local_plan_,
                                               transformPose(robot_center_, controllers_[controller_id]->getFrameId()));
-  // ROS_WARN_STREAM("Calculate controls track path finished");
   for (auto& pose : local_plan_)
   {
     pose = transformPose(pose, reference_frame_id_);
@@ -571,7 +589,10 @@ double AgribotLocalPlanner::closeToZero(const double value)
 geometry_msgs::Twist AgribotLocalPlanner::finishedPathBehaviour()
 {
   goal_reached_ = true;
+  out_of_path_counter_ = 0;
+  is_out_of_path_ = false;
   local_plan_.clear();
+  local_plan_planned_ = false;
   if (param_statistics_)
   {
     stop_time_ = ros::Time::now().toSec();
@@ -582,6 +603,15 @@ geometry_msgs::Twist AgribotLocalPlanner::finishedPathBehaviour()
     ROS_INFO_STREAM("[AgribotLocalPlanner] Avg speed = " << traveled_distance_ / total_time << " m/s");
   }
   return stopRobot();
+}
+
+void AgribotLocalPlanner::abortPlanningBehaviour()
+{
+  out_of_path_counter_ = 0;
+  is_out_of_path_ = false;
+  local_plan_.clear();
+  local_plan_planned_ = true;
+  visualizationPath(local_plan_.front().header.frame_id);
 }
 
 void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
@@ -604,7 +634,6 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
 
 void AgribotLocalPlanner::lineLeftCallback(const nav_msgs::Path& msg)
 {
-  // ROS_WARN_STREAM("line left rec " << msg->poses.size());
   if (msg.poses.size() == 2)
   {
     planners_["narrow"]->setLineLeft(msg);
@@ -683,7 +712,8 @@ void AgribotLocalPlanner::visualizationPath(std::string frame_id)
   VisualizationFunctions::pathVisualization(local_plan_, frame_id, path_pub_);
   try
   {
-    VisualizationFunctions::goalVisualization(goal_, param_goal_distance_tolerance_, goal_pub_);
+    VisualizationFunctions::goalVisualization(goal_, param_goal_distance_tolerance_x_, param_goal_distance_tolerance_y_,
+                                              goal_pub_);
   }
   catch (const std::exception& ex)
   {
@@ -723,8 +753,28 @@ bool AgribotLocalPlanner::isOutOfPath(void)
 bool AgribotLocalPlanner::isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
                                            const geometry_msgs::PoseStamped& path_end_waypoint)
 {
-  double distanceToGoal = CommonFunctions::distanceBetweenPoses(path_end_waypoint, robot_coordinates);
-  return (distanceToGoal <= param_goal_distance_tolerance_);
+  return isWithinEllipse(robot_coordinates, path_end_waypoint);
+}
+
+// https://stackoverflow.com/questions/7946187/point-and-ellipse-rotated-position-test-algorithm
+bool AgribotLocalPlanner::isWithinEllipse(const geometry_msgs::PoseStamped& point,
+                                          const geometry_msgs::PoseStamped& ellipse_center)
+{
+  double ry = param_goal_distance_tolerance_y_;
+  double rx = param_goal_distance_tolerance_x_;
+  double rotation = CommonFunctions::getYawFromQuaternion(ellipse_center.pose.orientation);
+
+  double cos_rot = cos(rotation);
+  double sin_rot = sin(rotation);
+  double delta_x = point.pose.position.x - ellipse_center.pose.position.x;
+  double delta_y = point.pose.position.y - ellipse_center.pose.position.y;
+
+  double factor1 = pow((cos_rot * delta_x) + (sin_rot * delta_y), 2);
+  factor1 /= pow(rx, 2);
+  double factor2 = pow((sin_rot * delta_x) - (cos_rot * delta_y), 2);
+  factor2 /= pow(ry, 2);
+
+  return factor1 + factor2 <= 1;
 }
 
 bool AgribotLocalPlanner::isInRow()

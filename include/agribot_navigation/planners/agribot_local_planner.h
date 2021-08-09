@@ -131,13 +131,14 @@ private:
   int out_of_path_counter_;
 
   // params
-  int param_max_missed_waypoints_;        // n
-  double param_goal_distance_tolerance_;  // metres
-  double param_chassis_length_;           // metres
-  double param_min_radius_;               // metres
-  double param_max_linear_vel_;           // m/s
-  double param_min_linear_vel_;           // m/s
-  double param_epsilon_;                  // unitless
+  int param_max_missed_waypoints_;          // n
+  double param_goal_distance_tolerance_x_;  // metres
+  double param_goal_distance_tolerance_y_;  // metres
+  double param_chassis_length_;             // metres
+  double param_min_radius_;                 // metres
+  double param_max_linear_vel_;             // m/s
+  double param_min_linear_vel_;             // m/s
+  double param_epsilon_;                    // unitless
 
   double param_design_dead_zone_;                    // degrees
   double param_design_arc_radius_;                   // metres
@@ -180,12 +181,14 @@ private:
   geometry_msgs::Twist limitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist stopRobot();
   geometry_msgs::Twist finishedPathBehaviour();
+  void abortPlanningBehaviour();
+  bool handlePathPlan();
   double closeToZero(const double value);
   bool isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
                         const geometry_msgs::PoseStamped& path_end_waypoint);
   bool isOutOfPath();
   bool isInRow();
-
+  bool isWithinEllipse(const geometry_msgs::PoseStamped& point, const geometry_msgs::PoseStamped& ellipse_center);
   void getParameters(const ros::NodeHandle& nh);
 
   const std_msgs::ColorRGBA COLOR_RED = VisualizationFunctions::ColorRGBA(1, 0, 0, 1).color;
