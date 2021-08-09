@@ -63,7 +63,7 @@ void AgribotLocalPlanner::createValidators()
 void AgribotLocalPlanner::createTrackers()
 {
   auto following_tracker = std::make_unique<agribot_path_trackers::FollowingTracker>();
-  following_tracker->setGoalDistanceTolerance(param_goal_distance_tolerance_);
+  following_tracker->setGoalDistanceTolerance(param_goal_distance_tolerance_y_);
   following_tracker->setMissedDistanceCoefficient(param_missed_distance_coefficient_);
   trackers_["following"] = std::move(following_tracker);
 
@@ -119,8 +119,10 @@ void AgribotLocalPlanner::createCostmapConverter(const ros::NodeHandle& nh)
 
 void AgribotLocalPlanner::getParameters(const ros::NodeHandle& nh)
 {
-  param_goal_distance_tolerance_ =
-      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance");
+  param_goal_distance_tolerance_x_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance_x");
+  param_goal_distance_tolerance_y_ =
+      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance_y");
   param_max_missed_waypoints_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/max_missed_waypoints");
 
   param_maximum_distance_to_path_tolerance_ =
@@ -254,6 +256,7 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
 
   if (local_plan_planned_)
   {
+    local_plan_planned_ = false;
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Local plan was planned once. Avoid planning more times");
     return false;
   }
@@ -586,7 +589,10 @@ double AgribotLocalPlanner::closeToZero(const double value)
 geometry_msgs::Twist AgribotLocalPlanner::finishedPathBehaviour()
 {
   goal_reached_ = true;
+  out_of_path_counter_ = 0;
+  is_out_of_path_ = false;
   local_plan_.clear();
+  local_plan_planned_ = false;
   if (param_statistics_)
   {
     stop_time_ = ros::Time::now().toSec();
@@ -602,9 +608,9 @@ geometry_msgs::Twist AgribotLocalPlanner::finishedPathBehaviour()
 void AgribotLocalPlanner::abortPlanningBehaviour()
 {
   out_of_path_counter_ = 0;
-  is_out_of_path_ = true;
+  is_out_of_path_ = false;
   local_plan_.clear();
-  local_plan_planned_ = false;
+  local_plan_planned_ = true;
   visualizationPath(local_plan_.front().header.frame_id);
 }
 
@@ -706,7 +712,8 @@ void AgribotLocalPlanner::visualizationPath(std::string frame_id)
   VisualizationFunctions::pathVisualization(local_plan_, frame_id, path_pub_);
   try
   {
-    VisualizationFunctions::goalVisualization(goal_, param_goal_distance_tolerance_, goal_pub_);
+    VisualizationFunctions::goalVisualization(goal_, param_goal_distance_tolerance_x_, param_goal_distance_tolerance_y_,
+                                              goal_pub_);
   }
   catch (const std::exception& ex)
   {
@@ -746,8 +753,28 @@ bool AgribotLocalPlanner::isOutOfPath(void)
 bool AgribotLocalPlanner::isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
                                            const geometry_msgs::PoseStamped& path_end_waypoint)
 {
-  double distanceToGoal = CommonFunctions::distanceBetweenPoses(path_end_waypoint, robot_coordinates);
-  return (distanceToGoal <= param_goal_distance_tolerance_);
+  return isWithinEllipse(robot_coordinates, path_end_waypoint);
+}
+
+// https://stackoverflow.com/questions/7946187/point-and-ellipse-rotated-position-test-algorithm
+bool AgribotLocalPlanner::isWithinEllipse(const geometry_msgs::PoseStamped& point,
+                                          const geometry_msgs::PoseStamped& ellipse_center)
+{
+  double ry = param_goal_distance_tolerance_y_;
+  double rx = param_goal_distance_tolerance_x_;
+  double rotation = CommonFunctions::getYawFromQuaternion(ellipse_center.pose.orientation);
+
+  double cos_rot = cos(rotation);
+  double sin_rot = sin(rotation);
+  double delta_x = point.pose.position.x - ellipse_center.pose.position.x;
+  double delta_y = point.pose.position.y - ellipse_center.pose.position.y;
+
+  double factor1 = pow((cos_rot * delta_x) + (sin_rot * delta_y), 2);
+  factor1 /= pow(rx, 2);
+  double factor2 = pow((sin_rot * delta_x) - (cos_rot * delta_y), 2);
+  factor2 /= pow(ry, 2);
+
+  return factor1 + factor2 <= 1;
 }
 
 bool AgribotLocalPlanner::isInRow()
