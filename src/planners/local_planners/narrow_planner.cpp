@@ -56,7 +56,7 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
     path.back().pose.orientation.z = 0;
     path.back().pose.orientation.w = 1;
 
-    CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
+    CommonFunctions::updateOrientationInPath(path, 1, path.size() - 1);
   }
   catch (const std::exception& e)
   {

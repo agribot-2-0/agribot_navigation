@@ -34,12 +34,17 @@ class NavigationManager
 private:
   ros::NodeHandle node_handle_;
   std::unique_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> move_base_action_client_;
-  ros::Publisher waypoint_marker_publisher_;
   ros::Publisher plan_publisher_;
+  ros::Publisher is_row_publisher_;
+  ros::Publisher row_begin_publisher_;
+  ros::Publisher row_end_publisher_;
   geometry_msgs::TransformStamped starting_map_utm_transform_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   double ray_width_;
+  bool is_row_;
+  geometry_msgs::PoseStamped row_begin_pose_;
+  geometry_msgs::PoseStamped row_end_pose_;
 
   std::unique_ptr<actionlib::SimpleActionServer<agribot_msgs::PerformAutonomousPathAction>> path_action_server_;
   agribot_msgs::PerformAutonomousPathResult path_action_result_;
@@ -63,6 +68,8 @@ private:
   double limitAngle(double angle) const;
   double calculateLinesSpan(const double target_line_angle, const double base_line_angle) const;
   void performAutonomousPathCallback(const agribot_msgs::PerformAutonomousPathGoalConstPtr& goal);
+  void rowDetection(const int current_waypoint_index);
+  void rowPublishing(void);
 
 public:
   NavigationManager();

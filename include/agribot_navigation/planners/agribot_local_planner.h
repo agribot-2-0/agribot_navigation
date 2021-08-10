@@ -22,6 +22,7 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <pluginlib/class_loader.h>
+#include <std_msgs/Bool.h>
 #include <tf/tf.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -76,6 +77,7 @@ private:
   ros::Subscriber odom_sub_;
   ros::Subscriber line_left_sub_;
   ros::Subscriber line_right_sub_;
+  ros::Subscriber is_row_sub_;
   ros::Publisher path_pub_;
   ros::Publisher obstacles_pub_;
   ros::Publisher obstacles_left_polygon_pub_;
@@ -116,7 +118,7 @@ private:
   ObstacleDetection::Obstacle obstacles_left_;
   ObstacleDetection::Obstacle obstacles_right_;
   bool obstacle_ahead_;
-  bool in_interrow_;
+  bool is_row_;
 
   bool goal_reached_;
   bool initialized_;
@@ -167,6 +169,7 @@ private:
   void odomCallback(const nav_msgs::Odometry& odometry_msg);
   void lineLeftCallback(const nav_msgs::Path& msg);
   void lineRightCallback(const nav_msgs::Path& msg);
+  void isRowCallback(const std_msgs::Bool& msg);
 
   bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
                 const geometry_msgs::PoseStamped& end_pose);
