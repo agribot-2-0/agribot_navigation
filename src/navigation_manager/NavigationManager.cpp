@@ -2,16 +2,27 @@
  * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
+#include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <agribot_navigation/navigation_manager/NavigationManager.h>
+#include <std_msgs/Bool.h>
 #include <visualization_msgs/MarkerArray.h>
 
 NavigationManager::NavigationManager() : tf_listener_(tf_buffer_)
 {
-  waypoint_marker_publisher_ =
-      node_handle_.advertise<visualization_msgs::MarkerArray>("/agribot/navigation_manager/waypoints", 1);
   plan_publisher_ = node_handle_.advertise<nav_msgs::Path>("/agribot/navigation_manager/path", 1);
+  is_row_publisher_ = node_handle_.advertise<std_msgs::Bool>("/agribot/navigation_manager/row/presence", 1);
+  row_begin_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/agribot/navigation_manager/row/begin", 1);
+  row_end_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/agribot/navigation_manager/row/end", 1);
 
-  node_handle_.param("ray_width", ray_width_, M_PI_2);
+  try
+  {
+    ray_width_ = ros_common_functions::getRosParam<double>("/navigation_manager_node/ray_width");
+  }
+  catch (const std::exception& ex)
+  {
+    ROS_ERROR_STREAM("[NavigationManager] " << ex.what());
+    return;
+  }
 
   // tell the action client that we want to spin a thread by default
   move_base_action_client_ =
@@ -25,8 +36,7 @@ NavigationManager::NavigationManager() : tf_listener_(tf_buffer_)
   // wait for the action server to come up
   while (!move_base_action_client_->waitForServer(ros::Duration(5.0)))
   {
-    ROS_INFO_STREAM("[NavigationManager] Waiting for the move_base"
-                    << "action server to come up");
+    ROS_INFO_STREAM("[NavigationManager] Waiting for the move_base action server to come up");
   }
 
   path_action_feedback_.feedback.result = path_action_feedback_.feedback.NOACTION;
@@ -113,39 +123,6 @@ void NavigationManager::updateOrientations(nav_msgs::Path& path, const double ra
   path.poses[path.poses.size() - 1].pose.orientation = tf::createQuaternionMsgFromYaw(
       angleBetweenPoses(path.poses[path.poses.size() - 1].pose, path.poses[path.poses.size() - 2].pose));
   return;
-}
-
-void NavigationManager::createAndPublishMarkersFromPath(const std::vector<geometry_msgs::PoseStamped>& path)
-{
-  // clear previous markers
-  visualization_msgs::MarkerArray markers;
-  visualization_msgs::Marker marker;
-  marker.header = path[0].header;
-  marker.ns = "/navigation_manager/waypoints";
-  marker.type = visualization_msgs::Marker::ARROW;
-  marker.action = visualization_msgs::Marker::DELETEALL;
-  marker.scale.x = 0.75;
-  marker.scale.y = 0.1;
-  marker.scale.z = 0.01;
-  marker.color.a = 1.0;
-  marker.color.r = 0.1;
-  marker.color.g = 0.2;
-  marker.color.b = 0.7;
-  marker.id = 0;
-  markers.markers.push_back(marker);
-  waypoint_marker_publisher_.publish(markers);
-  marker.action = visualization_msgs::Marker::ADD;
-  markers.markers.clear();
-
-  for (size_t i = 0; i < path.size(); i++)
-  {
-    marker.id = i;
-    marker.pose.position = path[i].pose.position;
-    marker.pose.orientation = path[i].pose.orientation;
-    markers.markers.push_back(marker);
-  }
-
-  waypoint_marker_publisher_.publish(markers);
 }
 
 bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
@@ -236,6 +213,8 @@ bool NavigationManager::monitorPathWaypoints(uint current_waypoint)
       path_action_server_->publishFeedback(path_action_feedback_);
     }
     path_finished = true;
+    rowDetection(current_waypoint);
+    rowPublishing();
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -300,7 +279,6 @@ geometry_msgs::PoseStamped NavigationManager::utmToMap(const geometry_msgs::Pose
 
 void NavigationManager::publishWaypointsVisualization(const nav_msgs::Path& path)
 {
-  createAndPublishMarkersFromPath(path.poses);
   plan_publisher_.publish(path);
 }
 
@@ -320,6 +298,61 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
   ROS_WARN_STREAM("[NavigationManager] Path sent to move_base");
   monitorPathWaypoints(goal->path_progression);
   move_base_action_client_->cancelAllGoals();
+}
+
+void NavigationManager::rowDetection(const int current_waypoint_index)
+{
+  if (current_waypoint_index != 0)
+  {
+    // ROS_WARN_STREAM("current waypoirt " << current_waypoint_index);
+    // ROS_WARN_STREAM("current waypoirt " << path_.poses[current_waypoint_index]);
+    // ROS_WARN_STREAM("current waypoirt " << path_.poses[current_waypoint_index - 1]);
+    if (path_.poses[current_waypoint_index].pose.orientation ==
+        path_.poses[current_waypoint_index - 1].pose.orientation)
+    {
+      is_row_ = true;
+      row_begin_pose_ = path_.poses[current_waypoint_index - 1];
+      row_end_pose_ = path_.poses[current_waypoint_index];
+    }
+    else
+    {
+      is_row_ = false;
+      row_begin_pose_.pose = geometry_msgs::Pose();
+      row_end_pose_.pose = geometry_msgs::Pose();
+    }
+  }
+  else
+  {
+    is_row_ = false;
+    row_begin_pose_.pose = geometry_msgs::Pose();
+    row_end_pose_.pose = geometry_msgs::Pose();
+  }
+  // ROS_WARN_STREAM("is_row_ " << is_row_);
+}
+
+void NavigationManager::rowPublishing(void)
+{
+  is_row_publisher_.publish([this] {
+    std_msgs::Bool msg;
+    msg.data = this->is_row_;
+    return msg;
+  }());
+
+  row_begin_publisher_.publish([this] {
+    geometry_msgs::PoseStamped msg;
+    msg = this->row_begin_pose_;
+    msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = this->path_.header.frame_id;
+    return msg;
+  }());
+
+  row_end_publisher_.publish([this] {
+    geometry_msgs::PoseStamped msg;
+    msg = this->row_end_pose_;
+    msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = this->path_.header.frame_id;
+    return msg;
+  }());
 }
 
 void NavigationManager::run()

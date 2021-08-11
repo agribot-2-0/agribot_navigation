@@ -189,6 +189,7 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
     odom_sub_ = gn.subscribe("odom", 100, &AgribotLocalPlanner::odomCallback, this);
     line_left_sub_ = gn.subscribe("line_left", 100, &AgribotLocalPlanner::lineLeftCallback, this);
     line_right_sub_ = gn.subscribe("line_right", 100, &AgribotLocalPlanner::lineRightCallback, this);
+    is_row_sub_ = gn.subscribe("is_row", 100, &AgribotLocalPlanner::isRowCallback, this);
 
     path_pub_ = pnh.advertise<nav_msgs::Path>("local_path", 10);
     obstacles_pub_ = pnh.advertise<costmap_converter::ObstacleMsg>("obstacles", 10);
@@ -228,6 +229,7 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
 
     initialized_ = true;
     local_plan_planned_ = false;
+    is_row_ = false;
 
     if (param_statistics_)
     {
@@ -397,7 +399,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
         return false;
       }
       calculateControls(cmd_vel, "PurePursuitController");
-      publishObstacles();
+      // publishObstacles();
     }
     catch (const std::exception& e)
     {
@@ -648,6 +650,11 @@ void AgribotLocalPlanner::lineRightCallback(const nav_msgs::Path& msg)
   }
 }
 
+void AgribotLocalPlanner::isRowCallback(const std_msgs::Bool& msg)
+{
+  is_row_ = msg.data;
+}
+
 geometry_msgs::Twist AgribotLocalPlanner::stopRobot()
 {
   ROS_INFO_STREAM("[AgribotLocalPlanner] Stop robot");
@@ -779,7 +786,8 @@ bool AgribotLocalPlanner::isWithinEllipse(const geometry_msgs::PoseStamped& poin
 
 bool AgribotLocalPlanner::isInRow()
 {
-  return detection_.isInRow(obstacles_);
+  // return detection_.isInRow(obstacles_);
+  return is_row_;
 }
 
 }  // namespace agribot_local_planner
