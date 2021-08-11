@@ -387,9 +387,11 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   checkObstacles();
   if (isInRow())
   {
-    ROS_INFO_STREAM("Plan in row");
+    // ROS_INFO_STREAM("Plan in row");
     try
     {
+      ros::topic::waitForMessage<nav_msgs::Path>("line_left");
+      ros::topic::waitForMessage<nav_msgs::Path>("line_right");
       if (!planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
                                            transformPose(goal_, planners_["narrow"]->getFrameId())))
       {
@@ -410,7 +412,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   }
   else
   {
-    ROS_INFO_STREAM("Plan NOT in row");
+    // ROS_INFO_STREAM("Plan NOT in row");
     if (!local_plan_planned_)
     {
       if (!handlePathPlan())
