@@ -133,12 +133,14 @@ int main(int argc, char** argv)
 
   if (argc < 2)
   {
-    command_sub_topic = "cmd_vel_filtered";
+    command_sub_topic = "cmd_vel";
   }
   else
   {
     command_sub_topic = argv[1];
   }
+
+  ROS_WARN_STREAM("[KinematicsController] Subscibing on topic: " << command_sub_topic);
 
   ros::Subscriber kinematics_control_sub = n.subscribe(command_sub_topic, 1000, cmdVelCallback);
   ros::Subscriber front_cart_sub = n.subscribe("/agribot/encoder/cart/front", 1000, encoderFrontCallback);

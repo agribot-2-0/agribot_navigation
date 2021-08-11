@@ -12,10 +12,11 @@ VelocitySmoother::VelocitySmoother(ros::NodeHandle* nh)
 
 void VelocitySmoother::getParameters()
 {
-  frequency_ = ros_common_functions::getRosParam<double>("/default_frequency");
-  acceleration_ = ros_common_functions::getRosParam<double>("/default_acceleration");
-  velocity_threshold_ = ros_common_functions::getRosParam<double>("/default_velocity_threshold");
-  acceleration_after_threshold_ = ros_common_functions::getRosParam<double>("/default_acceleration_after_threshold");
+  frequency_ = ros_common_functions::getRosParam<double>(nh_->getNamespace() + "/default_frequency");
+  acceleration_ = ros_common_functions::getRosParam<double>(nh_->getNamespace() + "/default_acceleration");
+  velocity_threshold_ = ros_common_functions::getRosParam<double>(nh_->getNamespace() + "/default_velocity_threshold");
+  acceleration_after_threshold_ =
+      ros_common_functions::getRosParam<double>(nh_->getNamespace() + "/default_acceleration_after_threshold");
   step_ = acceleration_ / frequency_;
   step_after_threshold_ = acceleration_after_threshold_ / frequency_;
 }

@@ -8,7 +8,7 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "velocity_smoother_node");
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
   VelocitySmoother vel_smooth = VelocitySmoother(&nh);
   try
   {
