@@ -26,20 +26,20 @@ bool bDataReceived = false;
 
 void cmdVelCallback(const geometry_msgs::Twist cmd_msg)
 {
-  KinControl.vSetInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
-  KinControl.vSetInputAngular(cmd_msg.angular.x, cmd_msg.angular.y, cmd_msg.angular.z);
+  KinControl.setInputLinear(cmd_msg.linear.x, cmd_msg.linear.y, cmd_msg.linear.z);
+  KinControl.setInputAngular(cmd_msg.angular.x, cmd_msg.angular.y, cmd_msg.angular.z);
   bDataReceived = true;
 }
 
 void encoderFrontCallback(const std_msgs::Float32 front_cart_msg)
 {
-  KinControl.vSetFrontCartAngle(front_cart_msg.data);
+  KinControl.setFrontCartAngle(front_cart_msg.data);
   bDataReceived = true;
 }
 
 void encoderBackCallback(const std_msgs::Float32 back_cart_msg)
 {
-  KinControl.vSetBackCartAngle(back_cart_msg.data);
+  KinControl.setBackCartAngle(back_cart_msg.data);
   bDataReceived = true;
 }
 
@@ -47,15 +47,15 @@ void callback(agribot_navigation::KinematicsConfig& config,  // NOLINT(runtime/r
               uint32_t level)
 {
   static_cast<void>(level);
-  KinControl.vSetPreciseKp(config.coarse_Kp);
-  KinControl.vSetPreciseKi(config.coarse_Ki);
-  KinControl.vSetPreciseKd(config.coarse_Kd);
-  KinControl.vSetCoarseKp(config.precise_Kp);
-  KinControl.vSetCoarseKi(config.precise_Ki);
-  KinControl.vSetCoarseKd(config.precise_Kd);
-  KinControl.vSetFrontLimit(config.precision_range);
-  KinControl.vSetBackLimit(config.front_limit);
-  KinControl.vSetPrecisionRange(config.back_limit);
+  KinControl.setFrontKp(config.front_kp);
+  KinControl.setFrontKi(config.front_ki);
+  KinControl.setFrontKd(config.front_kd);
+  KinControl.setBackKp(config.back_kp);
+  KinControl.setBackKi(config.back_ki);
+  KinControl.setBackKd(config.back_kd);
+  KinControl.setFrontLimit(config.precision_range);
+  KinControl.setBackLimit(config.front_limit);
+  KinControl.setPrecisionRange(config.back_limit);
 }
 
 bool steering_mode_callback(agribot_msgs::SteeringMode::Request& request,    // NOLINT(runtime/references)
@@ -99,26 +99,26 @@ int main(int argc, char** argv)
 
   try
   {
-    double coarse_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kp");
-    double coarse_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Ki");
-    double coarse_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/coarse_Kd");
-    double precise_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kp");
-    double precise_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Ki");
-    double precise_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precise_Kd");
+    double front_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_kp");
+    double front_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_ki");
+    double front_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_kd");
+    double back_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_kp");
+    double back_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_ki");
+    double back_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_kd");
     double precision_range = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precision_range");
     double front_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_limit");
     double back_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_limit");
     std::string steering_mode = ros_common_functions::getRosParam<std::string>(pnh.getNamespace() + "/steering_mode");
 
-    KinControl.vSetPreciseKp(coarse_kp);
-    KinControl.vSetPreciseKi(coarse_ki);
-    KinControl.vSetPreciseKd(coarse_kd);
-    KinControl.vSetCoarseKp(precise_kp);
-    KinControl.vSetCoarseKi(precise_kd);
-    KinControl.vSetCoarseKd(precise_ki);
-    KinControl.vSetFrontLimit(precision_range);
-    KinControl.vSetBackLimit(front_limit);
-    KinControl.vSetPrecisionRange(back_limit);
+    KinControl.setFrontKp(front_kp);
+    KinControl.setFrontKi(front_kd);
+    KinControl.setFrontKd(front_ki);
+    KinControl.setBackKp(back_kp);
+    KinControl.setBackKi(back_kd);
+    KinControl.setBackKd(back_ki);
+    KinControl.setFrontLimit(precision_range);
+    KinControl.setBackLimit(front_limit);
+    KinControl.setPrecisionRange(back_limit);
     KinControl.setSteeringMode(steering_mode);
   }
   catch (const std::exception& ex)
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  KinControl.vCreatePubs(n);
+  KinControl.createPubs(&n);
   ros::Rate loop_rate(100);
   std::string command_sub_topic;
 
@@ -157,7 +157,7 @@ int main(int argc, char** argv)
     {
       bDataReceived = false;
       KinControl.update();
-      double* fpCaterpilarVelocities = KinControl.pdGetCaterpillarVelocities();
+      double* fpCaterpilarVelocities = KinControl.getCaterpillarVelocities();
       caterpilar_msg.header.frame_id = "chassis_link";
       caterpilar_msg.header.stamp = ros::Time::now();
       caterpilar_msg.front_linear = fpCaterpilarVelocities[FRONT_LINEAR];
