@@ -45,10 +45,10 @@ private:
                                    const agribot_local_planner::pos& last_waypoint,
                                    const agribot_local_planner::pos& robot_center);
   void xStopRobot(geometry_msgs::Twist& velocity);  // NOLINT(runtime/references)
-  double dCalculateDeviation(const agribot_local_planner::pos& last_waypoint,
+  double calculateDeviation(const agribot_local_planner::pos& last_waypoint,
                              const agribot_local_planner::pos& next_waypoint,
                              const agribot_local_planner::pos& robot_center);
-  double dCalculateParallelness(const agribot_local_planner::pos& last_waypoint,
+  double calculateParallelness(const agribot_local_planner::pos& last_waypoint,
                                 const agribot_local_planner::pos& next_waypoint,
                                 const agribot_local_planner::pos& robot_center);
 

@@ -45,93 +45,91 @@ enum class DrivingDirection
   backward
 };
 
-struct PID_terms_coefficients
+struct PidTermsCoefficients
 {
-  double dKp;
-  double dKi;
-  double dKd;
+  double kp_;
+  double ki_;
+  double kd_;
 };
 
 struct Carts_Setpoints
 {
-  double dFrontCartSP;
-  double dBackCartSP;
+  double front_cart_sp_;
+  double back_cart_sp_;
 };
 
 class KinematicsControl : public AgribotComponent
 {
 private:
-  ros::Publisher _rFrontSetPointPub;
-  ros::Publisher _rFrontControlValuePub;
-  ros::Publisher _rFrontProcessValuePub;
-  ros::Publisher _rFrontErrorPub;
-  ros::Publisher _rFrontIntegralPub;
-  ros::Publisher _rFrontDerivativePub;
-  ros::Publisher _rFrontDesSetPointPub;
+  ros::Publisher front_set_point_pub_;
+  ros::Publisher front_control_value_pub_;
+  ros::Publisher front_process_value_pub_;
+  ros::Publisher front_error_pub_;
+  ros::Publisher front_integral_pub_;
+  ros::Publisher front_derivative_pub_;
+  ros::Publisher front_des_set_point_pub_;
 
-  ros::Publisher _rBackSetPointPub;
-  ros::Publisher _rBackControlValuePub;
-  ros::Publisher _rBackProcessValuePub;
-  ros::Publisher _rBackErrorPub;
-  ros::Publisher _rBackIntegralPub;
-  ros::Publisher _rBackDerivativePub;
-  ros::Publisher _rBackDesSetPointPub;
+  ros::Publisher back_set_point_pub_;
+  ros::Publisher back_control_value_pub_;
+  ros::Publisher back_process_value_pub_;
+  ros::Publisher back_error_pub_;
+  ros::Publisher back_integral_pub_;
+  ros::Publisher back_derivative_pub_;
+  ros::Publisher back_des_set_point_pub_;
 
-  ros::Publisher _rFrontVelPub;
-  ros::Publisher _rBackVelPub;
-  ros::Publisher _rMultipiterPub;
-  ros::Publisher _rSetPointPub;
-  ros::Publisher _rFrontDifPub;
-  ros::Publisher _rBackDifPub;
+  ros::Publisher front_vel_pub_;
+  ros::Publisher back_vel_pub_;
+  ros::Publisher multiplier_pub_;
+  ros::Publisher set_point_pub_;
+  ros::Publisher front_dif_pub_;
+  ros::Publisher back_dif_pub_;
 
-  double _pdInputLinear[3];
-  double _pdInputAngular[3];
-  double _pdCaterpillarVelocities[4];
-  double _pdControl[3];
-  double _pdCartAngle[2];
-  double _dChassisAngle;
-  double _dWheelSeparation;
-  double _dWheelRadius;
-  double _dChassisLength;
-  double _dLastTime;
-  double _dLinearMultiplier;
-  double _dAngularMultiplier;
-  double _dCoarseKp;
-  double _dCoarseKi;
-  double _dCoarseKd;
-  double _dPreciseKp;
-  double _dPreciseKd;
-  double _dPreciseKi;
-  double _dPrecisionRange;
-  double _dFrontLimit;
-  double _dBackLimit;
-  PID* _pFrontCartPID;
-  PID* _pBackCartPID;
+  double input_linear_[3];
+  double input_angular_[3];
+  double caterpillar_velocities_[4];
+  double control_[3];
+  double cart_angle_[2];
+  double chassis_angle_;
+  double wheel_separation_;
+  double wheel_radius_;
+  double chassis_length_;
+  double last_time_;
+  double linear_multiplier_;
+  double angular_multiplier_;
+
+  PidTermsCoefficients front_cart_coefficients_;
+  PidTermsCoefficients back_cart_coefficients_;
+  double precision_range_;
+  double front_limit_;
+  double back_limit_;
+  PID* front_cart_pid_;
+  PID* back_cart_pid_;
   SteeringMode steering_mode_;
 
-  void vSetPIDsParameters();
-  double dCalculateLinearControls(double linear_vel, double angular_vel);
-  double dCalculateFrontAngularControl(double linear_vel, double angular_vel);
-  double dCalculateBackAngularControl(double linear_vel, double angular_vel);
-  double dCalculateAngularMultiplier(double linear_multiplier);
-  void vUpdatePIDs(double t);
-  void vSetPIDsSetpoints();
-  void vCalculateKinematicsControl();
-  double dFrontCartAngleDifference();
-  double dBackCartAngleDifference();
-  double dMaximumCartAngleDifference(double diff_front, double diff_back);
-  double dVelocitiesToRadius(double linear, double angular);
-  double dRadiusToAngle(const double Radius) const;
-  double dMultiplierGaussian(double x);
-  double dMultiplierSigmoid(double x);
-  double dMultiplierRoot2(double x);
-  double dMultiplierRoot3(double x);
-  double dMultiplierRoot4(double x);
-  double dMultiplierLinear(double x);
-  double dMultiplierExponential(double x);
+  void setPidsParameters();
+  double calculateLinearControls(double linear_vel, double angular_vel);
+  double calculateFrontAngularControl(double linear_vel, double angular_vel);
+  double calculateBackAngularControl(double linear_vel, double angular_vel);
+  double calculateAngularMultiplier(double linear_multiplier);
+  void updatePids(double t);
+  void setPidsSetpoints();
+  void calculateKinematicsControl();
+  double frontCartAngleDifference();
+  double backCartAngleDifference();
+  double maximumCartAngleDifference(double diff_front, double diff_back);
+  double velocitiesToRadius(double linear, double angular);
+  double radiusToAngle(const double Radius) const;
+  double multiplierGaussian(double x);
+  double multiplierSigmoid(double x);
+  double multiplierRoot2(double x);
+  double multiplierRoot3(double x);
+  double multiplierRoot4(double x);
+  double multiplierLinear(double x);
+  double multiplierExponential(double x);
   Carts_Setpoints xCalculatePIDSetPoints(double linear_vel, double angular_vel);
   Carts_Setpoints getSetPoints(const DrivingDirection& direction, const double radius) const;
-  PID_terms_coefficients xSelectPIDCoefficients(double Error);
+  PidTermsCoefficients getFrontPIDCoefficients();
+  PidTermsCoefficients getBackPIDCoefficients();
 
 public:
   KinematicsControl();
@@ -140,21 +138,21 @@ public:
   virtual bool update();
   virtual bool stop();
   virtual bool cleanup();
-  void vCreatePubs(ros::NodeHandle n);
-  void vSetInputLinear(double x, double y, double z);
-  void vSetInputAngular(double x, double y, double z);
-  void vSetChassisAngle(double theta);
-  void vSetFrontCartAngle(double theta);
-  void vSetBackCartAngle(double theta);
-  double* pdGetCaterpillarVelocities();
-  void vSetPreciseKp(double Kp);
-  void vSetPreciseKi(double Ki);
-  void vSetPreciseKd(double Kd);
-  void vSetCoarseKp(double Kp);
-  void vSetCoarseKi(double Ki);
-  void vSetCoarseKd(double Kd);
-  void vSetFrontLimit(double limit);
-  void vSetBackLimit(double limit);
-  void vSetPrecisionRange(double range);
+  void createPubs(ros::NodeHandle* n);
+  void setInputLinear(double x, double y, double z);
+  void setInputAngular(double x, double y, double z);
+  void setChassisAngle(double theta);
+  void setFrontCartAngle(double theta);
+  void setBackCartAngle(double theta);
+  double* getCaterpillarVelocities();
+  void setFrontKp(double Kp);
+  void setBackKp(double Kp);
+  void setFrontKi(double Ki);
+  void setBackKi(double Ki);
+  void setFrontKd(double Kd);
+  void setBackKd(double Kd);
+  void setFrontLimit(double limit);
+  void setBackLimit(double limit);
+  void setPrecisionRange(double range);
   void setSteeringMode(const std::string& mode);
 };
