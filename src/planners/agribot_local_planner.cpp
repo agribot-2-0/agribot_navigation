@@ -392,13 +392,14 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     {
       ros::topic::waitForMessage<nav_msgs::Path>("line_left");
       ros::topic::waitForMessage<nav_msgs::Path>("line_right");
+
       if (!planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
                                            transformPose(goal_, planners_["narrow"]->getFrameId())))
       {
         abortPlanningBehaviour();
         cmd_vel = stopRobot();
         ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid path in row");
-        return false;
+        // return false;
       }
       calculateControls(cmd_vel, "PurePursuitController");
       // publishObstacles();
@@ -431,7 +432,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     abortPlanningBehaviour();
     cmd_vel = stopRobot();
     ROS_ERROR("[AgribotLocalPlanner] Local plan is not created");
-    return false;
+    // return false;
   }
 
   visualizationPath(local_plan_.front().header.frame_id);

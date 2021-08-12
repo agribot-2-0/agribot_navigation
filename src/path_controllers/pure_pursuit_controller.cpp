@@ -98,7 +98,7 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
   // ROS_WARN_STREAM("robot_pose " << CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az);
   // ROS_WARN_STREAM("error_heading_ " << angle_between_poses_);
   // ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
-  // ROS_WARN_STREAM("pp motion_radius_ " << motion_radius_);
+  ROS_WARN_STREAM("pp motion_radius_ " << motion_radius_);
 
   if (motion_radius_ == 0.0)
   {

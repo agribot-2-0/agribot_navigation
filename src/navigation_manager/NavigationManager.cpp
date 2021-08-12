@@ -313,6 +313,22 @@ void NavigationManager::rowDetection(const int current_waypoint_index)
       is_row_ = true;
       row_begin_pose_ = path_.poses[current_waypoint_index - 1];
       row_end_pose_ = path_.poses[current_waypoint_index];
+
+      row_begin_publisher_.publish([this] {
+        geometry_msgs::PoseStamped msg;
+        msg = this->row_begin_pose_;
+        msg.header.stamp = ros::Time::now();
+        msg.header.frame_id = this->path_.header.frame_id;
+        return msg;
+      }());
+
+      row_end_publisher_.publish([this] {
+        geometry_msgs::PoseStamped msg;
+        msg = this->row_end_pose_;
+        msg.header.stamp = ros::Time::now();
+        msg.header.frame_id = this->path_.header.frame_id;
+        return msg;
+      }());
     }
     else
     {
@@ -335,22 +351,6 @@ void NavigationManager::rowPublishing(void)
   is_row_publisher_.publish([this] {
     std_msgs::Bool msg;
     msg.data = this->is_row_;
-    return msg;
-  }());
-
-  row_begin_publisher_.publish([this] {
-    geometry_msgs::PoseStamped msg;
-    msg = this->row_begin_pose_;
-    msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = this->path_.header.frame_id;
-    return msg;
-  }());
-
-  row_end_publisher_.publish([this] {
-    geometry_msgs::PoseStamped msg;
-    msg = this->row_end_pose_;
-    msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = this->path_.header.frame_id;
     return msg;
   }());
 }
