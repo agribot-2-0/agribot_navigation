@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #include <agribot_navigation/common/common_functions.h>
@@ -41,10 +41,8 @@ KinematicsControl::KinematicsControl()
   this->front_limit_ = 0.0;
   this->back_limit_ = 0.0;
 
-  this->precision_range_ = 0.0;
-
-  this->front_cart_pid_ = new PID();
-  this->back_cart_pid_ = new PID();
+  this->front_cart_pid_ = std::make_unique<PID>();
+  this->back_cart_pid_ = std::make_unique<PID>();
 
   setSteeringMode("four_wheel");
 }
@@ -567,11 +565,6 @@ void KinematicsControl::setBackLimit(double limit)
   this->back_limit_ = limit * DEG_TO_RAD;
   this->back_cart_pid_->setLowLimit(-this->back_limit_);
   this->back_cart_pid_->setHighLimit(this->back_limit_);
-}
-
-void KinematicsControl::setPrecisionRange(double range)
-{
-  this->precision_range_ = range;
 }
 
 void KinematicsControl::setSteeringMode(const std::string& mode)

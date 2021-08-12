@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
@@ -53,9 +53,8 @@ void callback(agribot_navigation::KinematicsConfig& config,  // NOLINT(runtime/r
   KinControl.setBackKp(config.back_kp);
   KinControl.setBackKi(config.back_ki);
   KinControl.setBackKd(config.back_kd);
-  KinControl.setFrontLimit(config.precision_range);
-  KinControl.setBackLimit(config.front_limit);
-  KinControl.setPrecisionRange(config.back_limit);
+  KinControl.setFrontLimit(config.front_limit);
+  KinControl.setBackLimit(config.back_limit);
 }
 
 bool steering_mode_callback(agribot_msgs::SteeringMode::Request& request,    // NOLINT(runtime/references)
@@ -99,26 +98,8 @@ int main(int argc, char** argv)
 
   try
   {
-    double front_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_kp");
-    double front_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_ki");
-    double front_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_kd");
-    double back_kp = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_kp");
-    double back_kd = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_ki");
-    double back_ki = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_kd");
-    double precision_range = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/precision_range");
-    double front_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/front_limit");
-    double back_limit = ros_common_functions::getRosParam<double>(pnh.getNamespace() + "/back_limit");
     std::string steering_mode = ros_common_functions::getRosParam<std::string>(pnh.getNamespace() + "/steering_mode");
 
-    KinControl.setFrontKp(front_kp);
-    KinControl.setFrontKi(front_kd);
-    KinControl.setFrontKd(front_ki);
-    KinControl.setBackKp(back_kp);
-    KinControl.setBackKi(back_kd);
-    KinControl.setBackKd(back_ki);
-    KinControl.setFrontLimit(precision_range);
-    KinControl.setBackLimit(front_limit);
-    KinControl.setPrecisionRange(back_limit);
     KinControl.setSteeringMode(steering_mode);
   }
   catch (const std::exception& ex)
