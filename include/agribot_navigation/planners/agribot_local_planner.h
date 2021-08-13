@@ -15,6 +15,8 @@
 #pragma GCC diagnostic pop
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <agribot_msgs/Row.h>
+#include <agribot_navigation/AgribotLocalPlannerConfig.h>
+#include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/Polygon.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -46,9 +48,6 @@
 #include "agribot_navigation/path_controllers/i_path_controller.h"
 #include "agribot_navigation/path_controllers/pure_pursuit_controller.h"
 #include "agribot_navigation/path_controllers/stanley_controller.h"
-#include "agribot_navigation/path_trackers/following_tracker.h"
-#include "agribot_navigation/path_trackers/i_path_tracker.h"
-#include "agribot_navigation/path_trackers/ray_tracker.h"
 #include "agribot_navigation/path_validators/curvature_validator.h"
 #include "agribot_navigation/path_validators/distance_validator.h"
 #include "agribot_navigation/path_validators/i_path_validator.h"
@@ -89,6 +88,8 @@ private:
   ros::Publisher goal_pub_;
   ros::Publisher rabbit_pub_;
 
+  std::unique_ptr<dynamic_reconfigure::Server<agribot_navigation::AgribotLocalPlannerConfig>> reconfigure_server_;
+
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> local_plan_;
   std::vector<geometry_msgs::PoseStamped> global_plan_;
@@ -102,7 +103,6 @@ private:
   std::string obstacle_frame_id_;
 
   std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
-  std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;
   std::vector<std::string> planners_fallback_strategy_;
@@ -154,12 +154,9 @@ private:
   double param_pure_pursuit_rabbit_distance_;  // metres
   double param_stanley_error_gain_;            // metres
 
-  std::string param_agribot_controller_name_;
-
   bool param_statistics_;
 
   void createPlanners();
-  void createTrackers();
   void createValidators();
   void createControllers();
   void createCostmapConverter(const ros::NodeHandle& nh);
@@ -194,6 +191,8 @@ private:
   bool isInRow();
   bool isWithinEllipse(const geometry_msgs::PoseStamped& point, const geometry_msgs::PoseStamped& ellipse_center);
   void getParameters(const ros::NodeHandle& nh);
+
+  void reconfigureCallback(agribot_navigation::AgribotLocalPlannerConfig& config, uint32_t level);
 
   const std_msgs::ColorRGBA COLOR_RED = VisualizationFunctions::ColorRGBA(1, 0, 0, 1).color;
   const std_msgs::ColorRGBA COLOR_GREEN = VisualizationFunctions::ColorRGBA(0, 1, 0, 1).color;

@@ -29,7 +29,7 @@ public:
   {
     return "base_footprint";
   };
-  void setVelocityLinear(const double velocity);
+  void setVelocityLinear(const double velocity) override;
   void setErrorGain(const double gain);
   void setMinMotionRadius(const double min_motion_radius);
   void setRobotLength(const double robot_length);

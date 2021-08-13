@@ -28,7 +28,7 @@ public:
   {
     return "base_footprint";
   };
-  void setVelocityLinear(const double velocity);
+  void setVelocityLinear(const double velocity) override;
   void setRobotLength(const double robot_length);
   void setRabbitDistance(const double distance);
   geometry_msgs::PoseStamped getRabbitPose();
