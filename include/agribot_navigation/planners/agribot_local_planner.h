@@ -192,7 +192,8 @@ private:
   bool isWithinEllipse(const geometry_msgs::PoseStamped& point, const geometry_msgs::PoseStamped& ellipse_center);
   void getParameters(const ros::NodeHandle& nh);
 
-  void reconfigureCallback(agribot_navigation::AgribotLocalPlannerConfig& config, uint32_t level);
+  void reconfigureCallback(agribot_navigation::AgribotLocalPlannerConfig& config,  // NOLINT(runtime/references)
+                           uint32_t level);
 
   const std_msgs::ColorRGBA COLOR_RED = VisualizationFunctions::ColorRGBA(1, 0, 0, 1).color;
   const std_msgs::ColorRGBA COLOR_GREEN = VisualizationFunctions::ColorRGBA(0, 1, 0, 1).color;

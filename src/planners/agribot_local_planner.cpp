@@ -88,7 +88,9 @@ void AgribotLocalPlanner::createCostmapConverter(const ros::NodeHandle& nh)
   costmap_converter_->startWorker(ros::Rate(costmap_converter_rate_), local_costmap_, false);
 }
 
-void AgribotLocalPlanner::reconfigureCallback(agribot_navigation::AgribotLocalPlannerConfig& config, uint32_t level)
+void AgribotLocalPlanner::reconfigureCallback(
+    agribot_navigation::AgribotLocalPlannerConfig& config,  // NOLINT(runtime/references)
+    uint32_t level)
 {
   static_cast<void>(level);
 
