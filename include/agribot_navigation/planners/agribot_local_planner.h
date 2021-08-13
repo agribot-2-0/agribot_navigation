@@ -14,6 +14,7 @@
 #include <ros/ros.h>
 #pragma GCC diagnostic pop
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
+#include <agribot_msgs/Row.h>
 #include <geometry_msgs/Polygon.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -169,7 +170,7 @@ private:
   void odomCallback(const nav_msgs::Odometry& odometry_msg);
   void lineLeftCallback(const nav_msgs::Path& msg);
   void lineRightCallback(const nav_msgs::Path& msg);
-  void isRowCallback(const std_msgs::Bool& msg);
+  void isRowCallback(const agribot_msgs::Row& msg);
 
   bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
                 const geometry_msgs::PoseStamped& end_pose);

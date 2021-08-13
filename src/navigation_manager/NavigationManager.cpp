@@ -4,15 +4,12 @@
 
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <agribot_navigation/navigation_manager/NavigationManager.h>
-#include <std_msgs/Bool.h>
 #include <visualization_msgs/MarkerArray.h>
 
 NavigationManager::NavigationManager() : tf_listener_(tf_buffer_)
 {
   plan_publisher_ = node_handle_.advertise<nav_msgs::Path>("/agribot/navigation_manager/path", 1);
-  is_row_publisher_ = node_handle_.advertise<std_msgs::Bool>("/agribot/navigation_manager/row/presence", 1);
-  row_begin_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/agribot/navigation_manager/row/begin", 1);
-  row_end_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/agribot/navigation_manager/row/end", 1);
+  row_publisher_ = node_handle_.advertise<agribot_msgs::Row>("/agribot/navigation_manager/row", 1);
 
   try
   {
@@ -304,53 +301,37 @@ void NavigationManager::rowDetection(const int current_waypoint_index)
 {
   if (current_waypoint_index != 0)
   {
-    // ROS_WARN_STREAM("current waypoirt " << current_waypoint_index);
-    // ROS_WARN_STREAM("current waypoirt " << path_.poses[current_waypoint_index]);
-    // ROS_WARN_STREAM("current waypoirt " << path_.poses[current_waypoint_index - 1]);
     if (path_.poses[current_waypoint_index].pose.orientation ==
         path_.poses[current_waypoint_index - 1].pose.orientation)
     {
       is_row_ = true;
       row_begin_pose_ = path_.poses[current_waypoint_index - 1];
       row_end_pose_ = path_.poses[current_waypoint_index];
-
-      row_begin_publisher_.publish([this] {
-        geometry_msgs::PoseStamped msg;
-        msg = this->row_begin_pose_;
-        msg.header.stamp = ros::Time::now();
-        msg.header.frame_id = this->path_.header.frame_id;
-        return msg;
-      }());
-
-      row_end_publisher_.publish([this] {
-        geometry_msgs::PoseStamped msg;
-        msg = this->row_end_pose_;
-        msg.header.stamp = ros::Time::now();
-        msg.header.frame_id = this->path_.header.frame_id;
-        return msg;
-      }());
     }
     else
     {
       is_row_ = false;
-      row_begin_pose_.pose = geometry_msgs::Pose();
-      row_end_pose_.pose = geometry_msgs::Pose();
+      row_begin_pose_ = geometry_msgs::PoseStamped();
+      row_end_pose_ = geometry_msgs::PoseStamped();
     }
   }
   else
   {
     is_row_ = false;
-    row_begin_pose_.pose = geometry_msgs::Pose();
-    row_end_pose_.pose = geometry_msgs::Pose();
+    row_begin_pose_ = geometry_msgs::PoseStamped();
+    row_end_pose_ = geometry_msgs::PoseStamped();
   }
-  // ROS_WARN_STREAM("is_row_ " << is_row_);
 }
 
 void NavigationManager::rowPublishing(void)
 {
-  is_row_publisher_.publish([this] {
-    std_msgs::Bool msg;
-    msg.data = this->is_row_;
+  row_publisher_.publish([this] {
+    agribot_msgs::Row msg;
+    msg.begin.header.stamp = ros::Time::now();
+    msg.end.header.stamp = ros::Time::now();
+    msg.presence = this->is_row_;
+    msg.begin = this->row_begin_pose_;
+    msg.end = this->row_end_pose_;
     return msg;
   }());
 }

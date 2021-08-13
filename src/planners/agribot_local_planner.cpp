@@ -653,9 +653,9 @@ void AgribotLocalPlanner::lineRightCallback(const nav_msgs::Path& msg)
   }
 }
 
-void AgribotLocalPlanner::isRowCallback(const std_msgs::Bool& msg)
+void AgribotLocalPlanner::isRowCallback(const agribot_msgs::Row& msg)
 {
-  is_row_ = msg.data;
+  is_row_ = msg.presence;
 }
 
 geometry_msgs::Twist AgribotLocalPlanner::stopRobot()

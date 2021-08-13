@@ -14,6 +14,8 @@
 #pragma GCC diagnostic pop
 #include <agribot_msgs/AgribotNavigationManagerResult.h>
 #include <agribot_msgs/PerformAutonomousPathAction.h>
+#include <agribot_msgs/Row.h>
+#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <nav_msgs/Path.h>
@@ -35,9 +37,7 @@ private:
   ros::NodeHandle node_handle_;
   std::unique_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> move_base_action_client_;
   ros::Publisher plan_publisher_;
-  ros::Publisher is_row_publisher_;
-  ros::Publisher row_begin_publisher_;
-  ros::Publisher row_end_publisher_;
+  ros::Publisher row_publisher_;
   geometry_msgs::TransformStamped starting_map_utm_transform_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
