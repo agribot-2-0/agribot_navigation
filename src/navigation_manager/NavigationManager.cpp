@@ -299,26 +299,13 @@ void NavigationManager::performAutonomousPathCallback(const agribot_msgs::Perfor
 
 void NavigationManager::rowDetection(const int current_waypoint_index)
 {
-  if (current_waypoint_index != 0)
+  if ((path_.poses[current_waypoint_index].pose.orientation ==
+       path_.poses[current_waypoint_index - 1].pose.orientation) &&
+      current_waypoint_index != 0)
   {
-    if (path_.poses[current_waypoint_index].pose.orientation ==
-        path_.poses[current_waypoint_index - 1].pose.orientation)
-    {
-      is_row_ = true;
-      row_begin_pose_ = path_.poses[current_waypoint_index - 1];
-      row_end_pose_ = path_.poses[current_waypoint_index];
-    }
-    else
-    {
-      is_row_ = false;
-      row_begin_pose_ = geometry_msgs::PoseStamped();
-      row_end_pose_ = geometry_msgs::PoseStamped();
-
-      row_begin_pose_.header.frame_id = path_.header.frame_id;
-      row_end_pose_.header.frame_id = path_.header.frame_id;
-      row_begin_pose_.pose.orientation.w = 1.0;
-      row_end_pose_.pose.orientation.w = 1.0;
-    }
+    is_row_ = true;
+    row_begin_pose_ = path_.poses[current_waypoint_index - 1];
+    row_end_pose_ = path_.poses[current_waypoint_index];
   }
   else
   {

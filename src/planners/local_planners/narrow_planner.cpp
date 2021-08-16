@@ -28,11 +28,6 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
     path.push_back(start_pose);
     auto start_obstacle_pose = calculateMidpose(line_left_.front(), line_right_.front());
 
-    // if (start_obstacle_pose.pose.position.x < end_pose.pose.position.x)
-    // {
-    //   CommonFunctions::straightPath(path, start_pose, start_obstacle_pose, frame_id, step_size_);
-    // }
-
     size_t path_size = line_left_.size() < line_right_.size() ? line_left_.size() : line_right_.size();
 
     for (size_t position = 1; position < path_size; position++)
@@ -46,12 +41,6 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
     }
 
     auto midpose_last = calculateMidpose(line_left_.back(), line_right_.back());
-    // ROS_WARN_STREAM(midpose_last.pose.position.x);
-    // ROS_WARN_STREAM(end_pose.pose.position.x);
-    // if (midpose_last.pose.position.x < end_pose.pose.position.x)
-    // {
-    //   CommonFunctions::straightPath(path, midpose_last, end_pose, frame_id, step_size_);
-    // }
 
     path.back().pose.orientation.x = 0;
     path.back().pose.orientation.y = 0;
@@ -140,8 +129,6 @@ void NarrowCorridorPlanner::setStepSize(const double param_step_size)
 
 void NarrowCorridorPlanner::setLineLeft(const nav_msgs::Path& line)
 {
-  // ROS_WARN_STREAM("set line left " << line.poses.size());
-  // ROS_WARN_STREAM("set line left " << line.poses.size());
   if (line.poses.empty())
   {
     return;
@@ -152,8 +139,6 @@ void NarrowCorridorPlanner::setLineLeft(const nav_msgs::Path& line)
 
 void NarrowCorridorPlanner::setLineRight(const nav_msgs::Path& line)
 {
-  // ROS_WARN_STREAM("set line right");
-  // ROS_WARN_STREAM("set line right " << line.poses.size());
   if (line.poses.empty())
   {
     return;

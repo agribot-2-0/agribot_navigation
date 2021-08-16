@@ -47,7 +47,6 @@ bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT
   error_crosstrack_factor_ = atan2(error_gain_ * error_crosstrack_, lin_vel_);
 
   theta_ = error_heading_ + error_crosstrack_factor_;
-
   motion_radius_ = robot_length_ / 2.0 / sin(theta_);
 
   agribot_msgs::AgribotManualControl msg;
