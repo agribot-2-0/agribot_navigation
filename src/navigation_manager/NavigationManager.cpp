@@ -313,6 +313,11 @@ void NavigationManager::rowDetection(const int current_waypoint_index)
       is_row_ = false;
       row_begin_pose_ = geometry_msgs::PoseStamped();
       row_end_pose_ = geometry_msgs::PoseStamped();
+
+      row_begin_pose_.header.frame_id = path_.header.frame_id;
+      row_end_pose_.header.frame_id = path_.header.frame_id;
+      row_begin_pose_.pose.orientation.w = 1.0;
+      row_end_pose_.pose.orientation.w = 1.0;
     }
   }
   else
@@ -320,6 +325,11 @@ void NavigationManager::rowDetection(const int current_waypoint_index)
     is_row_ = false;
     row_begin_pose_ = geometry_msgs::PoseStamped();
     row_end_pose_ = geometry_msgs::PoseStamped();
+
+    row_begin_pose_.header.frame_id = path_.header.frame_id;
+    row_end_pose_.header.frame_id = path_.header.frame_id;
+    row_begin_pose_.pose.orientation.w = 1.0;
+    row_end_pose_.pose.orientation.w = 1.0;
   }
 }
 
@@ -327,11 +337,11 @@ void NavigationManager::rowPublishing(void)
 {
   row_publisher_.publish([this] {
     agribot_msgs::Row msg;
-    msg.begin.header.stamp = ros::Time::now();
-    msg.end.header.stamp = ros::Time::now();
     msg.presence = this->is_row_;
     msg.begin = this->row_begin_pose_;
     msg.end = this->row_end_pose_;
+    msg.begin.header.stamp = ros::Time::now();
+    msg.end.header.stamp = ros::Time::now();
     return msg;
   }());
 }
