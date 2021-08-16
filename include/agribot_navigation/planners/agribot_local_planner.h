@@ -26,6 +26,8 @@
 #include <nav_msgs/Path.h>
 #include <pluginlib/class_loader.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Float64.h>
+#include <std_msgs/String.h>
 #include <tf/tf.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -87,6 +89,8 @@ private:
   ros::Publisher obstacles_right_line_pub_;
   ros::Publisher goal_pub_;
   ros::Publisher rabbit_pub_;
+  ros::Publisher radius_pub_;
+  ros::Publisher current_planner_pub_;
 
   std::unique_ptr<dynamic_reconfigure::Server<agribot_navigation::AgribotLocalPlannerConfig>> reconfigure_server_;
 
@@ -153,6 +157,8 @@ private:
 
   double param_pure_pursuit_rabbit_distance_;  // metres
   double param_stanley_error_gain_;            // metres
+
+  double param_min_planning_distance_in_row_;  // metres
 
   bool param_statistics_;
 

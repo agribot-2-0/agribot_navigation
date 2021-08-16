@@ -97,6 +97,7 @@ void AgribotLocalPlanner::reconfigureCallback(
   param_max_linear_vel_ = config.max_linear_vel;
   param_pure_pursuit_rabbit_distance_ = config.pure_pursuit_rabbit_distance;
   param_stanley_error_gain_ = config.stanley_error_gain;
+  param_min_planning_distance_in_row_ = config.min_planning_distance_in_row;
 
   for (const auto& [controller_id, controller] : controllers_)
   {
@@ -198,6 +199,8 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
     obstacles_right_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_right_line", 10);
     goal_pub_ = pnh.advertise<visualization_msgs::Marker>("goal_tolerance", 10);
     rabbit_pub_ = pnh.advertise<geometry_msgs::PoseStamped>("rabbit_pose", 10);
+    radius_pub_ = pnh.advertise<std_msgs::Float64>("radius", 10);
+    current_planner_pub_ = pnh.advertise<std_msgs::String>("planner", 10);
 
     // be sure that path planning arc radius is greater or equal to minimum turning radius
     if (param_design_arc_radius_ < param_min_radius_)
@@ -385,22 +388,24 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   checkObstacles();
   if (isInRow())
   {
-    // ROS_INFO_STREAM("Plan in row");
     try
     {
       ros::topic::waitForMessage<nav_msgs::Path>("line_left");
       ros::topic::waitForMessage<nav_msgs::Path>("line_right");
 
-      if (!planners_["narrow"]->designPath(local_plan_, transformPose(robot_center_, planners_["narrow"]->getFrameId()),
-                                           transformPose(goal_, planners_["narrow"]->getFrameId())))
+      if (CommonFunctions::distanceBetweenPoses(robot_center_, goal_) > param_min_planning_distance_in_row_)
       {
-        abortPlanningBehaviour();
-        cmd_vel = stopRobot();
-        ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid path in row");
-        return false;
+        if (!planners_["narrow"]->designPath(local_plan_,
+                                             transformPose(robot_center_, planners_["narrow"]->getFrameId()),
+                                             transformPose(goal_, planners_["narrow"]->getFrameId())))
+        {
+          abortPlanningBehaviour();
+          cmd_vel = stopRobot();
+          ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid path in row");
+          return false;
+        }
       }
       calculateControls(cmd_vel, "PurePursuitController");
-      // publishObstacles();
     }
     catch (const std::exception& e)
     {
@@ -411,7 +416,6 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   }
   else
   {
-    // ROS_INFO_STREAM("Plan NOT in row");
     if (!local_plan_planned_)
     {
       if (!handlePathPlan())
@@ -547,6 +551,18 @@ void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel, std::
     pose = transformPose(pose, reference_frame_id_);
   }
   cmd_vel = limitVelocities(cmd_vel);
+
+  radius_pub_.publish([cmd_vel] {
+    std_msgs::Float64 msg;
+    msg.data = cmd_vel.linear.x / cmd_vel.angular.z;
+    return msg;
+  }());
+
+  current_planner_pub_.publish([controller_id] {
+    std_msgs::String msg;
+    msg.data = controller_id;
+    return msg;
+  }());
 }
 
 geometry_msgs::Twist AgribotLocalPlanner::limitVelocities(geometry_msgs::Twist velocities)

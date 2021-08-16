@@ -54,17 +54,7 @@ bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT
   msg.linear_velocity = lin_vel_;
   msg.circle_radius = motion_radius_;
 
-  // ROS_WARN_STREAM("error_heading_ " << error_heading_);
-  // ROS_WARN_STREAM("error_crosstrack_factor_ " << error_crosstrack_factor_);
-  // ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
-  // ROS_WARN_STREAM("motion_radius_ " << motion_radius_);
-
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
-
-  // ROS_WARN_STREAM("error_heading_ " << error_heading_);
-  // ROS_WARN_STREAM("error_crosstrack_factor_ " << error_crosstrack_factor_);
-  // ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
-  ROS_WARN_STREAM("sc motion_radius_ " << motion_radius_);
 
   return true;
 }

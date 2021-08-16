@@ -48,7 +48,6 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
                                            const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                            const geometry_msgs::PoseStamped& robot_pose)
 {
-  // ROS_WARN_STREAM("purePursuit " << path_to_track.empty());
   if (path_to_track.empty())
   {
     return false;
@@ -63,15 +62,8 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
-  // if (look_ahead_distance_ < rabbit_distance_)
-  // {
-  //   angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
-  //                          CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
-  // }
-  // else
-  // {
   angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
-  // }
+
   if (angle_between_poses_ == 0)
   {
     cmd_vel.angular.x = 0;
@@ -87,19 +79,6 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
 
-  // ROS_WARN_STREAM("look_ahead_distance_ " << look_ahead_distance_);
-
-  // ROS_WARN_STREAM("rabbit_count_ " << rabbit_count_);
-  // ROS_WARN_STREAM("size " << path_to_track.size());
-
-  // ROS_WARN_STREAM("rabbit frame " << rabbit_pose_.header.frame_id);
-  // ROS_WARN_STREAM("robot frame " << robot_pose.header.frame_id);
-  // ROS_WARN_STREAM("rabbit_pose_ " << CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az);
-  // ROS_WARN_STREAM("robot_pose " << CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az);
-  // ROS_WARN_STREAM("error_heading_ " << angle_between_poses_);
-  // ROS_WARN_STREAM("cmd_vel rot " << cmd_vel.angular.z);
-  ROS_WARN_STREAM("pp motion_radius_ " << motion_radius_);
-
   if (motion_radius_ == 0.0)
   {
     cmd_vel.angular.x = 0;
@@ -112,9 +91,6 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
 bool PurePursuitController::computeRabbit(double look_ahead_distance, const std::size_t& path_size)
 {
-  // ROS_WARN_STREAM("look_ahead_distance_ " << look_ahead_distance_);
-  // ROS_WARN_STREAM("rabbit_distance_ " << rabbit_distance_);
-
   if (rabbit_count_ >= path_size)
   {
     rabbit_count_ = path_size - 1;
