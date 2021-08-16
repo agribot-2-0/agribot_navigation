@@ -563,6 +563,16 @@ void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel, std::
     msg.data = controller_id;
     return msg;
   }());
+
+  if (controller_id == "PurePursuitController")
+  {
+    auto pure_pursuit_pointer =
+        dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["PurePursuitController"].get());
+    if (pure_pursuit_pointer != nullptr)
+    {
+      VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pub_);
+    }
+  }
 }
 
 geometry_msgs::Twist AgribotLocalPlanner::limitVelocities(geometry_msgs::Twist velocities)
@@ -742,13 +752,6 @@ void AgribotLocalPlanner::visualizationPath(std::string frame_id)
   catch (const std::exception& ex)
   {
     ROS_ERROR_STREAM("[AgribotLocalPlanner] " << ex.what());
-  }
-
-  auto pure_pursuit_pointer =
-      dynamic_cast<agribot_path_controllers::PurePursuitController*>(controllers_["PurePursuitController"].get());
-  if (pure_pursuit_pointer != nullptr)
-  {
-    VisualizationFunctions::poseVisualization(pure_pursuit_pointer->getRabbitPose(), rabbit_pub_);
   }
 }
 
