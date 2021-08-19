@@ -19,9 +19,6 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
   {
     if (!line_left_.size() || !line_right_.size())
     {
-      ROS_WARN_STREAM("line left " << line_left_.size());
-      ROS_WARN_STREAM("line right " << line_right_.size());
-      ROS_WARN_STREAM("path  " << path.size());
       return false;
     }
     path.clear();
