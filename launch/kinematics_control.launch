@@ -1,4 +1,6 @@
 <launch>
+  <rosparam command="load" file="$(env AGRIBOT_HOME)/agribot/configs/base/description/dimensions.yaml" />
+
   <node name="kinematics_control_node" pkg="agribot_navigation" type="kinematics_control">
     <rosparam command="load" file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/kinematics_control_params.yaml" />
   </node>

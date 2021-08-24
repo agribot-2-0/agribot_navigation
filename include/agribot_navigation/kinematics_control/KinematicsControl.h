@@ -5,7 +5,9 @@
 #pragma once
 
 #include <agribot_common/AgribotComponent.h>
+#include <agribot_msgs/AgribotCaterpillarWheelsRotation.h>
 #include <agribot_navigation/kinematics_control/PID.h>
+#include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
 
@@ -24,6 +26,14 @@ enum
   FRONT_ANGULAR,
   BACK_LINEAR,
   BACK_ANGULAR
+};
+
+enum
+{
+  FRONT_LEFT,
+  FRONT_RIGHT,
+  BACK_LEFT,
+  BACK_RIGHT
 };
 
 enum
@@ -84,9 +94,13 @@ private:
   ros::Publisher front_dif_pub_;
   ros::Publisher back_dif_pub_;
 
+  ros::Publisher track_encoder_sum_publisher_;
+
+  geometry_msgs::Twist input_velocity_;
   double input_linear_[3];
   double input_angular_[3];
   double caterpillar_velocities_[4];
+  double caterpillar_independent_velocities_[4];
   double control_[3];
   double cart_angle_[2];
   double chassis_angle_;
@@ -131,6 +145,8 @@ private:
   PidTermsCoefficients getFrontPIDCoefficients();
   PidTermsCoefficients getBackPIDCoefficients();
 
+  double robot_axis_to_axis_length_ = 2.1;
+
 public:
   KinematicsControl();
   virtual int configure();
@@ -141,6 +157,7 @@ public:
   void createPubs(ros::NodeHandle* n);
   void setInputLinear(double x, double y, double z);
   void setInputAngular(double x, double y, double z);
+  void setInputVelocity(const geometry_msgs::Twist& velocity);
   void setChassisAngle(double theta);
   void setFrontCartAngle(double theta);
   void setBackCartAngle(double theta);

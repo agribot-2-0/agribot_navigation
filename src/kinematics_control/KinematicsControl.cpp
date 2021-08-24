@@ -74,6 +74,9 @@ void KinematicsControl::createPubs(ros::NodeHandle* n)
   set_point_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/SetPoint", 10);
   front_dif_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/FrontDifference", 10);
   back_dif_pub_ = n->advertise<std_msgs::Float64>("agribot/kin_controler/limiter/BackDifference", 10);
+
+  track_encoder_sum_publisher_ = n->advertise<agribot_msgs::AgribotCaterpillarWheelsRotation>(
+      "/agribot/encoder/caterpillar/rotations/impulses/kinematics_controller", 1);
 #endif
 }
 
@@ -394,6 +397,11 @@ double KinematicsControl::maximumCartAngleDifference(double diff_front, double d
   return std::max(diff_front, diff_back);
 }
 
+void KinematicsControl::setInputVelocity(const geometry_msgs::Twist& velocity)
+{
+  input_velocity_ = velocity;
+}
+
 void KinematicsControl::calculateKinematicsControl()
 {
   this->setPidsParameters();
@@ -408,13 +416,36 @@ void KinematicsControl::calculateKinematicsControl()
       ANGLE_RANGE);
   this->angular_multiplier_ = this->calculateAngularMultiplier(this->linear_multiplier_);
 
-  caterpillar_velocities_[FRONT_LINEAR] = this->linear_multiplier_ * control_[0];
-  caterpillar_velocities_[FRONT_ANGULAR] = this->angular_multiplier_ * control_[1];
-  caterpillar_velocities_[BACK_LINEAR] =
-      this->linear_multiplier_ * cos(cart_angle_[FRONT_CART]) / cos(cart_angle_[BACK_CART]) * control_[0];
-  caterpillar_velocities_[BACK_ANGULAR] = this->angular_multiplier_ * control_[2];
+  caterpillar_velocities_[FRONT_LINEAR] = control_[0];
+  caterpillar_velocities_[FRONT_ANGULAR] = control_[1];
+  caterpillar_velocities_[BACK_LINEAR] = (cos(cart_angle_[FRONT_CART]) / cos(cart_angle_[BACK_CART])) * control_[0];
+  caterpillar_velocities_[BACK_ANGULAR] = control_[2];
 
 #ifdef DEBUG
+  double angular_velocity = sin(cart_angle_[FRONT_CART] - cart_angle_[BACK_CART]) / cos(cart_angle_[BACK_CART]);
+  angular_velocity = angular_velocity * wheel_radius_ / robot_axis_to_axis_length_;
+  double d_r = wheel_separation_ / 2.0 / wheel_radius_;
+
+  control_[0] = control_[0] / wheel_radius_;
+
+  caterpillar_independent_velocities_[FRONT_LEFT] = control_[0] - d_r * (angular_velocity * control_[0] + control_[1]);
+  caterpillar_independent_velocities_[FRONT_RIGHT] = control_[0] + d_r * (angular_velocity * control_[0] + control_[1]);
+  caterpillar_independent_velocities_[BACK_LEFT] =
+      (cos(cart_angle_[FRONT_CART]) / cos(cart_angle_[BACK_CART])) * control_[0] -
+      d_r * (angular_velocity * control_[0] + control_[2]);
+  caterpillar_independent_velocities_[BACK_RIGHT] =
+      (cos(cart_angle_[FRONT_CART]) / cos(cart_angle_[BACK_CART])) * control_[0] +
+      d_r * (angular_velocity * control_[0] + control_[2]);
+
+  track_encoder_sum_publisher_.publish([this] {
+    agribot_msgs::AgribotCaterpillarWheelsRotation msg;
+    msg.front_left = caterpillar_independent_velocities_[FRONT_LEFT];
+    msg.front_right = caterpillar_independent_velocities_[FRONT_RIGHT];
+    msg.back_left = caterpillar_independent_velocities_[BACK_LEFT];
+    msg.back_right = caterpillar_independent_velocities_[BACK_RIGHT];
+    return msg;
+  }());
+
   std_msgs::Float64 message_front_SP;
   std_msgs::Float64 message_front_CV;
   std_msgs::Float64 message_front_PV;
