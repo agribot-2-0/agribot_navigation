@@ -22,8 +22,8 @@ namespace VisualizationFunctions
 void predictedPathVisualization(const geometry_msgs::Twist& velocity, const agribot_local_planner::pos& robot_center,
                                 const double prediction_points_per_second, const double prediction_time,
                                 const std::string& frame_id, const ros::Publisher& publisher);
-void goalVisualization(const geometry_msgs::PoseStamped& goal, const double param_goal_distance_tolerance,
-                       const ros::Publisher& publisher);
+void goalVisualization(const geometry_msgs::PoseStamped& goal, const double param_goal_distance_tolerance_x,
+                       const double param_goal_distance_tolerance_y, const ros::Publisher& publisher);
 void pathVisualization(const std::vector<geometry_msgs::PoseStamped>& path, const std::string& frame_id,
                        const ros::Publisher& publisher);
 void poseVisualization(const geometry_msgs::PoseStamped& pose, const ros::Publisher& publisher);

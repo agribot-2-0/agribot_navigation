@@ -22,6 +22,14 @@ public:
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
   void reset() override{};
+  std::string getFrameId() override
+  {
+    return "base_footprint";
+  };
+  void setVelocityLinear(const double velocity) override
+  {
+    param_max_linear_vel = velocity;
+  };
   void setSpeedLimiting(const bool limiting);
   void setParallelnessWeight(const double parallelness_weight);
   void setDeviationWeight(const double deviation_weight);
@@ -46,11 +54,11 @@ private:
                                    const agribot_local_planner::pos& robot_center);
   void xStopRobot(geometry_msgs::Twist& velocity);  // NOLINT(runtime/references)
   double calculateDeviation(const agribot_local_planner::pos& last_waypoint,
-                             const agribot_local_planner::pos& next_waypoint,
-                             const agribot_local_planner::pos& robot_center);
+                            const agribot_local_planner::pos& next_waypoint,
+                            const agribot_local_planner::pos& robot_center);
   double calculateParallelness(const agribot_local_planner::pos& last_waypoint,
-                                const agribot_local_planner::pos& next_waypoint,
-                                const agribot_local_planner::pos& robot_center);
+                               const agribot_local_planner::pos& next_waypoint,
+                               const agribot_local_planner::pos& robot_center);
 
   double param_epsilon;                      // unitless
   double param_max_linear_vel;               // m/s

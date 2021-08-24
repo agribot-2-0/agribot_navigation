@@ -14,13 +14,20 @@
 #include <ros/ros.h>
 #pragma GCC diagnostic pop
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
+#include <agribot_msgs/Row.h>
+#include <agribot_navigation/AgribotLocalPlannerConfig.h>
+#include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/Polygon.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/Path.h>
 #include <pluginlib/class_loader.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Float64.h>
+#include <std_msgs/String.h>
 #include <tf/tf.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -43,9 +50,6 @@
 #include "agribot_navigation/path_controllers/i_path_controller.h"
 #include "agribot_navigation/path_controllers/pure_pursuit_controller.h"
 #include "agribot_navigation/path_controllers/stanley_controller.h"
-#include "agribot_navigation/path_trackers/following_tracker.h"
-#include "agribot_navigation/path_trackers/i_path_tracker.h"
-#include "agribot_navigation/path_trackers/ray_tracker.h"
 #include "agribot_navigation/path_validators/curvature_validator.h"
 #include "agribot_navigation/path_validators/distance_validator.h"
 #include "agribot_navigation/path_validators/i_path_validator.h"
@@ -73,6 +77,9 @@ private:
   tf2_ros::Buffer* tf_buffer_;
   tf2_ros::TransformListener* tf_listener_;
   ros::Subscriber odom_sub_;
+  ros::Subscriber line_left_sub_;
+  ros::Subscriber line_right_sub_;
+  ros::Subscriber is_row_sub_;
   ros::Publisher path_pub_;
   ros::Publisher obstacles_pub_;
   ros::Publisher obstacles_left_polygon_pub_;
@@ -81,8 +88,15 @@ private:
   ros::Publisher obstacles_left_line_pub_;
   ros::Publisher obstacles_right_line_pub_;
   ros::Publisher goal_pub_;
+  ros::Publisher rabbit_pub_;
+  ros::Publisher radius_pub_;
+  ros::Publisher current_planner_pub_;
+
+  std::unique_ptr<dynamic_reconfigure::Server<agribot_navigation::AgribotLocalPlannerConfig>> reconfigure_server_;
+
   // contains the global plan
   std::vector<geometry_msgs::PoseStamped> local_plan_;
+  std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> trajectory_;
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
@@ -93,7 +107,6 @@ private:
   std::string obstacle_frame_id_;
 
   std::unordered_map<std::string, std::unique_ptr<ILocalPlanner>> planners_;
-  std::unordered_map<std::string, std::unique_ptr<agribot_path_trackers::IPathTracker>> trackers_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_validators::IPathValidator>> validators_;
   std::unordered_map<std::string, std::unique_ptr<agribot_path_controllers::IPathController>> controllers_;
   std::vector<std::string> planners_fallback_strategy_;
@@ -110,10 +123,11 @@ private:
   ObstacleDetection::Obstacle obstacles_left_;
   ObstacleDetection::Obstacle obstacles_right_;
   bool obstacle_ahead_;
-  bool in_interrow_;
+  bool is_row_;
 
   bool goal_reached_;
   bool initialized_;
+  bool local_plan_planned_;
   // time measuring for statistics
   double stop_time_, start_time_, last_time_;
   double last_odom_stamp_;
@@ -124,13 +138,14 @@ private:
   int out_of_path_counter_;
 
   // params
-  int param_max_missed_waypoints_;        // n
-  double param_goal_distance_tolerance_;  // metres
-  double param_chassis_length_;           // metres
-  double param_min_radius_;               // metres
-  double param_max_linear_vel_;           // m/s
-  double param_min_linear_vel_;           // m/s
-  double param_epsilon_;                  // unitless
+  int param_max_missed_waypoints_;          // n
+  double param_goal_distance_tolerance_x_;  // metres
+  double param_goal_distance_tolerance_y_;  // metres
+  double param_chassis_length_;             // metres
+  double param_min_radius_;                 // metres
+  double param_max_linear_vel_;             // m/s
+  double param_min_linear_vel_;             // m/s
+  double param_epsilon_;                    // unitless
 
   double param_design_dead_zone_;                    // degrees
   double param_design_arc_radius_;                   // metres
@@ -143,12 +158,11 @@ private:
   double param_pure_pursuit_rabbit_distance_;  // metres
   double param_stanley_error_gain_;            // metres
 
-  std::string param_agribot_controller_name_;
+  double param_min_planning_distance_in_row_;  // metres
 
   bool param_statistics_;
 
   void createPlanners();
-  void createTrackers();
   void createValidators();
   void createControllers();
   void createCostmapConverter(const ros::NodeHandle& nh);
@@ -157,12 +171,14 @@ private:
   void processObstacles(const costmap_converter::ObstacleArrayConstPtr& obstacles);
   void publishObstacles();
   void odomCallback(const nav_msgs::Odometry& odometry_msg);
+  void lineLeftCallback(const nav_msgs::Path& msg);
+  void lineRightCallback(const nav_msgs::Path& msg);
+  void isRowCallback(const agribot_msgs::Row& msg);
 
   bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
                 const geometry_msgs::PoseStamped& end_pose);
-  void truncatePath(std::vector<geometry_msgs::PoseStamped>& truncated_path);  // NOLINT(runtime/references)
-  void calculateControls(geometry_msgs::Twist& cmd_vel);                       // NOLINT(runtime/references)
-  void visualizationPath(void);
+  void calculateControls(geometry_msgs::Twist& cmd_vel, std::string controller_id);  // NOLINT(runtime/references)
+  void visualizationPath(std::string frame_id);
   void visualizationObstacles(void);
 
   geometry_msgs::PoseStamped transformPose(const geometry_msgs::PoseStamped& pose,
@@ -172,12 +188,18 @@ private:
   geometry_msgs::Twist limitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist stopRobot();
   geometry_msgs::Twist finishedPathBehaviour();
+  void abortPlanningBehaviour();
+  bool handlePathPlan();
   double closeToZero(const double value);
   bool isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
                         const geometry_msgs::PoseStamped& path_end_waypoint);
   bool isOutOfPath();
-
+  bool isInRow();
+  bool isWithinEllipse(const geometry_msgs::PoseStamped& point, const geometry_msgs::PoseStamped& ellipse_center);
   void getParameters(const ros::NodeHandle& nh);
+
+  void reconfigureCallback(agribot_navigation::AgribotLocalPlannerConfig& config,  // NOLINT(runtime/references)
+                           uint32_t level);
 
   const std_msgs::ColorRGBA COLOR_RED = VisualizationFunctions::ColorRGBA(1, 0, 0, 1).color;
   const std_msgs::ColorRGBA COLOR_GREEN = VisualizationFunctions::ColorRGBA(0, 1, 0, 1).color;

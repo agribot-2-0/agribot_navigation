@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #pragma once
@@ -11,6 +11,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
 
+#include <memory>
 #include <string>
 
 enum
@@ -113,11 +114,10 @@ private:
 
   PidTermsCoefficients front_cart_coefficients_;
   PidTermsCoefficients back_cart_coefficients_;
-  double precision_range_;
   double front_limit_;
   double back_limit_;
-  PID* front_cart_pid_;
-  PID* back_cart_pid_;
+  std::unique_ptr<PID> front_cart_pid_;
+  std::unique_ptr<PID> back_cart_pid_;
   SteeringMode steering_mode_;
 
   void setPidsParameters();
@@ -170,6 +170,5 @@ public:
   void setBackKd(double Kd);
   void setFrontLimit(double limit);
   void setBackLimit(double limit);
-  void setPrecisionRange(double range);
   void setSteeringMode(const std::string& mode);
 };

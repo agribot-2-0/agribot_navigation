@@ -34,6 +34,12 @@ public:
   void clearObstacles(void);
   void setChassisLength(double chassis_length);
   void setStepSize(const double param_step_size);
+  void setLineLeft(const nav_msgs::Path& line) override;
+  void setLineRight(const nav_msgs::Path& line) override;
+  std::string getFrameId() override
+  {
+    return frame_id;
+  };
 
 private:
   std::string frame_id;
@@ -43,6 +49,8 @@ private:
   ObstacleDetection::Detection detection_;
   double chassis_length_ = 0;
   double step_size_ = 0.1;
+  std::vector<geometry_msgs::PoseStamped> line_left_;
+  std::vector<geometry_msgs::PoseStamped> line_right_;
 
   geometry_msgs::PoseStamped calculateMidpose(const geometry_msgs::PoseStamped& point1,
                                               const geometry_msgs::PoseStamped& point2);

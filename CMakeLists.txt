@@ -108,6 +108,7 @@ find_package(GeographicLib REQUIRED)
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
   cfg/kinematics_control/Kinematics.cfg
+  cfg/planners/AgribotLocalPlanner.cfg
 )
 
 ###################################
@@ -419,5 +420,9 @@ endif()
 # catkin_add_nosetests(test)
 
 add_dependencies(kinematics_control
+  ${catkin_EXPORTED_TARGETS}
+  ${PROJECT_NAME}_gencfg)
+
+add_dependencies(agribot_local_planner
   ${catkin_EXPORTED_TARGETS}
   ${PROJECT_NAME}_gencfg)

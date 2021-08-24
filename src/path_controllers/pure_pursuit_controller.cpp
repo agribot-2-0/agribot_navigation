@@ -48,23 +48,30 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
                                            const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                                            const geometry_msgs::PoseStamped& robot_pose)
 {
+  if (path_to_track.empty())
+  {
+    return false;
+  }
+
+  this->reset();
+  rabbit_pose_ = path_to_track[rabbit_count_];
+
   do
   {
     look_ahead_distance_ = CommonFunctions::distanceBetweenPoses(rabbit_pose_, robot_pose);
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
-  if (look_ahead_distance_ < rabbit_distance_)
+  angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
+
+  if (angle_between_poses_ == 0)
   {
-    angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
-                           CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
-  }
-  else
-  {
-    angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
+    cmd_vel.angular.x = 0;
+    cmd_vel.linear.z = 0;
+    return false;
   }
 
-  motion_radius_ = look_ahead_distance_ / (2 * sin(angle_between_poses_));
+  motion_radius_ = look_ahead_distance_ / (tan(angle_between_poses_));
 
   agribot_msgs::AgribotManualControl msg;
   msg.linear_velocity = lin_vel_;
@@ -72,11 +79,23 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
 
+  if (motion_radius_ == 0.0)
+  {
+    cmd_vel.angular.x = 0;
+    cmd_vel.linear.z = 0;
+    return false;
+  }
+
   return true;
 }
 
 bool PurePursuitController::computeRabbit(double look_ahead_distance, const std::size_t& path_size)
 {
+  if (rabbit_count_ >= path_size)
+  {
+    rabbit_count_ = path_size - 1;
+    return false;
+  }
   if (look_ahead_distance < rabbit_distance_)
   {
     rabbit_count_++;

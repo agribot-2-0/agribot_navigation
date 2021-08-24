@@ -23,5 +23,7 @@ public:
                               const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                               const geometry_msgs::PoseStamped& robot_pose) = 0;
   virtual void reset() = 0;
+  virtual std::string getFrameId() = 0;
+  virtual void setVelocityLinear(const double velocity) = 0;
 };
 }  // namespace agribot_path_controllers

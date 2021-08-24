@@ -4,6 +4,8 @@
 
 #include "agribot_navigation/cmd_vel_arbiter/CmdVelArbiterNode.h"
 
+#include <agribot_common/CommonFunctions/ros_common_functions.h>
+
 CmdVelArbiterNode::CmdVelArbiterNode(ros::NodeHandle* nh) : _nh(*nh), _arbiterState(ArbiterState::NO_SELECTION)
 {
   // Out topic
@@ -13,61 +15,33 @@ CmdVelArbiterNode::CmdVelArbiterNode(ros::NodeHandle* nh) : _nh(*nh), _arbiterSt
   _navTopic = "/cmd_vel_navigation";
   _teleopTopic = "/cmd_vel_manual";
 
-  if (_nh.hasParam("/cmd_vel_arbiter/starting_state"))
+  std::string startingState;
+
+  try
   {
-    std::string startingState;
-    _nh.getParam("/cmd_vel_arbiter/starting_state", startingState);
-    if (!switchToStartingState(startingState))
-    {
-      ROS_ERROR_STREAM("Unsupported starting_state provided. Exiting...");
-      _nh.shutdown();
-      exit(0);
-    }
+    startingState = ros_common_functions::getRosParam<std::string>(_nh.getNamespace() + "/starting_state");
+    timeout = ros_common_functions::getRosParam<double>(_nh.getNamespace() + "/timeout");
+    minRadius = ros_common_functions::getRosParam<double>(_nh.getNamespace() + "/min_radius");
+    cutoffRadius = ros_common_functions::getRosParam<double>(_nh.getNamespace() + "/cutoff_radius");
   }
-  else
+  catch (const std::exception& ex)
   {
-    ROS_FATAL_STREAM("[CmdVelArbiter Node] Missing /cmd_vel_arbiter/starting_state parameter. Exiting...");
+    ROS_ERROR_STREAM("[KinematicsController] " << ex.what());
     _nh.shutdown();
     exit(0);
   }
 
-  if (_nh.hasParam("/cmd_vel_arbiter/timeout"))
+  if (!switchToStartingState(startingState))
   {
-    _nh.getParam("/cmd_vel_arbiter/timeout", timeout);
-
-    // Create one-shot timeout timer and leave it in stopped state
-    createTimeoutTimer();
-    stopTimeoutTimer();
-    ROS_INFO_STREAM("Created cmd_vel timeout timer with " << timeout << "s...");
-  }
-  else
-  {
-    ROS_FATAL_STREAM("[CmdVelArbiter Node] Missing /cmd_vel_arbiter/timeout parameter. Exiting...");
+    ROS_ERROR_STREAM("Unsupported starting_state " << startingState << " provided. Exiting...");
     _nh.shutdown();
     exit(0);
   }
 
-  if (_nh.hasParam("/cmd_vel_arbiter/min_radius"))
-  {
-    _nh.getParam("/cmd_vel_arbiter/min_radius", minRadius);
-  }
-  else
-  {
-    ROS_FATAL_STREAM("[CmdVelArbiter Node] Missing /cmd_vel_arbiter/min_radius parameter. Exiting...");
-    _nh.shutdown();
-    exit(0);
-  }
-
-  if (_nh.hasParam("/cmd_vel_arbiter/cutoff_radius"))
-  {
-    _nh.getParam("/cmd_vel_arbiter/cutoff_radius", cutoffRadius);
-  }
-  else
-  {
-    ROS_FATAL_STREAM("[CmdVelArbiter Node] Missing /cmd_vel_arbiter/cutoff_radius parameter. Exiting...");
-    _nh.shutdown();
-    exit(0);
-  }
+  // Create one-shot timeout timer and leave it in stopped state
+  createTimeoutTimer();
+  stopTimeoutTimer();
+  ROS_INFO_STREAM("Created cmd_vel timeout timer with " << timeout << "s...");
 
   // Switching services
   switchToStopService = _nh.advertiseService("switch_to_stop", &CmdVelArbiterNode::switchToStopSrvCb, this);
