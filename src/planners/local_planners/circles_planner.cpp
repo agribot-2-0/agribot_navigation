@@ -59,6 +59,21 @@ bool CirclesPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   return true;
 }
 
+void CirclesPlanner::setLineLeft(const nav_msgs::Path& line)
+{
+  static_cast<void>(line);
+}
+
+void CirclesPlanner::setLineRight(const nav_msgs::Path& line)
+{
+  static_cast<void>(line);
+}
+
+std::string CirclesPlanner::getFrameId()
+{
+  return frame_id;
+}
+
 void CirclesPlanner::addObstacle(const ObstacleDetection::Obstacle& obstacle)
 {
   static_cast<void>(obstacle);

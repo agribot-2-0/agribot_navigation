@@ -6,14 +6,16 @@
 
 namespace agribot_path_controllers
 {
-PurePursuitController::PurePursuitController() : IPathController()
+PurePursuitController::PurePursuitController(const std::string& frame) : IPathController()
 {
   lin_vel_ = default_max_linear_vel;
   robot_length_ = default_chassis_length;
   rabbit_distance_ = default_pure_pursuit_rabbit_distance;
   rabbit_count_ = 0;
   look_ahead_distance_ = 0;
+  frame_id_ = frame;
 }
+
 void PurePursuitController::setVelocityLinear(const double velocity)
 {
   lin_vel_ = velocity;
@@ -32,6 +34,11 @@ void PurePursuitController::setRabbitDistance(const double distance)
 void PurePursuitController::reset()
 {
   rabbit_count_ = 0;
+}
+
+std::string PurePursuitController::getFrameId()
+{
+  return frame_id_;
 }
 
 geometry_msgs::PoseStamped PurePursuitController::getRabbitPose()

@@ -147,4 +147,9 @@ void NarrowCorridorPlanner::setLineRight(const nav_msgs::Path& line)
   CommonFunctions::straightPath(line_right_, line.poses.front(), line.poses.back(), frame_id, step_size_);
 }
 
+std::string NarrowCorridorPlanner::getFrameId()
+{
+  return frame_id;
+}
+
 }  // namespace agribot_local_planner
