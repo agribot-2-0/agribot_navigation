@@ -261,7 +261,7 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
   {
     local_plan_planned_ = false;
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Local plan was planned once. Avoid planning more times");
-    return false;
+    // return false;
   }
 
   global_plan_ = orig_global_plan;
@@ -402,7 +402,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
           abortPlanningBehaviour();
           cmd_vel = stopRobot();
           ROS_ERROR_STREAM("[AgribotLocalPlanner] Cannot plan valid path in row");
-          return false;
+          // return false;
         }
       }
       calculateControls(cmd_vel, "PurePursuitController");
@@ -434,7 +434,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
     abortPlanningBehaviour();
     cmd_vel = stopRobot();
     ROS_ERROR("[AgribotLocalPlanner] Local plan is not created");
-    return false;
+    // return false;
   }
 
   visualizationPath(local_plan_.front().header.frame_id);
