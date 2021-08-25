@@ -56,7 +56,7 @@ void AgribotLocalPlanner::createValidators()
   validators_["curvature"] = std::move(curvature_validator);
 
   auto distance_validator = std::make_unique<agribot_path_validators::DistanceValidator>();
-  distance_validator->setMinDistance(param_chassis_length_);
+  distance_validator->setMinDistance(param_chassis_length_ / 2.0);
   validators_["distance"] = std::move(distance_validator);
 }
 
@@ -261,7 +261,7 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
   {
     local_plan_planned_ = false;
     ROS_ERROR_STREAM("[AgribotLocalPlanner] Local plan was planned once. Avoid planning more times");
-    // return false;
+    return false;
   }
 
   global_plan_ = orig_global_plan;
@@ -278,9 +278,12 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
     return false;
   }
 
-  if (!handlePathPlan())
+  if (!isInRow())
   {
-    return false;
+    if (!handlePathPlan())
+    {
+      return false;
+    }
   }
 
   // set flags and reset additional variables
@@ -639,7 +642,7 @@ void AgribotLocalPlanner::abortPlanningBehaviour()
   out_of_path_counter_ = 0;
   is_out_of_path_ = false;
   local_plan_.clear();
-  local_plan_planned_ = true;
+  // local_plan_planned_ = true;
   visualizationPath(local_plan_.front().header.frame_id);
 }
 
