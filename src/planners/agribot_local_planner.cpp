@@ -62,14 +62,14 @@ void AgribotLocalPlanner::createValidators()
 
 void AgribotLocalPlanner::createControllers()
 {
-  auto pure_pursuit_controller = std::make_unique<agribot_path_controllers::PurePursuitController>();
+  auto pure_pursuit_controller = std::make_unique<agribot_path_controllers::PurePursuitController>("base_footprint");
   pure_pursuit_controller->setVelocityLinear(param_max_linear_vel_);
   pure_pursuit_controller->setRobotLength(param_chassis_length_);
   pure_pursuit_controller->setRabbitDistance(param_pure_pursuit_rabbit_distance_);
   pure_pursuit_controller->setMinMotionRadius(param_min_radius_);
   controllers_["PurePursuitController"] = std::move(pure_pursuit_controller);
 
-  auto stanley_controller = std::make_unique<agribot_path_controllers::StanleyController>();
+  auto stanley_controller = std::make_unique<agribot_path_controllers::StanleyController>("base_footprint");
   stanley_controller->setVelocityLinear(param_max_linear_vel_);
   stanley_controller->setErrorGain(param_stanley_error_gain_);
   stanley_controller->setMinMotionRadius(param_min_radius_);

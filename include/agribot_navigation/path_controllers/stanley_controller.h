@@ -20,15 +20,14 @@ namespace agribot_path_controllers
 class StanleyController : public IPathController
 {
 public:
-  StanleyController() = default;
+  StanleyController() = delete;
+  explicit StanleyController(const std::string& frame);
+
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
-  void reset() override{};
-  std::string getFrameId() override
-  {
-    return "base_footprint";
-  };
+  void reset() override;
+  std::string getFrameId() override;
   void setVelocityLinear(const double velocity) override;
   void setErrorGain(const double gain);
   void setMinMotionRadius(const double min_motion_radius);
@@ -37,6 +36,7 @@ public:
   geometry_msgs::PoseStamped getProjectionPose(void);
 
 private:
+  std::string frame_id_;
   double lin_vel_;
   double error_gain_;
   double min_motion_radius_;

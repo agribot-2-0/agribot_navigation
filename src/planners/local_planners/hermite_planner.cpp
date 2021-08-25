@@ -41,6 +41,21 @@ bool HermitePlanner::designPath(std::vector<geometry_msgs::PoseStamped>& path,
   return true;
 }
 
+void HermitePlanner::setLineLeft(const nav_msgs::Path& line)
+{
+  static_cast<void>(line);
+}
+
+void HermitePlanner::setLineRight(const nav_msgs::Path& line)
+{
+  static_cast<void>(line);
+}
+
+std::string HermitePlanner::getFrameId()
+{
+  return frame_id;
+}
+
 void HermitePlanner::addObstacle(const ObstacleDetection::Obstacle& obstacle)
 {
   static_cast<void>(obstacle);
