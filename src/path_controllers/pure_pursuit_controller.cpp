@@ -69,7 +69,15 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
-  angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
+  if (look_ahead_distance_ < min_planning_distance_in_row_)
+  {
+    angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
+                           CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
+  }
+  else
+  {
+    angle_between_poses_ = CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose);
+  }
 
   if (angle_between_poses_ == 0)
   {
@@ -119,6 +127,11 @@ bool PurePursuitController::computeRabbit(double look_ahead_distance, const std:
 void PurePursuitController::setMinMotionRadius(const double min_motion_radius)
 {
   min_motion_radius_ = min_motion_radius;
+}
+
+void PurePursuitController::setMinPlanningDistance(const double distance)
+{
+  min_planning_distance_in_row_ = distance;
 }
 
 }  // namespace agribot_path_controllers

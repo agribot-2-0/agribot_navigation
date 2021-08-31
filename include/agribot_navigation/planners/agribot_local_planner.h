@@ -15,6 +15,7 @@
 #pragma GCC diagnostic pop
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <agribot_msgs/Row.h>
+#include <agribot_msgs/SteeringMode.h>
 #include <agribot_navigation/AgribotLocalPlannerConfig.h>
 #include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/Polygon.h>
@@ -75,7 +76,6 @@ private:
   costmap_2d::Costmap2DROS* costmap_ros_;
   costmap_2d::Costmap2D* local_costmap_;
   tf2_ros::Buffer* tf_buffer_;
-  tf2_ros::TransformListener* tf_listener_;
   ros::Subscriber odom_sub_;
   ros::Subscriber line_left_sub_;
   ros::Subscriber line_right_sub_;
@@ -89,8 +89,10 @@ private:
   ros::Publisher obstacles_right_line_pub_;
   ros::Publisher goal_pub_;
   ros::Publisher rabbit_pub_;
+  ros::Publisher robot_front_pub_;
   ros::Publisher radius_pub_;
   ros::Publisher current_planner_pub_;
+  ros::ServiceClient kinematics_service_;
 
   std::unique_ptr<dynamic_reconfigure::Server<agribot_navigation::AgribotLocalPlannerConfig>> reconfigure_server_;
 
@@ -101,6 +103,7 @@ private:
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
   geometry_msgs::PoseStamped robot_center_;
+  geometry_msgs::PoseStamped robot_front_;
   geometry_msgs::PoseStamped goal_;
   geometry_msgs::PoseStamped goal_previous_;
   std::string reference_frame_id_;
@@ -135,6 +138,8 @@ private:
   double traveled_distance_;
   bool abort_executing_;
   bool is_out_of_path_;
+  bool left_line_received_;
+  bool right_line_received_;
   int out_of_path_counter_;
 
   // params
