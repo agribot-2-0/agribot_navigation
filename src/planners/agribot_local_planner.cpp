@@ -99,6 +99,7 @@ void AgribotLocalPlanner::reconfigureCallback(
   param_pure_pursuit_rabbit_distance_ = config.pure_pursuit_rabbit_distance;
   param_stanley_error_gain_ = config.stanley_error_gain;
   param_min_planning_distance_in_row_ = config.min_planning_distance_in_row;
+  use_robot_front_ = config.use_robot_front_pose;
 
   for (const auto& [controller_id, controller] : controllers_)
   {
@@ -202,7 +203,7 @@ void AgribotLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tfBuffer
     obstacles_right_line_pub_ = pnh.advertise<nav_msgs::Path>("obstacles_right_line", 10);
     goal_pub_ = pnh.advertise<visualization_msgs::Marker>("goal_tolerance", 10);
     rabbit_pub_ = pnh.advertise<geometry_msgs::PoseStamped>("rabbit_pose", 10);
-    robot_front_pub_ = pnh.advertise<geometry_msgs::PoseStamped>("robot_front_pose", 10);
+    robot_center_pub_ = pnh.advertise<geometry_msgs::PoseStamped>("planning_pose", 10);
     radius_pub_ = pnh.advertise<std_msgs::Float64>("radius", 10);
     current_planner_pub_ = pnh.advertise<std_msgs::String>("planner", 10);
 
@@ -689,23 +690,24 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
     robotPose.header = odometry_msg.header;
     robotPose.pose = odometry_msg.pose.pose;
     robot_center_ = transformPose(robotPose, reference_frame_id_);
-    try
+    if (use_robot_front_)
     {
-      robot_front_ = robot_center_;
-      auto transform = tf_buffer_->lookupTransform(reference_frame_id_, "front_cart_footprint", ros::Time(0));
-      // ROS_WARN_STREAM(transform);
-      robot_front_.pose.position.x = transform.transform.translation.x;
-      robot_front_.pose.position.y = transform.transform.translation.y;
-      robot_front_.pose.position.z = transform.transform.translation.z;
-      robot_front_.pose.orientation = transform.transform.rotation;
-      robot_center_ = robot_front_;
-    }
-    catch (const tf2::TransformException& ex)
-    {
-      ROS_ERROR_STREAM("[AgribotLocalPlanner] " << ex.what());
+      try
+      {
+        robot_front_ = robot_center_;
+        auto transform = tf_buffer_->lookupTransform(reference_frame_id_, "front_cart_link", ros::Time(0));
+        robot_front_.pose.position.x = transform.transform.translation.x;
+        robot_front_.pose.position.y = transform.transform.translation.y;
+        robot_front_.pose.orientation = transform.transform.rotation;
+        robot_center_ = robot_front_;
+      }
+      catch (const tf2::TransformException& ex)
+      {
+        ROS_ERROR_STREAM("[AgribotLocalPlanner] " << ex.what());
+      }
     }
 
-    robot_front_pub_.publish(robot_center_);
+    robot_center_pub_.publish(robot_center_);
     traveled_distance_ += CommonFunctions::distanceBetweenPoses(lastRobotPosition, robot_center_);
   }
 }
@@ -794,11 +796,14 @@ geometry_msgs::PolygonStamped AgribotLocalPlanner::transformPolygon(const geomet
 
 void AgribotLocalPlanner::visualizationPath(std::string frame_id)
 {
+  for (auto& pose : local_plan_)
+  {
+    pose.header.stamp = ros::Time::now();
+  }
   VisualizationFunctions::pathVisualization(local_plan_, frame_id, path_pub_);
   try
   {
-    VisualizationFunctions::goalVisualization(transformPose(goal_, "front_cart_footprint"),
-                                              param_goal_distance_tolerance_x_, param_goal_distance_tolerance_y_,
+    VisualizationFunctions::goalVisualization(goal_, param_goal_distance_tolerance_x_, param_goal_distance_tolerance_y_,
                                               goal_pub_);
   }
   catch (const std::exception& ex)

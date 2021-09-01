@@ -89,7 +89,7 @@ private:
   ros::Publisher obstacles_right_line_pub_;
   ros::Publisher goal_pub_;
   ros::Publisher rabbit_pub_;
-  ros::Publisher robot_front_pub_;
+  ros::Publisher robot_center_pub_;
   ros::Publisher radius_pub_;
   ros::Publisher current_planner_pub_;
   ros::ServiceClient kinematics_service_;
@@ -166,6 +166,7 @@ private:
   double param_min_planning_distance_in_row_;  // metres
 
   bool param_statistics_;
+  bool use_robot_front_;
 
   void createPlanners();
   void createValidators();
