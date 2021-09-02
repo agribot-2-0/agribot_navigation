@@ -690,7 +690,7 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
     robotPose.header = odometry_msg.header;
     robotPose.pose = odometry_msg.pose.pose;
     robot_center_ = transformPose(robotPose, reference_frame_id_);
-    if (use_robot_front_)
+    if (use_robot_front_ && tf_buffer_->canTransform(reference_frame_id_, "front_cart_link", ros::Time(0)))
     {
       try
       {
