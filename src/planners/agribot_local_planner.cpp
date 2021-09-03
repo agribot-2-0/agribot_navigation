@@ -101,6 +101,11 @@ void AgribotLocalPlanner::reconfigureCallback(
   param_min_planning_distance_in_row_ = config.min_planning_distance_in_row;
   use_robot_front_ = config.use_robot_front_pose;
 
+  param_max_missed_waypoints_ = config.max_missed_waypoints;
+  param_maximum_distance_to_path_tolerance_ = config.maximum_distance_to_path_tolerance;
+  param_goal_distance_tolerance_y_ = config.goal_distance_tolerance_y;
+  param_goal_distance_tolerance_x_ = config.goal_distance_tolerance_x;
+
   for (const auto& [controller_id, controller] : controllers_)
   {
     static_cast<void>(controller_id);
@@ -121,19 +126,17 @@ void AgribotLocalPlanner::reconfigureCallback(
   {
     stanley_pointer->setErrorGain(param_stanley_error_gain_);
   }
+
+  auto hermite_pointer = dynamic_cast<agribot_local_planner::HermitePlanner*>(planners_["hermite"].get());
+  if (hermite_pointer != nullptr)
+  {
+    hermite_pointer->setMagnitudeStart(config.hermite_magnitude_start);
+    hermite_pointer->setMagnitudeEnd(config.hermite_magnitude_end);
+  }
 }
 
 void AgribotLocalPlanner::getParameters(const ros::NodeHandle& nh)
 {
-  param_goal_distance_tolerance_x_ =
-      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance_x");
-  param_goal_distance_tolerance_y_ =
-      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/goal_distance_tolerance_y");
-  param_max_missed_waypoints_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/max_missed_waypoints");
-
-  param_maximum_distance_to_path_tolerance_ =
-      ros_common_functions::getRosParam<double>(nh.getNamespace() + "/maximum_distance_to_path_tolerance");
-
   param_chassis_length_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/chassis_length");
   param_min_radius_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/min_radius");
 
@@ -142,7 +145,6 @@ void AgribotLocalPlanner::getParameters(const ros::NodeHandle& nh)
 
   param_design_dead_zone_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/design_dead_zone");
   param_design_arc_radius_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/design_arc_radius");
-  param_hermite_magnitude_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/hermite_magnitude");
 
   param_odom_filter_time_ = ros_common_functions::getRosParam<double>(nh.getNamespace() + "/odom_filter_time");
 
