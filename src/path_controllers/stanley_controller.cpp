@@ -48,9 +48,6 @@ bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT
   error_crosstrack_ = calculateCrosstrackError(path_to_track, robot_pose);
   error_heading_ = CommonFunctions::getYawFromQuaternion(
       CommonFunctions::orientationBetweenQuaternions(robot_pose.pose.orientation, projection_pose_.pose.orientation));
-  double angle_between_poses_ = CommonFunctions::angleBetweenPoses(projection_pose_, robot_pose);
-  double angle_between_poses2_ = CommonFunctions::pCoordinatesFromPoseStamped(projection_pose_).az -
-                                 CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
 
   error_crosstrack_factor_ = atan2(error_gain_ * error_crosstrack_, lin_vel_);
 
@@ -69,15 +66,6 @@ bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT
   msg.circle_radius = motion_radius_;
 
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
-
-  ROS_WARN_STREAM("Stanley distance to end "
-                  << CommonFunctions::distanceBetweenPoses(robot_pose, path_to_track.back()));
-  ROS_WARN_STREAM("Stanley angle_between_poses_ " << angle_between_poses_);
-  ROS_WARN_STREAM("Stanley angle_between_poses2_ " << angle_between_poses2_);
-  ROS_WARN_STREAM("Stanley error_heading_ " << error_heading_);
-  ROS_WARN_STREAM("Stanley error_crosstrack_factor_ " << error_crosstrack_factor_);
-  ROS_WARN_STREAM("Stanley theta_ " << theta_);
-  ROS_WARN_STREAM("Stanley radius " << cmd_vel.linear.x / cmd_vel.angular.z);
 
   return true;
 }

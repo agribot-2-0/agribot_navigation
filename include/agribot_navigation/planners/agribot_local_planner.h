@@ -155,7 +155,8 @@ private:
   double param_design_dead_zone_;                    // degrees
   double param_design_arc_radius_;                   // metres
   double param_design_step_size_;                    // metres
-  double param_hermite_magnitude_;                   // factor
+  double param_hermite_magnitude_start_;             // factor
+  double param_hermite_magnitude_end_;               // factor
   double param_odom_filter_time_;                    // seconds
   double param_missed_distance_coefficient_;         // factor >1
   double param_maximum_distance_to_path_tolerance_;  // factor >1

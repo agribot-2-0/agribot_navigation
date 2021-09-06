@@ -31,8 +31,8 @@ void AgribotLocalPlanner::createPlanners()
 
   auto hermite_planner = std::make_unique<HermitePlanner>(reference_frame_id_);
   hermite_planner->setStepSize(param_design_step_size_);
-  hermite_planner->setMagnitudeStart(param_hermite_magnitude_);
-  hermite_planner->setMagnitudeEnd(param_hermite_magnitude_);
+  hermite_planner->setMagnitudeStart(param_hermite_magnitude_start_);
+  hermite_planner->setMagnitudeEnd(param_hermite_magnitude_end_);
   planners_["hermite"] = std::move(hermite_planner);
 
   auto narrow_planner = std::make_unique<NarrowCorridorPlanner>(obstacle_frame_id_);
@@ -106,6 +106,9 @@ void AgribotLocalPlanner::reconfigureCallback(
   param_goal_distance_tolerance_y_ = config.goal_distance_tolerance_y;
   param_goal_distance_tolerance_x_ = config.goal_distance_tolerance_x;
 
+  param_hermite_magnitude_start_ = config.hermite_magnitude_start;
+  param_hermite_magnitude_end_ = config.hermite_magnitude_end;
+
   for (const auto& [controller_id, controller] : controllers_)
   {
     static_cast<void>(controller_id);
@@ -130,8 +133,8 @@ void AgribotLocalPlanner::reconfigureCallback(
   auto hermite_pointer = dynamic_cast<agribot_local_planner::HermitePlanner*>(planners_["hermite"].get());
   if (hermite_pointer != nullptr)
   {
-    hermite_pointer->setMagnitudeStart(config.hermite_magnitude_start);
-    hermite_pointer->setMagnitudeEnd(config.hermite_magnitude_end);
+    hermite_pointer->setMagnitudeStart(param_hermite_magnitude_start_);
+    hermite_pointer->setMagnitudeEnd(param_hermite_magnitude_end_);
   }
 }
 
