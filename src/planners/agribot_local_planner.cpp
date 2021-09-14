@@ -698,12 +698,10 @@ void AgribotLocalPlanner::odomCallback(const nav_msgs::Odometry& odometry_msg)
     {
       try
       {
-        robot_front_ = robot_center_;
         auto transform = tf_buffer_->lookupTransform(reference_frame_id_, "front_cart_link", ros::Time(0));
-        robot_front_.pose.position.x = transform.transform.translation.x;
-        robot_front_.pose.position.y = transform.transform.translation.y;
-        robot_front_.pose.orientation = transform.transform.rotation;
-        robot_center_ = robot_front_;
+        robot_center_.pose.position.x = transform.transform.translation.x;
+        robot_center_.pose.position.y = transform.transform.translation.y;
+        robot_center_.pose.orientation = transform.transform.rotation;
       }
       catch (const tf2::TransformException& ex)
       {
