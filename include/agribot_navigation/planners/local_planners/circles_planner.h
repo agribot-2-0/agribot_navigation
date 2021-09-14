@@ -24,6 +24,9 @@ public:
   void addObstacle(const ObstacleDetection::Obstacle& obstacle) override;
   std::vector<ObstacleDetection::Obstacle> getObstacles(void) override;
   void clearObstacles(void) override;
+  void setLineLeft(const nav_msgs::Path& line) override;
+  void setLineRight(const nav_msgs::Path& line) override;
+  std::string getFrameId() override;
 
   void setArcRadius(const double param_arc_radius);
   void setDeadZone(const double param_dead_zone);

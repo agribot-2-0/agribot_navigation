@@ -18,7 +18,8 @@ bool StraightPathPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& pa
   try
   {
     CommonFunctions::straightPath(path, start_pose, end_pose, frame_id, step_size_);
-    CommonFunctions::updateOrientationInPath(path, 0, path.size());
+    path.push_back(end_pose);
+    CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
   }
   catch (const std::exception& e)
   {
@@ -45,6 +46,21 @@ void StraightPathPlanner::clearObstacles(void)
 void StraightPathPlanner::setStepSize(const double param_step_size)
 {
   step_size_ = param_step_size;
+}
+
+void StraightPathPlanner::setLineLeft(const nav_msgs::Path& line)
+{
+  static_cast<void>(line);
+}
+
+void StraightPathPlanner::setLineRight(const nav_msgs::Path& line)
+{
+  static_cast<void>(line);
+}
+
+std::string StraightPathPlanner::getFrameId()
+{
+  return frame_id;
 }
 
 }  // namespace agribot_local_planner

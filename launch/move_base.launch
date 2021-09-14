@@ -2,7 +2,8 @@
 
   <arg name="cmd_vel_topic" default="/cmd_vel_navigation" />
   <arg name="odom_topic" default="/agribot/odom/local" />
-  <arg name="lidar_topic" default="/bumper/front/lidar/obstacles" />
+  <arg name="cloud_point_topic" default="/agribot/obstacle_detection/front/3d/lidar/point_cloud/filtered_objects" />
+  <arg name="laser_scan_topic" default="/scan" />
 
   <node pkg="move_base" type="move_base" name="move_base" respawn="false" output="screen">
 
@@ -16,6 +17,16 @@
 
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
     <remap from="odom" to="$(arg odom_topic)" />
-    <remap from="/lidar_scan" to="$(arg lidar_topic)"/>
+    <remap from="line_left" to="/agribot/obstacle_detection/front/left_row" />
+    <remap from="line_right" to="/agribot/obstacle_detection/front/right_row" />
+    <remap from="is_row" to="/agribot/navigation_manager/row" />
   </node>
+
+
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+    <rosparam file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/pointcloud_to_laserscan.yaml" command="load" />
+    <remap from="cloud_in" to="$(arg cloud_point_topic)"/>
+    <remap from="scan" to="$(arg laser_scan_topic)"/>
+  </node>
+
 </launch>

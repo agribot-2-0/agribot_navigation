@@ -15,29 +15,36 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
                                        const geometry_msgs::PoseStamped& start_pose,
                                        const geometry_msgs::PoseStamped& end_pose)
 {
-  static_cast<void>(end_pose);
-  path.push_back(start_pose);
   try
   {
-    auto line_left = obstacles_left_.toPath(step_size_);
-    auto line_right = obstacles_right_.toPath(step_size_);
-    if (!line_left.size() || !line_right.size() || !path.size())
+    if (!line_left_.size() || !line_right_.size())
     {
       return false;
     }
-    auto start_obstacle_pose = calculateMidpose(line_left[0], line_right[0]);
+    path.clear();
+    path.push_back(start_pose);
+    auto start_obstacle_pose = calculateMidpose(line_left_.front(), line_right_.front());
 
-    CommonFunctions::straightPath(path, start_pose, start_obstacle_pose, frame_id, step_size_);
-
-    size_t path_size = line_left.size() < line_right.size() ? line_left.size() : line_right.size();
+    size_t path_size = std::min(line_left_.size(), line_right_.size());
 
     for (size_t position = 1; position < path_size; position++)
     {
-      auto midpose = calculateMidpose(line_left[position], line_right[position]);
-      midpose.header.seq = path.size() + 1;
-      path.push_back(midpose);
+      auto midpose = calculateMidpose(line_left_[position], line_right_[position]);
+      if (midpose.pose.position.x < end_pose.pose.position.x)
+      {
+        midpose.header.seq = path.size() + 1;
+        path.push_back(midpose);
+      }
     }
-    CommonFunctions::updateOrientationInPath(path, 0, path.size() - 1);
+
+    auto midpose_last = calculateMidpose(line_left_.back(), line_right_.back());
+
+    path.back().pose.orientation.x = 0;
+    path.back().pose.orientation.y = 0;
+    path.back().pose.orientation.z = 0;
+    path.back().pose.orientation.w = 1;
+
+    CommonFunctions::updateOrientationInPath(path, 1, path.size() - 1);
   }
   catch (const std::exception& e)
   {
@@ -115,6 +122,31 @@ void NarrowCorridorPlanner::setChassisLength(double chassis_length)
 void NarrowCorridorPlanner::setStepSize(const double param_step_size)
 {
   step_size_ = param_step_size;
+}
+
+void NarrowCorridorPlanner::setLineLeft(const nav_msgs::Path& line)
+{
+  if (line.poses.empty())
+  {
+    return;
+  }
+  line_left_.clear();
+  CommonFunctions::straightPath(line_left_, line.poses.front(), line.poses.back(), frame_id, step_size_);
+}
+
+void NarrowCorridorPlanner::setLineRight(const nav_msgs::Path& line)
+{
+  if (line.poses.empty())
+  {
+    return;
+  }
+  line_right_.clear();
+  CommonFunctions::straightPath(line_right_, line.poses.front(), line.poses.back(), frame_id, step_size_);
+}
+
+std::string NarrowCorridorPlanner::getFrameId()
+{
+  return frame_id;
 }
 
 }  // namespace agribot_local_planner

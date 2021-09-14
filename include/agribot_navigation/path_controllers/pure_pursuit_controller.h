@@ -19,24 +19,29 @@ namespace agribot_path_controllers
 class PurePursuitController : public IPathController
 {
 public:
-  PurePursuitController();
+  PurePursuitController() = delete;
+  explicit PurePursuitController(const std::string& frame);
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
   void reset() override;
-
-  void setVelocityLinear(const double velocity);
+  std::string getFrameId() override;
+  void setVelocityLinear(const double velocity) override;
   void setRobotLength(const double robot_length);
   void setRabbitDistance(const double distance);
+  void setMinPlanningDistance(const double distance);
   geometry_msgs::PoseStamped getRabbitPose();
   void setRabbitPose(const geometry_msgs::PoseStamped& rabbit);
   void setMinMotionRadius(const double min_motion_radius);
 
 private:
+  std::string frame_id_;
+
   bool computeRabbit(double look_ahead_distance, const std::size_t& path_size);
   double lin_vel_;
   double robot_length_;
   double rabbit_distance_;
+  double min_planning_distance_in_row_;
   double look_ahead_distance_;
   double angle_between_poses_;
   double motion_radius_;

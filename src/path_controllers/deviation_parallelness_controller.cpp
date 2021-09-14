@@ -6,7 +6,7 @@
 
 namespace agribot_path_controllers
 {
-DeviationParallelnessController::DeviationParallelnessController() : IPathController()
+DeviationParallelnessController::DeviationParallelnessController(const std::string& frame) : IPathController()
 {
   param_speed_limiting = true;
   param_current_parallelness_weight = default_parallelness_weight_straight;
@@ -15,6 +15,7 @@ DeviationParallelnessController::DeviationParallelnessController() : IPathContro
   param_max_linear_vel = default_max_linear_vel;
   param_min_linear_vel = default_min_linear_vel;
   param_epsilon = default_epsilon;
+  frame_id_ = frame;
 }
 
 void DeviationParallelnessController::setSpeedLimiting(const bool limiting)
@@ -69,6 +70,20 @@ bool DeviationParallelnessController::computeControl(geometry_msgs::Twist& cmd_v
   xSetVel(cmd_vel, next_waypoint, last_waypoint, robot_center);
 
   return true;
+}
+
+void DeviationParallelnessController::reset()
+{
+}
+
+std::string DeviationParallelnessController::getFrameId()
+{
+  return frame_id_;
+}
+
+void DeviationParallelnessController::setVelocityLinear(const double velocity)
+{
+  param_max_linear_vel = velocity;
 }
 
 double DeviationParallelnessController::dCloseToZero(const double value)
@@ -170,7 +185,7 @@ void DeviationParallelnessController::xLinearSpeedLimitedApproach(geometry_msgs:
     double parallelnessFactor = calculateParallelness(last_waypoint, next_waypoint, robot_center);  // in range <0, 1>
 
     double deviation = calculateDeviation(last_waypoint, next_waypoint, robot_center);  // in range <0, inf>
-    double deviationFactor = 1 / (1 + deviation);                                        // in range (0, 1>
+    double deviationFactor = 1 / (1 + deviation);                                       // in range (0, 1>
 
     double multiplier = (1 - deviationFactor) * (1 - distanceFactor);  // in range <0, inf>
 
@@ -187,8 +202,8 @@ void DeviationParallelnessController::xStopRobot(geometry_msgs::Twist& velocity)
 }
 
 double DeviationParallelnessController::calculateDeviation(const agribot_local_planner::pos& last_waypoint,
-                                                            const agribot_local_planner::pos& next_waypoint,
-                                                            const agribot_local_planner::pos& robot_center)
+                                                           const agribot_local_planner::pos& next_waypoint,
+                                                           const agribot_local_planner::pos& robot_center)
 {
   if (CommonFunctions::dDistanceBetweenCoordinates(last_waypoint, next_waypoint) > 0)
   {
@@ -203,8 +218,8 @@ double DeviationParallelnessController::calculateDeviation(const agribot_local_p
 }
 
 double DeviationParallelnessController::calculateParallelness(const agribot_local_planner::pos& last_waypoint,
-                                                               const agribot_local_planner::pos& next_waypoint,
-                                                               const agribot_local_planner::pos& robot_center)
+                                                              const agribot_local_planner::pos& next_waypoint,
+                                                              const agribot_local_planner::pos& robot_center)
 {
   return fabs(cos(CommonFunctions::dAngleBetweenCoordinates(next_waypoint, last_waypoint) - robot_center.az));
 }
