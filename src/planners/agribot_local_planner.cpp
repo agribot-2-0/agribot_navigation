@@ -314,22 +314,23 @@ bool AgribotLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>&
 
   ROS_INFO_STREAM("[AgribotLocalPlanner] Plan received from Global Planner. Initialization finished.");
 
+  agribot_msgs::SteeringMode srv;
   if (isInRow())
   {
     left_line_received_ = false;
     right_line_received_ = false;
     ROS_WARN_STREAM("[AgribotLocalPlanner] Moving in row");
-    agribot_msgs::SteeringMode srv;
     srv.request.steering_mode = agribot_msgs::SteeringMode::Request::FRONT_WHEEL;
-    kinematics_service_.call(srv);
     ROS_WARN_STREAM("[AgribotLocalPlanner] Wait for Narrow planner");
   }
   else
   {
     ROS_WARN_STREAM("[AgribotLocalPlanner] Moving NOT in row");
-    agribot_msgs::SteeringMode srv;
     srv.request.steering_mode = agribot_msgs::SteeringMode::Request::FOUR_WHEEL;
-    kinematics_service_.call(srv);
+  }
+  if (!kinematics_service_.call(srv))
+  {
+    ROS_ERROR_STREAM("[AgribotLocalPlanner] Failed to call steering mode service");
   }
 
   return true;
@@ -383,7 +384,7 @@ bool AgribotLocalPlanner::planPath(const std::string& planner_id, const geometry
 
 bool AgribotLocalPlanner::handlePathPlan()
 {
-  for (auto const& planner_name : planners_fallback_strategy_)
+  for (const auto& planner_name : planners_fallback_strategy_)
   {
     ROS_INFO_STREAM("[AgribotLocalPlanner] Planner " << planner_name << " taken.");
     if (planPath(planner_name, robot_center_, goal_))
@@ -428,8 +429,7 @@ bool AgribotLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
       {
         cmd_vel = stopRobot();
       }
-
-      if (left_line_received_ && right_line_received_)
+      else if (left_line_received_ && right_line_received_)
       {
         if (CommonFunctions::distanceBetweenPoses(robot_center_, goal_) > param_min_planning_distance_in_row_)
         {
@@ -579,21 +579,20 @@ void AgribotLocalPlanner::calculateControls(geometry_msgs::Twist& cmd_vel, std::
   {
     return;
   }
-  for (auto& pose : local_plan_)
-  {
-    pose = transformPose(pose, controllers_[controller_id]->getFrameId());
-  }
+
+  transformPlan(local_plan_, controllers_[controller_id]->getFrameId());
   controllers_[controller_id]->computeControl(cmd_vel, local_plan_,
                                               transformPose(robot_center_, controllers_[controller_id]->getFrameId()));
-  for (auto& pose : local_plan_)
-  {
-    pose = transformPose(pose, reference_frame_id_);
-  }
+  transformPlan(local_plan_, reference_frame_id_);
+
   cmd_vel = limitVelocities(cmd_vel);
 
   radius_pub_.publish([cmd_vel] {
     std_msgs::Float64 msg;
-    msg.data = cmd_vel.linear.x / cmd_vel.angular.z;
+    if (cmd_vel.angular.z != 0)
+    {
+      msg.data = cmd_vel.linear.x / cmd_vel.angular.z;
+    }
     return msg;
   }());
 
@@ -764,8 +763,7 @@ geometry_msgs::PoseStamped AgribotLocalPlanner::transformPose(const geometry_msg
 
   try
   {
-    pose_tmp.header.stamp.sec = 0;
-    pose_tmp.header.stamp.nsec = 0;
+    pose_tmp.header.stamp = ros::Time(0);
     tf_buffer_->transform(pose_tmp, pose_transformed, frame_id, ros::Duration(0.2));
   }
   catch (const tf2::ExtrapolationException& e)
@@ -799,7 +797,16 @@ geometry_msgs::PolygonStamped AgribotLocalPlanner::transformPolygon(const geomet
   return polygon_transformed;
 }
 
-void AgribotLocalPlanner::visualizationPath(std::string frame_id)
+void AgribotLocalPlanner::transformPlan(std::vector<geometry_msgs::PoseStamped>& plan,  // NOLINT(runtime/references)
+                                        const std::string& frame_id)
+{
+  for (auto& pose : plan)
+  {
+    pose = transformPose(pose, frame_id);
+  }
+}
+
+void AgribotLocalPlanner::visualizationPath(const std::string& frame_id)
 {
   for (auto& pose : local_plan_)
   {
@@ -842,12 +849,12 @@ bool AgribotLocalPlanner::isOutOfPath(void)
 bool AgribotLocalPlanner::isReachedPathEnd(const geometry_msgs::PoseStamped& robot_coordinates,
                                            const geometry_msgs::PoseStamped& path_end_waypoint)
 {
-  return isWithinEllipse(robot_coordinates, path_end_waypoint);
+  return isPoseWithinEllipse(robot_coordinates, path_end_waypoint);
 }
 
 // https://stackoverflow.com/questions/7946187/point-and-ellipse-rotated-position-test-algorithm
-bool AgribotLocalPlanner::isWithinEllipse(const geometry_msgs::PoseStamped& point,
-                                          const geometry_msgs::PoseStamped& ellipse_center)
+bool AgribotLocalPlanner::isPoseWithinEllipse(const geometry_msgs::PoseStamped& point,
+                                              const geometry_msgs::PoseStamped& ellipse_center)
 {
   double ry = param_goal_distance_tolerance_y_;
   double rx = param_goal_distance_tolerance_x_;
@@ -863,7 +870,7 @@ bool AgribotLocalPlanner::isWithinEllipse(const geometry_msgs::PoseStamped& poin
   double factor2 = pow((sin_rot * delta_x) - (cos_rot * delta_y), 2);
   factor2 /= pow(ry, 2);
 
-  return factor1 + factor2 <= 1;
+  return (factor1 + factor2) <= 1;
 }
 
 bool AgribotLocalPlanner::isInRow()

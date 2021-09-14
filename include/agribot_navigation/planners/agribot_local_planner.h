@@ -185,13 +185,15 @@ private:
   bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
                 const geometry_msgs::PoseStamped& end_pose);
   void calculateControls(geometry_msgs::Twist& cmd_vel, std::string controller_id);  // NOLINT(runtime/references)
-  void visualizationPath(std::string frame_id);
+  void visualizationPath(const std::string& frame_id);
   void visualizationObstacles(void);
 
   geometry_msgs::PoseStamped transformPose(const geometry_msgs::PoseStamped& pose,
                                            const std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::PolygonStamped transformPolygon(const geometry_msgs::PolygonStamped& pose,
                                                  const std::string& frame_id);  // NOLINT(runtime/references)
+  void transformPlan(std::vector<geometry_msgs::PoseStamped>& plan,             // NOLINT(runtime/references)
+                     const std::string& frame_id);
   geometry_msgs::Twist limitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist stopRobot();
   geometry_msgs::Twist finishedPathBehaviour();
@@ -202,7 +204,7 @@ private:
                         const geometry_msgs::PoseStamped& path_end_waypoint);
   bool isOutOfPath();
   bool isInRow();
-  bool isWithinEllipse(const geometry_msgs::PoseStamped& point, const geometry_msgs::PoseStamped& ellipse_center);
+  bool isPoseWithinEllipse(const geometry_msgs::PoseStamped& pose, const geometry_msgs::PoseStamped& ellipse_center);
   void getParameters(const ros::NodeHandle& nh);
 
   void reconfigureCallback(agribot_navigation::AgribotLocalPlannerConfig& config,  // NOLINT(runtime/references)

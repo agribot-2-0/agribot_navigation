@@ -79,10 +79,10 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
     angle_between_poses_ = CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose);
   }
 
-  if (angle_between_poses_ == 0)
+  if (angle_between_poses_ == 0.0)
   {
-    cmd_vel.angular.x = 0;
-    cmd_vel.linear.z = 0;
+    cmd_vel.angular.x = 0.0;
+    cmd_vel.linear.z = 0.0;
     return false;
   }
 
@@ -96,8 +96,8 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
   if (motion_radius_ == 0.0)
   {
-    cmd_vel.angular.x = 0;
-    cmd_vel.linear.z = 0;
+    cmd_vel.angular.x = 0.0;
+    cmd_vel.linear.z = 0.0;
     return false;
   }
 
