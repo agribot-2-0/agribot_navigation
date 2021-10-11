@@ -6,14 +6,16 @@
 
 namespace agribot_path_controllers
 {
-PurePursuitController::PurePursuitController() : IPathController()
+PurePursuitController::PurePursuitController(const std::string& frame) : IPathController()
 {
   lin_vel_ = default_max_linear_vel;
   robot_length_ = default_chassis_length;
   rabbit_distance_ = default_pure_pursuit_rabbit_distance;
   rabbit_count_ = 0;
   look_ahead_distance_ = 0;
+  frame_id_ = frame;
 }
+
 void PurePursuitController::setVelocityLinear(const double velocity)
 {
   lin_vel_ = velocity;
@@ -32,6 +34,11 @@ void PurePursuitController::setRabbitDistance(const double distance)
 void PurePursuitController::reset()
 {
   rabbit_count_ = 0;
+}
+
+std::string PurePursuitController::getFrameId()
+{
+  return frame_id_;
 }
 
 geometry_msgs::PoseStamped PurePursuitController::getRabbitPose()
@@ -62,12 +69,20 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
     rabbit_pose_ = path_to_track[rabbit_count_];
   } while (computeRabbit(look_ahead_distance_, path_to_track.size()));
 
-  angle_between_poses_ = CommonFunctions::limitAngle(CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose));
-
-  if (angle_between_poses_ == 0)
+  if (look_ahead_distance_ < min_planning_distance_in_row_)
   {
-    cmd_vel.angular.x = 0;
-    cmd_vel.linear.z = 0;
+    angle_between_poses_ = CommonFunctions::pCoordinatesFromPoseStamped(rabbit_pose_).az -
+                           CommonFunctions::pCoordinatesFromPoseStamped(robot_pose).az;
+  }
+  else
+  {
+    angle_between_poses_ = CommonFunctions::angleBetweenPoses(rabbit_pose_, robot_pose);
+  }
+
+  if (angle_between_poses_ == 0.0)
+  {
+    cmd_vel.angular.x = 0.0;
+    cmd_vel.linear.z = 0.0;
     return false;
   }
 
@@ -81,8 +96,8 @@ bool PurePursuitController::computeControl(geometry_msgs::Twist& cmd_vel,  // NO
 
   if (motion_radius_ == 0.0)
   {
-    cmd_vel.angular.x = 0;
-    cmd_vel.linear.z = 0;
+    cmd_vel.angular.x = 0.0;
+    cmd_vel.linear.z = 0.0;
     return false;
   }
 
@@ -112,6 +127,11 @@ bool PurePursuitController::computeRabbit(double look_ahead_distance, const std:
 void PurePursuitController::setMinMotionRadius(const double min_motion_radius)
 {
   min_motion_radius_ = min_motion_radius;
+}
+
+void PurePursuitController::setMinPlanningDistance(const double distance)
+{
+  min_planning_distance_in_row_ = distance;
 }
 
 }  // namespace agribot_path_controllers

@@ -19,16 +19,13 @@ bool NarrowCorridorPlanner::designPath(std::vector<geometry_msgs::PoseStamped>& 
   {
     if (!line_left_.size() || !line_right_.size())
     {
-      ROS_WARN_STREAM("line left " << line_left_.size());
-      ROS_WARN_STREAM("line right " << line_right_.size());
-      ROS_WARN_STREAM("path  " << path.size());
       return false;
     }
     path.clear();
     path.push_back(start_pose);
     auto start_obstacle_pose = calculateMidpose(line_left_.front(), line_right_.front());
 
-    size_t path_size = line_left_.size() < line_right_.size() ? line_left_.size() : line_right_.size();
+    size_t path_size = std::min(line_left_.size(), line_right_.size());
 
     for (size_t position = 1; position < path_size; position++)
     {
@@ -145,6 +142,11 @@ void NarrowCorridorPlanner::setLineRight(const nav_msgs::Path& line)
   }
   line_right_.clear();
   CommonFunctions::straightPath(line_right_, line.poses.front(), line.poses.back(), frame_id, step_size_);
+}
+
+std::string NarrowCorridorPlanner::getFrameId()
+{
+  return frame_id;
 }
 
 }  // namespace agribot_local_planner

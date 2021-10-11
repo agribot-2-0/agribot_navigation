@@ -11,6 +11,11 @@
 
 namespace agribot_path_controllers
 {
+StanleyController::StanleyController(const std::string& frame) : IPathController()
+{
+  frame_id_ = frame;
+}
+
 void StanleyController::setVelocityLinear(const double velocity)
 {
   lin_vel_ = velocity;
@@ -46,7 +51,14 @@ bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT
 
   error_crosstrack_factor_ = atan2(error_gain_ * error_crosstrack_, lin_vel_);
 
-  theta_ = error_heading_ + error_crosstrack_factor_;
+  if (CommonFunctions::distanceBetweenPoses(robot_pose, path_to_track.back()) < robot_length_)
+  {
+    theta_ = error_heading_;
+  }
+  else
+  {
+    theta_ = error_heading_ + error_crosstrack_factor_;
+  }
   motion_radius_ = robot_length_ / 2.0 / sin(theta_);
 
   agribot_msgs::AgribotManualControl msg;
@@ -56,6 +68,15 @@ bool StanleyController::computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT
   cmd_vel = CommonFunctions::teleopToVel(msg, min_motion_radius_);
 
   return true;
+}
+
+void StanleyController::reset()
+{
+}
+
+std::string StanleyController::getFrameId()
+{
+  return frame_id_;
 }
 
 double StanleyController::calculateCrosstrackError(const std::vector<geometry_msgs::PoseStamped>& path_to_track,

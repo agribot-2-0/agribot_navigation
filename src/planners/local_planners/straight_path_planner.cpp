@@ -48,4 +48,19 @@ void StraightPathPlanner::setStepSize(const double param_step_size)
   step_size_ = param_step_size;
 }
 
+void StraightPathPlanner::setLineLeft(const nav_msgs::Path& line)
+{
+  static_cast<void>(line);
+}
+
+void StraightPathPlanner::setLineRight(const nav_msgs::Path& line)
+{
+  static_cast<void>(line);
+}
+
+std::string StraightPathPlanner::getFrameId()
+{
+  return frame_id;
+}
+
 }  // namespace agribot_local_planner

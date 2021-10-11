@@ -17,19 +17,14 @@ namespace agribot_path_controllers
 class DeviationParallelnessController : public IPathController
 {
 public:
-  DeviationParallelnessController();
+  DeviationParallelnessController() = delete;
+  explicit DeviationParallelnessController(const std::string& frame);
   bool computeControl(geometry_msgs::Twist& cmd_vel,  // NOLINT(runtime/references)
                       const std::vector<geometry_msgs::PoseStamped>& path_to_track,
                       const geometry_msgs::PoseStamped& robot_pose) override;
-  void reset() override{};
-  std::string getFrameId() override
-  {
-    return "base_footprint";
-  };
-  void setVelocityLinear(const double velocity) override
-  {
-    param_max_linear_vel = velocity;
-  };
+  void reset() override;
+  std::string getFrameId() override;
+  void setVelocityLinear(const double velocity) override;
   void setSpeedLimiting(const bool limiting);
   void setParallelnessWeight(const double parallelness_weight);
   void setDeviationWeight(const double deviation_weight);
@@ -59,6 +54,8 @@ private:
   double calculateParallelness(const agribot_local_planner::pos& last_waypoint,
                                const agribot_local_planner::pos& next_waypoint,
                                const agribot_local_planner::pos& robot_center);
+
+  std::string frame_id_;
 
   double param_epsilon;                      // unitless
   double param_max_linear_vel;               // m/s

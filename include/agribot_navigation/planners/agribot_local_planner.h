@@ -15,6 +15,7 @@
 #pragma GCC diagnostic pop
 #include <agribot_common/CommonFunctions/ros_common_functions.h>
 #include <agribot_msgs/Row.h>
+#include <agribot_msgs/SteeringMode.h>
 #include <agribot_navigation/AgribotLocalPlannerConfig.h>
 #include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/Polygon.h>
@@ -75,7 +76,6 @@ private:
   costmap_2d::Costmap2DROS* costmap_ros_;
   costmap_2d::Costmap2D* local_costmap_;
   tf2_ros::Buffer* tf_buffer_;
-  tf2_ros::TransformListener* tf_listener_;
   ros::Subscriber odom_sub_;
   ros::Subscriber line_left_sub_;
   ros::Subscriber line_right_sub_;
@@ -89,8 +89,10 @@ private:
   ros::Publisher obstacles_right_line_pub_;
   ros::Publisher goal_pub_;
   ros::Publisher rabbit_pub_;
+  ros::Publisher robot_center_pub_;
   ros::Publisher radius_pub_;
   ros::Publisher current_planner_pub_;
+  ros::ServiceClient kinematics_service_;
 
   std::unique_ptr<dynamic_reconfigure::Server<agribot_navigation::AgribotLocalPlannerConfig>> reconfigure_server_;
 
@@ -101,6 +103,7 @@ private:
   nav_msgs::Path path_slice_;
   visualization_msgs::Marker traveled_points_;
   geometry_msgs::PoseStamped robot_center_;
+  geometry_msgs::PoseStamped robot_front_;
   geometry_msgs::PoseStamped goal_;
   geometry_msgs::PoseStamped goal_previous_;
   std::string reference_frame_id_;
@@ -135,6 +138,8 @@ private:
   double traveled_distance_;
   bool abort_executing_;
   bool is_out_of_path_;
+  bool left_line_received_;
+  bool right_line_received_;
   int out_of_path_counter_;
 
   // params
@@ -150,7 +155,8 @@ private:
   double param_design_dead_zone_;                    // degrees
   double param_design_arc_radius_;                   // metres
   double param_design_step_size_;                    // metres
-  double param_hermite_magnitude_;                   // factor
+  double param_hermite_magnitude_start_;             // factor
+  double param_hermite_magnitude_end_;               // factor
   double param_odom_filter_time_;                    // seconds
   double param_missed_distance_coefficient_;         // factor >1
   double param_maximum_distance_to_path_tolerance_;  // factor >1
@@ -161,6 +167,7 @@ private:
   double param_min_planning_distance_in_row_;  // metres
 
   bool param_statistics_;
+  bool use_robot_front_;
 
   void createPlanners();
   void createValidators();
@@ -178,13 +185,15 @@ private:
   bool planPath(const std::string& planner_id, const geometry_msgs::PoseStamped& start_pose,
                 const geometry_msgs::PoseStamped& end_pose);
   void calculateControls(geometry_msgs::Twist& cmd_vel, std::string controller_id);  // NOLINT(runtime/references)
-  void visualizationPath(std::string frame_id);
+  void visualizationPath(const std::string& frame_id);
   void visualizationObstacles(void);
 
   geometry_msgs::PoseStamped transformPose(const geometry_msgs::PoseStamped& pose,
                                            const std::string& frame_id);  // NOLINT(runtime/references)
   geometry_msgs::PolygonStamped transformPolygon(const geometry_msgs::PolygonStamped& pose,
                                                  const std::string& frame_id);  // NOLINT(runtime/references)
+  void transformPlan(std::vector<geometry_msgs::PoseStamped>& plan,             // NOLINT(runtime/references)
+                     const std::string& frame_id);
   geometry_msgs::Twist limitVelocities(geometry_msgs::Twist velocities);
   geometry_msgs::Twist stopRobot();
   geometry_msgs::Twist finishedPathBehaviour();
@@ -195,7 +204,7 @@ private:
                         const geometry_msgs::PoseStamped& path_end_waypoint);
   bool isOutOfPath();
   bool isInRow();
-  bool isWithinEllipse(const geometry_msgs::PoseStamped& point, const geometry_msgs::PoseStamped& ellipse_center);
+  bool isPoseWithinEllipse(const geometry_msgs::PoseStamped& pose, const geometry_msgs::PoseStamped& ellipse_center);
   void getParameters(const ros::NodeHandle& nh);
 
   void reconfigureCallback(agribot_navigation::AgribotLocalPlannerConfig& config,  // NOLINT(runtime/references)

@@ -36,10 +36,7 @@ public:
   void setStepSize(const double param_step_size);
   void setLineLeft(const nav_msgs::Path& line) override;
   void setLineRight(const nav_msgs::Path& line) override;
-  std::string getFrameId() override
-  {
-    return frame_id;
-  };
+  std::string getFrameId() override;
 
 private:
   std::string frame_id;

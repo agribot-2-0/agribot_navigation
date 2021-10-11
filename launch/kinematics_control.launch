@@ -11,6 +11,7 @@
   </node>
 
   <!-- velocity_smoother_node -->
+  <!-- TODO Add velocity smoother after impoving agribot control -->
   <!-- <node name="velocity_smoother_node" pkg="agribot_navigation" type="velocity_smoother_node" >
     <rosparam command="load" file="$(env AGRIBOT_HOME)/agribot/configs/base/navigation/velocity_smoother.yaml" />
   </node> -->
