@@ -26,9 +26,9 @@ KinematicsControl::KinematicsControl()
   this->cart_angle_[FRONT_CART] = 0;
   this->cart_angle_[BACK_CART] = 0;
   this->chassis_angle_ = 0;
-  this->wheel_radius_ = 0.16;
-  this->wheel_separation_ = 1.05 + 0.025;
-  this->chassis_length_ = 2.42 - 2 * wheel_radius_;
+  this->wheel_radius_ = 0.22;
+  this->wheel_separation_distance_ = 0.8;
+  this->robot_axis_to_axis_length = 2.1;
   this->linear_multiplier_ = 1;
 
   this->front_cart_coefficients_.kp_ = 0.0;
@@ -140,21 +140,21 @@ Carts_Setpoints KinematicsControl::xCalculatePIDSetPoints(double linear_vel, dou
     if (linear_vel != 0)
     {
       // Angular - yes / Linear -yes
-      if (angular_vel * chassis_length_ / 2 / linear_vel > 1)
+      if (angular_vel * robot_axis_to_axis_length / 2 / linear_vel > 1)
       {
         // Desired radius too small
         SP = { M_PI / 2, -M_PI / 2 };
         ROS_WARN_NAMED("agribot_navigation", "Radius = %f, lower than half of chasis length = %f",
-                       linear_vel / angular_vel, chassis_length_ / 2);
+                       linear_vel / angular_vel, robot_axis_to_axis_length / 2);
       }
       else
       {
-        if (angular_vel * chassis_length_ / 2 / linear_vel < -1)
+        if (angular_vel * robot_axis_to_axis_length / 2 / linear_vel < -1)
         {
           // Desired radius too small
           SP = { -M_PI / 2, M_PI / 2 };
           ROS_WARN_NAMED("agribot_navigation", "Radius = %f, lower than half of chasis length = %f",
-                         linear_vel / angular_vel, chassis_length_ / 2);
+                         linear_vel / angular_vel, robot_axis_to_axis_length / 2);
         }
         else
         {
@@ -249,7 +249,7 @@ double KinematicsControl::calculateLinearControls(double linear_vel, double angu
     else
     {
       // Angular - yes / Linear -no
-      control_[0] = angular_vel * chassis_length_ / 2;
+      control_[0] = angular_vel * robot_axis_to_axis_length / 2;
     }
   }
   else
@@ -336,11 +336,11 @@ double KinematicsControl::radiusToAngle(const double Radius) const
   double angle{ 0 };
   if (steering_mode_ == SteeringMode::front_wheel)
   {
-    angle = atan(chassis_length_ / Radius);
+    angle = atan(robot_axis_to_axis_length / Radius);
   }
   else
   {
-    angle = asin(chassis_length_ / 2.0 / Radius);
+    angle = asin(robot_axis_to_axis_length / 2.0 / Radius);
   }
   return angle;
 }
@@ -422,7 +422,7 @@ void KinematicsControl::calculateKinematicsControl()
 #ifdef DEBUG
   double angular_velocity = sin(cart_angle_[FRONT_CART] - cart_angle_[BACK_CART]) / cos(cart_angle_[BACK_CART]);
   angular_velocity = angular_velocity * wheel_radius_ / robot_axis_to_axis_length_;
-  double d_r = wheel_separation_ / 2.0 / wheel_radius_;
+  double d_r = wheel_separation_distance_ / 2.0 / wheel_radius_;
 
   control_[0] = control_[0] / wheel_radius_;
 
@@ -434,6 +434,12 @@ void KinematicsControl::calculateKinematicsControl()
   caterpillar_independent_velocities_[BACK_RIGHT] =
       (cos(cart_angle_[FRONT_CART]) / cos(cart_angle_[BACK_CART])) * control_[0] +
       d_r * (angular_velocity * control_[0] + control_[2]);
+
+  // TODO(all): uncomment when interface for velocities is changed from carts to caterpillars
+  // caterpillar_velocities_[FRONT_LINEAR] = caterpillar_independent_velocities_[FRONT_LEFT];
+  // caterpillar_velocities_[FRONT_ANGULAR] = caterpillar_independent_velocities_[FRONT_RIGHT];
+  // caterpillar_velocities_[BACK_LINEAR] = caterpillar_independent_velocities_[BACK_LEFT];
+  // caterpillar_velocities_[BACK_ANGULAR] = caterpillar_independent_velocities_[BACK_RIGHT];
 
   track_encoder_sum_publisher_.publish([this] {
     agribot_msgs::AgribotCaterpillarWheelsRotation msg;

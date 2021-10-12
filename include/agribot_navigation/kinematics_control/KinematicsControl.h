@@ -105,9 +105,9 @@ private:
   double control_[3];
   double cart_angle_[2];
   double chassis_angle_;
-  double wheel_separation_;
+  double wheel_separation_distance_;
   double wheel_radius_;
-  double chassis_length_;
+  double robot_axis_to_axis_length;
   double last_time_;
   double linear_multiplier_;
   double angular_multiplier_;
