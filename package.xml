@@ -6,7 +6,7 @@
 
   <maintainer email="l.chojnacki@agribot.eu">Łukasz Chojnacki</maintainer>
 
-  <license>Proprietary</license>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 
